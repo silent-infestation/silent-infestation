@@ -1,0 +1,34 @@
+name: 'silen2festation'
+services:
+  website:
+    container_name: website_silen2festation
+    build: ./website_next
+    restart: always
+    env_file: ./website_next/.env
+    networks:
+      - silen2festation
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./website_next:/usr/src/app
+  database:
+    container_name: db_silen2festation
+    build: ./psql_database
+    restart: always
+    ports:
+      - "5499:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_secure_password
+      POSTGRES_DB: silen2festation_db
+    networks:
+      - silen2festation
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+networks:
+  silen2festation:
+
+
+volumes:
+  postgres_data:
