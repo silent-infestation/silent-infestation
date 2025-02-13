@@ -2,16 +2,7 @@ import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import styles from "./Input.module.css";
 
-const Input = ({
-  ariaLabel,
-  type,
-  placeholder,
-  icon,
-  name,
-  value,
-  onChange,
-  required,
-}) => {
+const Input = ({ ariaLabel, type, placeholder, icon, name, value, onChange, required }) => {
   // Créer une référence pour l'élément input
   const inputRef = useRef(null);
 
