@@ -20,6 +20,7 @@ module.exports = {
         default: "var(--box-shadow)",
         hover: "var(--box-shadow-hover)",
         active: "var(--box-shadow-active)",
+        title: "2px 2px 5px rgba(0, 0, 0, 0.15)",
       },
       backgroundColor: {
         default: "var(--background-color)",
@@ -28,7 +29,18 @@ module.exports = {
         default: "#ccc",
         focusWithin: "rgba(68, 68, 68, 0.5)",
       },
+      textShadow: {
+        default: "3px 3px 6px rgba(0, 0, 0, 0.4)",
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".text-shadow": {
+          "text-shadow": "3px 3px 6px rgba(0, 0, 0, 0.4)",
+        },
+      });
+    },
+  ],
 };

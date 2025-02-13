@@ -59,6 +59,7 @@ const Contact = () => {
     }
 
     console.log("Form submitted successfully", data);
+    // Envoyer les données du formulaire à l'API
 
     // Masquer l'alerte après 3 secondes
     setTimeout(() => {
@@ -77,10 +78,13 @@ const Contact = () => {
         isAlertErrorMessage={alert.isAlertErrorMessage}
         alertTitle={alert.alertTitle}
       />
-      <div className="flex flex-col items-center p-4 gap-20">
-        <h1>{locales.contact.title}</h1>
+      <div className="flex flex-col items-center gap-20 p-4 sm:p-20">
+        <h1
+          className="text-shadow text-4xl font-bold text-gray-900"
+          dangerouslySetInnerHTML={{ __html: locales.contact.title }}
+        />
         <p>{locales.contact.description}</p>
-        <div className="flex flex-col w-[20rem] sm:w-[28rem] md:w-[40rem]">
+        <div className="flex w-full max-w-2xl flex-col p-4">
           {/* Formulaire */}
           <FormTemplate
             fields={contactFields}

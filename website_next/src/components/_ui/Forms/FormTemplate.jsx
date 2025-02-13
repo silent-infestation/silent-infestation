@@ -10,7 +10,7 @@ const FormTemplate = ({ fields, onSubmit, submitButtonText = "Submit", submitBut
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid w-full grid-cols-1 gap-6 rounded-lg p-4">
+    <form onSubmit={handleSubmit} className="grid w-full grid-cols-1 gap-6 rounded-lg">
       {fields.map(({ name, type, placeholder, label, required }) => (
         <div key={name} className="flex flex-col">
           {type === "textarea" ? (
