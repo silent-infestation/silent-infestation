@@ -6,6 +6,7 @@ import "aos/dist/aos.css"; // Importer le style AOS
 import { FaStar } from "react-icons/fa"; // Import d'une icône pour le rôle
 
 const teamMembers = [
+<<<<<<< HEAD
   { name: "Thibault Jager", role: "CEO", image: "/tibau.jpg", description: "Visionnaire et leader inspirant, Thibaut dirige l'entreprise avec passion et détermination." },
   { name: "Antoine Beaudoux", role: "CTO", image: "/antoine.jpeg", description: "Expert en technologies, Antoine supervise les innovations techniques." },
   { name: "Hugo Kerivel Larrivière", role: "Designer", image: "/hugo.jpeg", description: "Créatif et passionné, Hugo conçoit des designs uniques et élégants." },
@@ -15,6 +16,17 @@ const teamMembers = [
   { name: "Morgan FRARY", role: "HR Manager", image: "/morgan.jpeg", description: "Expert en ressources humaines, Morgan veille au bien-être de l'équipe." },
   { name: "Hajer Braham", role: "Support", image: "/hajer.jpeg", description: "À l'écoute des clients, Hajer assure un support efficace et rapide." },
   { name: "Sarah Delahaye", role: "Support", image: "/sarah.jpeg", description: "Sarah est toujours disponible pour aider les clients avec patience et efficacité." },
+=======
+  { name: "Thibaut Jager", role: "CEO", image: "/images/team/tibau.webp", description: "Visionnaire et leader inspirant, Thibaut dirige l'entreprise avec passion et détermination." },
+  { name: "Antoine Beaudoux", role: "CTO", image: "/images/team/antoine.webp", description: "Expert en technologies, Antoine supervise les innovations techniques." },
+  { name: "Hugo Kerivel Larrivière", role: "Designer", image: "/images/team/hugo.webp", description: "Créatif et passionné, Hugo conçoit des designs uniques et élégants." },
+  { name: "Lucas Laruelle", role: "Développeur", image: "/images/team/lucas.webp", description: "Développeur talentueux, Lucas code avec rigueur et ingéniosité." },
+  { name: "Nicolas Corlan", role: "Marketing", image: "/images/team/nico.webp", description: "Stratège marketing, Nicolas donne vie à la marque grâce à ses idées percutantes." },
+  { name: "Edmond Loembe", role: "Product Manager", image: "/images/team/edmond.webp", description: "Edmond gère les produits avec une approche centrée sur l'utilisateur." },
+  { name: "Morgan FRARY", role: "HR Manager", image: "/images/team/morgan.webp", description: "Expert en ressources humaines, Morgan veille au bien-être de l'équipe." },
+  { name: "Hajer Braham", role: "Support", image: "/images/team/hajer.webp", description: "À l'écoute des clients, Hajer assure un support efficace et rapide." },
+  { name: "Sarah Delahaye", role: "Support", image: "/images/team/sarah.webp", description: "Sarah est toujours disponible pour aider les clients avec patience et efficacité." },
+>>>>>>> 06eefea63959d3cea988969ce58b47568af76bb4
 ];
 
 export default function Team() {

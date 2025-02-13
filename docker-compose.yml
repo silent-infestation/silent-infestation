@@ -8,7 +8,7 @@ services:
     networks:
       - silen2festation
     ports:
-      - "3000:3000"
+      - "23000:3000"
     volumes:
       - ./website_next:/usr/src/app
   database:
