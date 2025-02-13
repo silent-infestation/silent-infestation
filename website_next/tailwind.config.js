@@ -1,3 +1,6 @@
+const { hover } = require("framer-motion");
+const { element } = require("prop-types");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -8,14 +11,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        "grey-500": "#808080",
         background: "var(--background)",
         foreground: "var(--foreground)",
+        element: "var(--background-element)",
       },
       boxShadow: {
-        custom: "var(--box-shadow)",
+        default: "var(--box-shadow)",
+        hover: "var(--box-shadow-hover)",
+        active: "var(--box-shadow-active)",
       },
       backgroundColor: {
-        custom: "var(--background-color)",
+        default: "var(--background-color)",
+      },
+      borderColor: {
+        default: "#ccc",
+        focusWithin: "rgba(68, 68, 68, 0.5)",
       },
     },
   },
