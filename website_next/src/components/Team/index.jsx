@@ -6,7 +6,7 @@ import "aos/dist/aos.css"; // Importer le style AOS
 import { FaStar } from "react-icons/fa"; // Import d'une icône pour le rôle
 
 const teamMembers = [
-  { name: "Thibaut Jager", role: "CEO", image: "/tibau.jpg", description: "Visionnaire et leader inspirant, Thibaut dirige l'entreprise avec passion et détermination." },
+  { name: "Thibault Jager", role: "CEO", image: "/tibau.jpg", description: "Visionnaire et leader inspirant, Thibaut dirige l'entreprise avec passion et détermination." },
   { name: "Antoine Beaudoux", role: "CTO", image: "/antoine.jpeg", description: "Expert en technologies, Antoine supervise les innovations techniques." },
   { name: "Hugo Kerivel Larrivière", role: "Designer", image: "/hugo.jpeg", description: "Créatif et passionné, Hugo conçoit des designs uniques et élégants." },
   { name: "Lucas Laruelle", role: "Développeur", image: "/lucas.jpeg", description: "Développeur talentueux, Lucas code avec rigueur et ingéniosité." },
@@ -18,7 +18,7 @@ const teamMembers = [
 ];
 
 export default function Team() {
-  // Initialisation d'AOS après le premier rendu du composant
+  // Initi import Team from '../Team'alisation d'AOS après le premier rendu du composant
   useEffect(() => {
     AOS.init({
       duration: 1000, // Durée de l'animation
