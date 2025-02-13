@@ -5,7 +5,7 @@ const swaggerDocument = {
     info: {
       title: 'Mon API Next.js',
       version: '1.0.0',
-      description: 'Documentation de mon API Next.js',
+      description: 'Silent Infestion Api Doc',
     },
     servers: [
       {
