@@ -35,11 +35,13 @@
     "jsonwebtoken": "^9.0.2",
     "next": "15.0.1",
     "next-connect": "^1.0.0",
+    "next-swagger-doc": "^0.4.1",
     "node-fetch": "^2.7.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.4.0"
+    "react-icons": "^5.4.0",
+    "swagger-ui-react": "^5.18.3"
   },
   "devDependencies": {
     "eslint": "^9.20.0",
