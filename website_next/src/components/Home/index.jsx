@@ -1,6 +1,6 @@
 import React from 'react';
 import HomeUnlogged from './HomeUnlogged';
-import Team from '../Team';
+import Team from './index.jsx';
 
 export default function Home() {
     return (

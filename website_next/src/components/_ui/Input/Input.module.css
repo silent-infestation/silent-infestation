@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: var(--border-element);
   border-radius: 4px;
   box-shadow: var(--box-shadow);
   background: var(--background-element);
@@ -14,7 +14,7 @@
 }
 .inputContainer:focus-within {
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(68, 68, 68, 0.5);
+  border: var(--border-focus);
 }
 
 .input {
@@ -30,5 +30,5 @@
   border: none;
 }
 .input::placeholder {
-  color: grey;
+  color: #808080;
 }

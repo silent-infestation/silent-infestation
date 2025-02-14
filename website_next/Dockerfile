@@ -25,12 +25,6 @@ RUN apk add --no-cache \
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY . .
 
-COPY docker-crontab /etc/cron.d/docker-crontab
-RUN chmod 0644 /etc/cron.d/docker-crontab && crontab /etc/cron.d/docker-crontab
-
-RUN git clone --depth=1 https://gitlab.com/exploit-database/exploitdb.git /opt/exploitdb
-RUN ln -sf /opt/exploitdb/searchsploit /usr/local/bin/searchsploit
-
 EXPOSE 3000
 
 CMD ["npm", "run", "dev"]
