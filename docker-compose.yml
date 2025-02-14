@@ -16,11 +16,11 @@ services:
     build: ./psql_database
     restart: always
     ports:
-      - "5499:5432"
+      - "25432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: your_secure_password
-      POSTGRES_DB: silen2festation_db
+      POSTGRES_USER: pascal_parasite
+      POSTGRES_PASSWORD: bugman_
+      POSTGRES_DB: dev_silen2festation
     networks:
       - silen2festation
     volumes:
