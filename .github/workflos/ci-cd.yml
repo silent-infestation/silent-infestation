@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install Dependencies
+      working-directory: ./website_next
+      run: npm install
+        
+    - name: Run Tests
+      working-directory: ./website_next
+      run: npm test
+      
+    - name: Build Docker Compose
+      run: docker-compose build
+      
+    - name: Test Docker Compose
+      run: |
+        docker-compose up -d
+        sleep 30  # Attendre que les services démarrent
+        curl http://localhost:23000 || exit 1  # Test simple de l'application
+        docker-compose down
+        
+    - name: Create Jira Comment
+      if: github.event_name == 'pull_request'
+      uses: atlassian/gajira-comment@v3
+      with:
+        issue: ${{ github.event.pull_request.title }}
+        comment: |
+          Build Status: ${{ job.status }}
+          PR: ${{ github.event.pull_request.html_url }}
