@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import FormTemplate from "../_ui/Forms/FormTemplate";
-import Alert from "../Alerte/Alerte";
+import Alert from "../Alert/Alert";
 import locales from "@/locales";
 
 const Contact = () => {
