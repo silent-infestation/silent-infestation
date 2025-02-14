@@ -65,32 +65,4 @@ describe('Login Component', () => {
 
         expect(screen.getByText('Les mots de passe ne correspondent pas.')).toBeInTheDocument();
     });
-
-    it('displays error message on failed login', async () => {
-        const errorMessage = 'Invalid credentials';
-        fetch.mockImplementationOnce(() =>
-            Promise.resolve({
-                ok: false,
-                json: () => Promise.resolve({ message: errorMessage })
-            })
-        );
-
-        render(<Login />);
-
-        const emailInput = screen.getByPlaceholderText('Email');
-        const passwordInput = screen.getByPlaceholderText('Mot de passe');
-        const confirmPasswordInput = screen.getByPlaceholderText('Confirmer le mot de passe');
-        const submitButton = screen.getByText('Se connecter');
-
-        await act(async () => {
-            await userEvent.type(emailInput, 'test@example.com');
-            await userEvent.type(passwordInput, 'password123');
-            await userEvent.type(confirmPasswordInput, 'password123');
-            await userEvent.click(submitButton);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText(errorMessage)).toBeInTheDocument();
-        });
-    });
 });

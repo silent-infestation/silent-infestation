@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import Navbar from './';
 
 // Mock des composants Next.js
