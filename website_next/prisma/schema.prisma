@@ -27,3 +27,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Site {
+  id          Int     @id @default(autoincrement())
+  id_user     Int
+  url_site    String  @unique
+  auth_key    String  @unique
+  auth_url    String  @unique
+  auth_email  String
+}
