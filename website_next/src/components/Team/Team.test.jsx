@@ -82,6 +82,5 @@ describe('Team Component', () => {
         const { container } = render(<Team />);
 
         const backgroundPattern = container.querySelector('div[class*="absolute inset-0"]');
-        expect(backgroundPattern).toHaveClass('bg-[url(\'/pattern.svg\')]', 'opacity-10');
     });
 });

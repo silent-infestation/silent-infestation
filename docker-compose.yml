@@ -16,7 +16,7 @@ services:
     build: ./psql_database
     restart: always
     ports:
-      - "5499:5432"
+      - "25432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: your_secure_password

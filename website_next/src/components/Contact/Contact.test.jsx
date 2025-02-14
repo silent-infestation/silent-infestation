@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import Contact from './';
+import Contact from '.';
 
 // Mock des composants externes
 jest.mock('../_ui/Forms/FormTemplate', () => {
