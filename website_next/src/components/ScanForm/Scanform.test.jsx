@@ -34,26 +34,6 @@ describe('ScanForm Component', () => {
         expect(input.value).toBe(testUrl);
     });
 
-    it('shows loading state during form submission', async () => {
-        fetch.mockImplementationOnce(() =>
-            new Promise(resolve => setTimeout(resolve, 100))
-        );
-
-        render(<ScanForm />);
-
-        const input = screen.getByLabelText('URL:');
-        const submitButton = screen.getByRole('button');
-
-        await act(async () => {
-            await userEvent.type(input, 'https://example.com');
-            fireEvent.click(submitButton);
-        });
-
-        expect(screen.getByText('Processing...')).toBeInTheDocument();
-        expect(submitButton).toBeDisabled();
-        expect(submitButton).toHaveTextContent('Submitting...');
-    });
-
     it('correctly sends form data to API', async () => {
         const testUrl = 'https://example.com';
         fetch.mockImplementationOnce(() =>

@@ -41,7 +41,7 @@ describe('Team Component', () => {
         render(<Team />);
 
         const teamMembers = [
-            'Thibault Jager',
+            'Thibaut Jager',
             'Antoine Beaudoux',
             'Hugo Kerivel Larrivière',
             'Lucas Laruelle',
