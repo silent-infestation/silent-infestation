@@ -4,48 +4,66 @@ env:
   JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
   JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
   JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  DEV_DB_NAME: ${{ secrets.DEV_DB_NAME }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DATABASE_DOCKER_URL: ${{ secrets.DATABASE_DOCKER_URL }}
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
 
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Install Dependencies
-      working-directory: ./website_next
-      run: npm install
-        
-    - name: Run Tests
-      working-directory: ./website_next
-      run: npm test
-      
-    - name: Build Docker Compose
-      run: docker-compose build
-      
-    - name: Test Docker Compose
-      run: |
-        docker-compose up -d
-        sleep 30
-        curl http://localhost:23000 || exit 1
-        docker-compose down
-        
-    - name: Create Jira Comment
-      if: github.event_name == 'pull_request'
-      uses: atlassian/gajira-comment@v3
-      with:
-        issue: ${{ github.event.pull_request.title }}
-        comment: |
-          Build Status: ${{ job.status }}
-          PR: ${{ github.event.pull_request.html_url }}
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Create .env file
+        working-directory: ./website_next
+        run: |
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "DATABASE_DOCKER_URL=${{ secrets.DATABASE_DOCKER_URL }}" >> .env
+
+      - name: Install Dependencies
+        working-directory: ./website_next
+        run: npm install
+
+      - name: Run Tests
+        working-directory: ./website_next
+        run: npm test
+
+      - name: Build Docker Compose
+        run: docker-compose build
+
+      - name: Test Docker Compose
+        run: |
+          docker-compose up -d
+          sleep 30
+          curl http://localhost:23000 || exit 1
+          docker-compose down
+
+      - name: Create Jira Comment
+        if: github.event_name == 'pull_request'
+        uses: atlassian/gajira-comment@v3
+        with:
+          issue: ${{ github.event.pull_request.title }}
+          comment: |
+            Build Status: ${{ job.status }}
+            PR: ${{ github.event.pull_request.html_url }}
