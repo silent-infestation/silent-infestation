@@ -1,5 +1,4 @@
 name: CI/CD Pipeline
-
 env:
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
@@ -14,6 +13,7 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+    types: [opened, synchronize, reopened]
 
 jobs:
   test-and-build:
@@ -59,7 +59,7 @@ jobs:
         uses: atlassian/gajira-login@v3
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ JIRA_USER_MAIL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_MAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
 
       - name: Create Jira Comment
