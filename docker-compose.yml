@@ -1,4 +1,4 @@
-name: 'silen2festation'
+name: "silen2festation"
 services:
   website:
     container_name: website_silen2festation
@@ -8,7 +8,7 @@ services:
     networks:
       - silen2festation
     ports:
-      - "23000:3000"
+      - "${PORT_FRONT}:3000"
     volumes:
       - ./website_next:/usr/src/app
   database:
@@ -18,9 +18,9 @@ services:
     ports:
       - "25432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: your_secure_password
-      POSTGRES_DB: silen2festation_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DEV_DB_NAME}
     networks:
       - silen2festation
     volumes:
@@ -28,7 +28,6 @@ services:
 
 networks:
   silen2festation:
-
 
 volumes:
   postgres_data:
