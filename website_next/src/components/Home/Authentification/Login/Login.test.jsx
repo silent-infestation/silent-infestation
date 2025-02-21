@@ -1,23 +1,23 @@
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Login from './';
 
-// Mock des modules Next.js
 jest.mock('next/navigation', () => ({
     useRouter: () => ({
         push: jest.fn()
     })
 }));
 
-// Mock de fetch
 global.fetch = jest.fn();
 
 describe('Login Component', () => {
+    let user;
+
     beforeEach(() => {
-        // Réinitialisation des mocks avant chaque test
         fetch.mockClear();
         jest.clearAllMocks();
+        user = userEvent.setup();
     });
 
     it('renders login form with all fields', () => {
@@ -37,15 +37,13 @@ describe('Login Component', () => {
         const passwordInput = screen.getByPlaceholderText('Mot de passe');
         const confirmPasswordInput = screen.getByPlaceholderText('Confirmer le mot de passe');
 
-        await act(async () => {
-            await userEvent.type(emailInput, 'test@example.com');
-            await userEvent.type(passwordInput, 'password123');
-            await userEvent.type(confirmPasswordInput, 'password123');
-        });
+        await user.type(emailInput, 'test@example.com');
+        await user.type(passwordInput, 'password123');
+        await user.type(confirmPasswordInput, 'password123');
 
-        expect(emailInput.value).toBe('test@example.com');
-        expect(passwordInput.value).toBe('password123');
-        expect(confirmPasswordInput.value).toBe('password123');
+        expect(emailInput).toHaveValue('test@example.com');
+        expect(passwordInput).toHaveValue('password123');
+        expect(confirmPasswordInput).toHaveValue('password123');
     });
 
     it('shows error message when passwords do not match', async () => {
@@ -56,14 +54,14 @@ describe('Login Component', () => {
         const confirmPasswordInput = screen.getByPlaceholderText('Confirmer le mot de passe');
         const submitButton = screen.getByText('Se connecter');
 
-        await act(async () => {
-            await userEvent.type(emailInput, 'test@example.com');
-            await userEvent.type(passwordInput, 'password123');
-            await userEvent.type(confirmPasswordInput, 'different');
-            await userEvent.click(submitButton);
-        });
+        await user.type(emailInput, 'test@example.com');
+        await user.type(passwordInput, 'password123');
+        await user.type(confirmPasswordInput, 'different');
+        await user.click(submitButton);
 
-        expect(screen.getByText('Les mots de passe ne correspondent pas.')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Les mots de passe ne correspondent pas.')).toBeInTheDocument();
+        });
     });
 
     it('displays error message on failed login', async () => {
@@ -82,15 +80,38 @@ describe('Login Component', () => {
         const confirmPasswordInput = screen.getByPlaceholderText('Confirmer le mot de passe');
         const submitButton = screen.getByText('Se connecter');
 
-        await act(async () => {
-            await userEvent.type(emailInput, 'test@example.com');
-            await userEvent.type(passwordInput, 'password123');
-            await userEvent.type(confirmPasswordInput, 'password123');
-            await userEvent.click(submitButton);
-        });
+        await user.type(emailInput, 'test@example.com');
+        await user.type(passwordInput, 'password123');
+        await user.type(confirmPasswordInput, 'password123');
+        await user.click(submitButton);
 
         await waitFor(() => {
             expect(screen.getByText(errorMessage)).toBeInTheDocument();
+        });
+    });
+
+    it('redirects to dashboard on successful login', async () => {
+        fetch.mockImplementationOnce(() =>
+            Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({})
+            })
+        );
+
+        render(<Login />);
+
+        const emailInput = screen.getByPlaceholderText('Email');
+        const passwordInput = screen.getByPlaceholderText('Mot de passe');
+        const confirmPasswordInput = screen.getByPlaceholderText('Confirmer le mot de passe');
+        const submitButton = screen.getByText('Se connecter');
+
+        await user.type(emailInput, 'test@example.com');
+        await user.type(passwordInput, 'password123');
+        await user.type(confirmPasswordInput, 'password123');
+        await user.click(submitButton);
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith('/api/auth/login', expect.any(Object));
         });
     });
 });

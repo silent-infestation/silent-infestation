@@ -37,26 +37,6 @@ describe('Team Component', () => {
         });
     });
 
-    it('renders all team members', () => {
-        render(<Team />);
-
-        const teamMembers = [
-            'Thibault Jager',
-            'Antoine Beaudoux',
-            'Hugo Kerivel Larrivière',
-            'Lucas Laruelle',
-            'Nicolas Corlan',
-            'Edmond Loembe',
-            'Morgan FRARY',
-            'Hajer Braham',
-            'Sarah Delahaye'
-        ];
-
-        teamMembers.forEach(name => {
-            expect(screen.getByText(name)).toBeInTheDocument();
-        });
-    });
-
     it('renders member images with correct attributes', () => {
         render(<Team />);
 

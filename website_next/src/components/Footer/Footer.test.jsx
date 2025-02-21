@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import Footer from './';
+import Footer from '.';
 
 // Mock next/link car nous ne voulons pas tester la navigation réelle
 jest.mock('next/link', () => {

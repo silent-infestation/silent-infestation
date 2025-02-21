@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
+  const router = useRouter(); // Initialisation du router
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,21 +24,25 @@ const Login = () => {
       return;
     }
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-      }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      // Redirection vers le tableau de bord
-      router.push("/dashboard");
-    } else {
-      setMessage(data.message);
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        setMessage(data.message || "Une erreur est survenue");
+      }
+    } catch (error) {
+      setMessage("Une erreur est survenue lors de la connexion");
     }
   };
 

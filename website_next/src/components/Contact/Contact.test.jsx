@@ -27,13 +27,6 @@ jest.mock('../_ui/Forms/FormTemplate', () => {
   };
 });
 
-jest.mock('../Alerte/Alerte', () => {
-  return function MockAlert({ isShowingAlert, alertTitle }) {
-    if (!isShowingAlert) return null;
-    return <div data-testid="alert">{alertTitle}</div>;
-  };
-});
-
 jest.mock('@/locales', () => ({
   contact: {
     title: 'Contact Title',
