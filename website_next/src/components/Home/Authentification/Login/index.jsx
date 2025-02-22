@@ -1,16 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Import du router
 
 const Login = () => {
   const router = useRouter(); // Initialisation du router
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
+    email: '',
+    password: '',
   });
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,47 +18,37 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      setMessage("Les mots de passe ne correspondent pas.");
-      return;
-    }
-
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        router.push("/dashboard");
+        router.push('/'); // Redirection après succès
       } else {
-        setMessage(data.message || "Une erreur est survenue");
+        setMessage(data.message || 'Erreur lors de la connexion');
       }
     } catch (error) {
-      setMessage("Une erreur est survenue lors de la connexion");
+      setMessage('Erreur réseau, veuillez réessayer.');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#DCF0FF] text-[#00202B]">
-      <h1 className="text-2xl font-bold mb-6">Connexion</h1>
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col w-80 space-y-4"
-      >
+    <div className="flex h-screen flex-col items-center justify-center bg-[#DCF0FF] text-[#00202B]">
+      <h1 className="mb-6 text-2xl font-bold">Connexion</h1>
+      <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-4">
         <input
           type="email"
           name="email"
           placeholder="Email"
           value={formData.email}
           onChange={handleChange}
-          className="p-3 rounded border border-gray-300 bg-[#f8f2e2] text-[#00202B] placeholder-[#00202B] shadow-xl"
+          className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+          required
         />
         <input
           type="password"
@@ -67,34 +56,20 @@ const Login = () => {
           placeholder="Mot de passe"
           value={formData.password}
           onChange={handleChange}
-          className="p-3 rounded border border-gray-300 bg-[#f8f2e2] text-[#00202B] placeholder-[#00202B] shadow-xl"
+          className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+          required
         />
-        <input
-          type="password"
-          name="confirmPassword"
-          placeholder="Confirmer le mot de passe"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          className="p-3 rounded border border-gray-300 bg-[#f8f2e2] text-[#00202B] placeholder-[#00202B] shadow-xl"
-        />
-        <div className="flex justify-center items-center my-4">
-          <span className="text-2xl">↓</span>
-        </div>
         <button
           type="submit"
-          className="p-3 bg-[#00202B] text-[#f8f2e2] rounded hover:bg-[#003345] transition shadow-xl"
+          className="rounded bg-[#00202B] p-3 text-[#f8f2e2] shadow-xl transition hover:bg-[#003345]"
         >
           Se connecter
         </button>
       </form>
-      <button
-        className="mt-4 p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition shadow-xl"
-      >
+      <button className="mt-4 rounded bg-blue-500 p-3 text-white shadow-xl transition hover:bg-blue-600">
         Se connecter avec Google
       </button>
-      {message && (
-        <p className="mt-4 text-red-500 text-sm">{message}</p>
-      )}
+      {message && <p className="mt-4 text-sm text-red-500">{message}</p>}
     </div>
   );
 };

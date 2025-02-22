@@ -1,16 +1,5 @@
 name: "silen2festation"
 services:
-  website:
-    container_name: website_silen2festation
-    build: ./website_next
-    restart: always
-    env_file: ./website_next/.env
-    networks:
-      - silen2festation
-    ports:
-      - "${PORT_FRONT}:3000"
-    volumes:
-      - ./website_next:/usr/src/app
   database:
     container_name: db_silen2festation
     build: ./psql_database
@@ -25,6 +14,20 @@ services:
       - silen2festation
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  website:
+    depends_on:
+      - database
+    container_name: website_silen2festation
+    build: ./website_next
+    restart: always
+    env_file: ./website_next/.env
+    networks:
+      - silen2festation
+    ports:
+      - "${PORT_FRONT}:3000"
+    volumes:
+      - ./website_next:/usr/src/app
 
 networks:
   silen2festation:

@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 
 COPY package.json .
 RUN npm install
+
+COPY . .
+
 # Changer pour npm run build pour la production
 
 # Exécution
@@ -23,7 +26,6 @@ RUN apk add --no-cache \
     rm -rf /var/cache/apk/*
 
 COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY . .
 
 EXPOSE 3000
 
