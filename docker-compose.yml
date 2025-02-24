@@ -22,7 +22,7 @@ services:
     working_dir: /usr/src/app
     build: ./website_next
     restart: always
-    env_file: ./website_next/.env.development
+    env_file: ./website_next/.env.docker
 
     networks:
       - silen2festation

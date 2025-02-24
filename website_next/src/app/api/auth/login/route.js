@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { compare } from 'bcrypt';
+import { compare } from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 import { sign } from 'jsonwebtoken';
 

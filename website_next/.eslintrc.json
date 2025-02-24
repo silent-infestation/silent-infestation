@@ -2,7 +2,10 @@
   "root": true,
   "env": {
     "browser": true,
-    "es2021": true
+    "es2021": true,
+    "node": true,
+    "commonjs": true,
+    "jest": true
   },
   "extends": [
     "eslint:recommended",
@@ -11,13 +14,14 @@
     "prettier",
     "plugin:storybook/recommended"
   ],
-  "plugins": [
-    "prettier"
-  ],
+  "plugins": ["prettier"],
   "rules": {
-    "prettier/prettier": [
-      "error"
-    ],
-    "react/react-in-jsx-scope": "off"
+    "prettier/prettier": ["error"],
+    "react/react-in-jsx-scope": "off",
+    "no-unused-vars": ["error", { "varsIgnorePattern": "^_" }],
+    "react/prop-types": "off"
+  },
+  "parserOptions": {
+    "sourceType": "module"
   }
 }
