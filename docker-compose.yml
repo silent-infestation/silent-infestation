@@ -19,15 +19,19 @@ services:
     depends_on:
       - database
     container_name: website_silen2festation
+    working_dir: /usr/src/app
     build: ./website_next
     restart: always
-    env_file: ./website_next/.env
+    env_file: ./website_next/.env.development
+
     networks:
       - silen2festation
     ports:
       - "${PORT_FRONT}:3000"
     volumes:
       - ./website_next:/usr/src/app
+    command: >
+      sh -c "./wait-for-it.sh db_silen2festation:5432 -- npx prisma migrate dev && npx prisma db seed && npm run dev"
 
 networks:
   silen2festation:

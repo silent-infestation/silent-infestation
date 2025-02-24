@@ -10,20 +10,12 @@ RUN npm install
 
 COPY . .
 
-# Changer pour npm run build pour la production
-
 # Exécution
 FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache \
-    dcron \
-    nmap \
-    git \
-    bash \
-    chromium && \
-    rm -rf /var/cache/apk/*
+RUN apk update && apk add --no-cache bash
 
 COPY --from=build /usr/src/app/node_modules ./node_modules
 
