@@ -38,6 +38,7 @@ const Register = () => {
         setMessage(`Erreur : ${data.message || 'Une erreur est survenue.'}`);
       }
     } catch (error) {
+      console.error(error);
       setMessage('Impossible de contacter le serveur.');
     }
   };

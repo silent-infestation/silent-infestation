@@ -33,7 +33,8 @@ const Login = () => {
         setMessage(data.message || 'Erreur lors de la connexion');
       }
     } catch (error) {
-      setMessage(error.message);
+      console.error(error);
+      setMessage('Impossible de contacter le serveur.');
     }
   };
 
