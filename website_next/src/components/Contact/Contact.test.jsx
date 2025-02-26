@@ -4,7 +4,7 @@ import Contact from '.';
 
 // Mock des composants externes
 jest.mock('../_ui/Forms/FormTemplate', () => {
-  return function MockFormTemplate({ fields, onSubmit }) {
+  return function MockFormTemplate({ onSubmit }) {
     return (
       <form
         data-testid="form-template"

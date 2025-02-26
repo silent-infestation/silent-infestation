@@ -3,10 +3,10 @@ import HomeUnlogged from './HomeUnlogged';
 import Team from './index.jsx';
 
 export default function Home() {
-    return (
-        <>
-            <HomeUnlogged />
-            <Team />
-        </>
-    );
+  return (
+    <>
+      <HomeUnlogged />
+      <Team />
+    </>
+  );
 }

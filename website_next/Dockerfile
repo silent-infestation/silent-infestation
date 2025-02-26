@@ -7,23 +7,17 @@ WORKDIR /usr/src/app
 
 COPY package.json .
 RUN npm install
-# Changer pour npm run build pour la production
+
+COPY . .
 
 # Exécution
 FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache \
-    dcron \
-    nmap \
-    git \
-    bash \
-    chromium && \
-    rm -rf /var/cache/apk/*
+RUN apk update && apk add --no-cache bash
 
 COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY . .
 
 EXPOSE 3000
 

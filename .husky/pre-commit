@@ -1,0 +1,13 @@
+#!/bin/sh
+# Change to the directory where your package.json is located if necessary
+# cd path/to/your/project
+echo "Running ESLint..."
+cd website_next && npm run lint
+
+if [ $? -ne 0 ]; then
+  echo "ESLint found errors. Commit aborted."
+  exit 1
+fi
+
+echo "ESLint passed. Continuing with commit."
+exit 0

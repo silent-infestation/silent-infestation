@@ -1,22 +1,28 @@
-import { NextResponse } from "next/server";
-import { hash } from "bcrypt";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from 'next/server';
+import { hash } from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function POST(req) {
-  console.log("POST /api/auth/register");
+  console.log('POST /api/auth/register');
 
   try {
     const reqBody = await req.json();
-    const { email, password, name, surname, age, society } = reqBody;
+    let { email, password, name, surname, age, society } = reqBody;
 
     // Vérification des champs obligatoires
     if (!email || !password || !name || !surname || !age || !society) {
       return NextResponse.json(
-        { message: "Tous les champs sont requis (email, username, password)." },
+        { message: 'Tous les champs sont requis (email, password, name, surname, age, society).' },
         { status: 400 }
       );
+    }
+
+    // Conversion de l'âge en entier
+    age = parseInt(age, 10);
+    if (isNaN(age)) {
+      return NextResponse.json({ message: "L'âge doit être un nombre valide." }, { status: 400 });
     }
 
     // Vérification si l'utilisateur existe déjà
@@ -25,10 +31,7 @@ export async function POST(req) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { message: "Email déjà utilisé." },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Email déjà utilisé.' }, { status: 400 });
     }
 
     // Hachage du mot de passe
@@ -38,23 +41,24 @@ export async function POST(req) {
     const newUser = await prisma.user.create({
       data: {
         email,
-        name,
         password: hashedPassword, // Stockage du mot de passe haché
+        name,
+        surname,
+        age,
+        society,
+        role: 'guest',
       },
     });
 
-    console.log("Nouvel utilisateur créé :", newUser);
+    console.log('Nouvel utilisateur créé :', newUser);
 
     return NextResponse.json(
-      { message: "Utilisateur créé avec succès.", user: { email: newUser.email } },
+      { message: 'Utilisateur créé avec succès.', user: { email: newUser.email } },
       { status: 201 }
     );
   } catch (error) {
     console.error("Erreur lors de la création de l'utilisateur :", error);
 
-    return NextResponse.json(
-      { message: "Erreur serveur : " + error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Erreur serveur : ' + error.message }, { status: 500 });
   }
 }
