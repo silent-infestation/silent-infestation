@@ -10,9 +10,12 @@ describe('Register Component', () => {
   beforeEach(() => {
     fetch.mockClear();
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   it('renders registration form with all required fields', () => {
     render(<Register />);
