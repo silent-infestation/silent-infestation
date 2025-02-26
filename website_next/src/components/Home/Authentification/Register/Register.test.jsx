@@ -12,6 +12,8 @@ describe('Register Component', () => {
     jest.clearAllMocks();
   });
 
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+
   it('renders registration form with all required fields', () => {
     render(<Register />);
 
