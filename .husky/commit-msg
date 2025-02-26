@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "Checking the commit message..."
+npx --no-install commitlint --edit "$1"
+
+if [ $? -eq 0 ]; then
+    echo "Commit message is valid."
+else
+    echo "Commit message does not comply with the standards."
+    echo "For more information on commit message standards, visit https://conventionalcommits.org"
+    exit 1
+fi
