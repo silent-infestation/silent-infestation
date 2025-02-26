@@ -23,25 +23,22 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      console.log('formData', formData);
-
+      console.log(formData);
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      console.log('res', res);
-
       const data = await res.json();
 
       if (res.ok) {
         setMessage(`Succès : ${data.message}`);
       } else {
-        setMessage(`Erreur : ${data.message}`);
+        setMessage(`Erreur : ${data.message || 'Une erreur est survenue.'}`);
       }
     } catch (error) {
-      setMessage("Erreur lors de l'inscription. Veuillez réessayer.");
+      setMessage('Impossible de contacter le serveur.');
     }
   };
 
@@ -110,7 +107,7 @@ const Register = () => {
           type="submit"
           className="rounded bg-[#00202B] p-3 text-[#f8f2e2] shadow-xl transition hover:bg-[#003345]"
         >
-          S'inscrire
+          S&apos;inscrire
         </button>
       </form>
       {message && <p className="mt-4 text-sm text-red-500">{message}</p>}

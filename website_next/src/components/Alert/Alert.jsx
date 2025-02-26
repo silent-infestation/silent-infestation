@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 
 export default function Alert({ isShowingAlert, isAlertErrorMessage, alertTitle }) {
-
   return (
     <AnimatePresence>
       {isShowingAlert && (

@@ -19,7 +19,8 @@
     "prettier/prettier": ["error"],
     "react/react-in-jsx-scope": "off",
     "no-unused-vars": ["error", { "varsIgnorePattern": "^_" }],
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+    "no-console": "warn"
   },
   "parserOptions": {
     "sourceType": "module"

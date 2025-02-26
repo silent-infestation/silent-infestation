@@ -1,7 +1,7 @@
-import React from "react";
-import Input from "../Input/InputForm";
+import React from 'react';
+import Input from '../Input/InputForm';
 
-const FormTemplate = ({ fields, onSubmit, submitButtonText = "Submit", submitButton }) => {
+const FormTemplate = ({ fields, onSubmit, submitButtonText = 'Submit', submitButton }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -13,13 +13,13 @@ const FormTemplate = ({ fields, onSubmit, submitButtonText = "Submit", submitBut
     <form onSubmit={handleSubmit} className="grid w-full grid-cols-1 gap-6 rounded-lg">
       {fields.map(({ name, type, placeholder, label, required }) => (
         <div key={name} className="flex flex-col">
-          {type === "textarea" ? (
+          {type === 'textarea' ? (
             <textarea
               name={name}
               aria-label={label}
               placeholder={placeholder}
               required={required}
-              className="hover:shadow-hover focus-within:shadow-hover focus-within:border-focusWithin bg-element border-default shadow-default flex h-48 items-center rounded border p-2 placeholder-gray-500 shadow-custom outline-none transition-all duration-200"
+              className="shadow-custom flex h-48 items-center rounded border border-default bg-element p-2 placeholder-gray-500 shadow-default outline-none transition-all duration-200 focus-within:border-focusWithin focus-within:shadow-hover hover:shadow-hover"
             />
           ) : (
             <Input
@@ -39,7 +39,7 @@ const FormTemplate = ({ fields, onSubmit, submitButtonText = "Submit", submitBut
       ) : (
         <button
           type="submit"
-          className="hover:shadow-hover focus-within:shadow-hover focus-within:border-focus bg-element border-default shadow-default text- active:shadow-active flex items-center justify-center rounded border p-2 text-gray-700 outline-none transition-all duration-200"
+          className="focus-within:border-focus text- flex items-center justify-center rounded border border-default bg-element p-2 text-gray-700 shadow-default outline-none transition-all duration-200 focus-within:shadow-hover hover:shadow-hover active:shadow-active"
         >
           {submitButtonText}
         </button>

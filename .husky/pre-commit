@@ -1,14 +1,13 @@
 #!/bin/sh
-# Check commit message format
-# echo "Checking the commit message..."
-# npx --no-install commitlint --edit "$1"
+# Change to the directory where your package.json is located if necessary
+# cd path/to/your/project
+echo "Running ESLint..."
+cd website_next && npm run lint
 
-# if [ $? -eq 0 ]; then
-#     echo "Commit message is valid."
-# else
-#     echo "Commit message does not comply with the standards."
-#     echo "For more information on commit message standards, visit https://conventionalcommits.org"
-#     exit 1
-# fi
+if [ $? -ne 0 ]; then
+  echo "ESLint found errors. Commit aborted."
+  exit 1
+fi
 
-# cd website_next && npm run lint
+echo "ESLint passed. Continuing with commit."
+exit 0

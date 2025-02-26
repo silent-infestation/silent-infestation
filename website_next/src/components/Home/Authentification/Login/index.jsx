@@ -33,7 +33,7 @@ const Login = () => {
         setMessage(data.message || 'Erreur lors de la connexion');
       }
     } catch (error) {
-      setMessage('Erreur réseau, veuillez réessayer.');
+      setMessage(error.message);
     }
   };
 
