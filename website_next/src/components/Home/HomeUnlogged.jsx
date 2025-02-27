@@ -1,10 +1,14 @@
+/* eslint-disable prettier/prettier */
+
 import React from 'react';
-import Authentification from '@/components/Home/Authentification/index';
+import Authentification from '../Authentification';
+import Team from '@/components/Team/index';
 
 export default function HomeUnlogged() {
-    return (
-        <div>
-            <Authentification />
-        </div>
-    );
+  return (
+    <div>
+      <Authentification />
+      <Team />
+    </div>
+  );
 }

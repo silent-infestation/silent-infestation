@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
-import PropTypes from "prop-types";
-import styles from "./Input.module.css";
+import React, { useRef } from 'react';
+import PropTypes from 'prop-types';
+import styles from './Input.module.css';
 
 const Input = ({ ariaLabel, type, placeholder, icon, name, value, onChange, required }) => {
   // Créer une référence pour l'élément input
@@ -43,8 +43,8 @@ Input.propTypes = {
 };
 
 Input.defaultProps = {
-  type: "text",
-  placeholder: "",
+  type: 'text',
+  placeholder: '',
   icon: null,
   required: false,
 };

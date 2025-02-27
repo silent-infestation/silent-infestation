@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import Contact from './';
+import Contact from '.';
 
 // Mock des composants externes
 jest.mock('../_ui/Forms/FormTemplate', () => {
-  return function MockFormTemplate({ fields, onSubmit }) {
+  return function MockFormTemplate({ onSubmit }) {
     return (
       <form
         data-testid="form-template"
@@ -24,13 +24,6 @@ jest.mock('../_ui/Forms/FormTemplate', () => {
         <button type="submit">Submit</button>
       </form>
     );
-  };
-});
-
-jest.mock('../Alerte/Alerte', () => {
-  return function MockAlert({ isShowingAlert, alertTitle }) {
-    if (!isShowingAlert) return null;
-    return <div data-testid="alert">{alertTitle}</div>;
   };
 });
 

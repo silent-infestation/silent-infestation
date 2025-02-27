@@ -76,7 +76,6 @@ export default function Team() {
   return (
     <div className="relative min-h-screen bg-[#DCF0FF] p-10">
       {/* Arrière-plan texturé pour éviter le vide */}
-      <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
 
       <h1 className="relative z-10 mb-10 text-center text-4xl font-bold">
         <span className="text-[#00202B]">Notre</span> <span className="text-[#05829E]">Équipe</span>

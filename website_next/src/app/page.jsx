@@ -1,11 +1,17 @@
-"use client";
+/* eslint-disable prettier/prettier */
 
-import Contact from "@/components/Contact";
+'use client';
+
+import HomeLogged from '@/components/Home/HomeLogged';
+import HomeUnlogged from '@/components/Home/HomeUnlogged';
 
 export default function Index() {
+  const isLogged = false;
+
   return (
     <>
-      <Contact />
+      {isLogged ? <HomeLogged /> : <HomeUnlogged />}
     </>
   );
 }
+

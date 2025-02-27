@@ -85,7 +85,7 @@ const Contact = () => {
           className="text-4xl font-bold text-gray-900 text-shadow"
           dangerouslySetInnerHTML={{ __html: locales.contact.title }}
         />
-        <p>{locales.contact.description}</p>
+        <p className="max-w-[75rem]">{locales.contact.description}</p>
         <div className="flex w-full max-w-2xl flex-col p-4">
           {/* Formulaire */}
           <FormTemplate
