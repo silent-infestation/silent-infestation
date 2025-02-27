@@ -5,6 +5,8 @@
   "devDependencies": {
     "@commitlint/cli": "^19.7.1",
     "@commitlint/config-conventional": "^19.7.1",
+    "@next/eslint-plugin-next": "^15.2.0",
+    "eslint-plugin-react": "^7.37.4",
     "husky": "^9.1.7"
   }
 }

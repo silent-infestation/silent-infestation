@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 'use client';
 
 import HomeLogged from '@/components/Home/HomeLogged';

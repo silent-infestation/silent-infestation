@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 import React from 'react';
 import Authentification from '../Authentification';
 import Team from '@/components/Team/index';

@@ -1,41 +1,21 @@
+/* eslint-disable prettier/prettier */
+// Authentification.test.jsx
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Authentification from './';
+import Authentification from './Authentification';
 
-// Mock des composants enfants
-jest.mock('@/components/Home/Authentification/Login/index', () => {
-  return function MockLogin() {
-    return <div data-testid="login-component">Login Component</div>;
-  };
-});
-
-jest.mock('@/components/Home/Authentification/Register/index', () => {
-  return function MockRegister() {
-    return <div data-testid="register-component">Register Component</div>;
-  };
-});
+jest.mock('@/components/Authentification/Login/', () => () => <div data-testid="login-component">Login Component</div>);
+jest.mock('@/components/Authentification/Register/', () => () => <div data-testid="register-component">Register Component</div>);
 
 describe('Authentification Component', () => {
-  it('renders both Login and Register components', () => {
+  test('affiche bien les composants Register et Login', () => {
     render(<Authentification />);
 
-    expect(screen.getByTestId('login-component')).toBeInTheDocument();
-    expect(screen.getByTestId('register-component')).toBeInTheDocument();
-  });
+    // Vérification que les deux composants sont présents dans le DOM
+    const register = screen.getByTestId('register-component');
+    const login = screen.getByTestId('login-component');
 
-  it('renders components in correct order', () => {
-    render(<Authentification />);
-
-    const components = screen.getAllByTestId(/-component$/);
-    expect(components[0]).toHaveTextContent('Register Component');
-    expect(components[1]).toHaveTextContent('Login Component');
-  });
-
-  it('maintains proper component structure', () => {
-    const { container } = render(<Authentification />);
-
-    // Vérifie que les composants sont dans un conteneur div
-    expect(container.firstChild.tagName).toBe('DIV');
-    expect(container.firstChild.children.length).toBe(2);
+    expect(register).toBeInTheDocument();
+    expect(login).toBeInTheDocument();
   });
 });

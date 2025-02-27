@@ -1,10 +1,5 @@
-import React from 'react';
-import HomeUnlogged from './HomeUnlogged';
-import Team from './index.jsx';
+/* eslint-disable prettier/prettier */
 
 export default function Home() {
-  return (
-    <>
-    </>
-  );
+
 }
