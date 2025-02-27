@@ -5,8 +5,6 @@ import Team from './index.jsx';
 export default function Home() {
   return (
     <>
-      <HomeUnlogged />
-      <Team />
     </>
   );
 }
