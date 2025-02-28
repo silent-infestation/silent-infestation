@@ -14,7 +14,7 @@ const Navbar = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <nav className="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-[#00202b] px-6 py-4 text-[#f8f2e2] shadow-md backdrop-blur-md">
+    <nav className="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-[#00202b] px-6 py-6 text-[#f8f2e2] shadow-md backdrop-blur-md">
       {/* Logo */}
       <div className="flex items-center">
         <Link href="/">
