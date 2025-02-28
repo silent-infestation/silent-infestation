@@ -8,16 +8,15 @@ import About from '@/components/About/About';
 import ArrowSeparatorLeft from '@/components/_ui/Arrow/ArrowSeparatorLeft';
 import ArrowSeparatorRight from '@/components/_ui/Arrow/ArrowSeparatorRight';
 
-
 export default function HomeUnlogged() {
   return (
     <div>
-        <Header />
-        <ArrowSeparatorLeft />
-        <About />
-        <ArrowSeparatorRight />
-        <Authentification />
-        <Team />
+      <Header />
+      <ArrowSeparatorLeft />
+      <About />
+      <ArrowSeparatorRight />
+      <Authentification />
+      <Team />
     </div>
   );
 }

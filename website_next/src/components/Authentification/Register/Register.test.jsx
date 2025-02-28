@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Register from './';
+import Register from '.';
 
 // Mock de fetch
 global.fetch = jest.fn();
