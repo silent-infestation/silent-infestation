@@ -8,9 +8,9 @@ import Header from '@/components/Header/Header';
 export default function HomeUnlogged() {
   return (
     <div>
-        <Header />
-        <Authentification />
-        <Team />
+      <Header />
+      <Authentification />
+      <Team />
     </div>
   );
 }

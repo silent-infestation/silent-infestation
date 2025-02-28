@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Team from './';
+import Team from '.';
 
 // Mock de AOS
 jest.mock('aos', () => ({
