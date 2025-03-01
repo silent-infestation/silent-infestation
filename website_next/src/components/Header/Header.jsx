@@ -3,8 +3,6 @@
 import React from 'react';
 import { TypeAnimation } from 'react-type-animation';
 import { motion } from 'framer-motion';
-import ArrowSeparatorRight from '@/components/_ui/Arrow/ArrowSeparatorRight';
-// import ArrowSeparatorLeft from '@/components/_ui/Arrow/ArrowSeparatorLeft';
 
 export default function Header() {
   return (
@@ -28,19 +26,54 @@ export default function Header() {
         <p className="mb-10 text-lg text-gray-600">
           Scannez votre site en un clic et obtenez des analyses détaillées sur sa sécurité !
         </p>
-        <motion.div
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <button className="bg-[#05829E] px-10 py-4 text-2xl font-semibold text-white rounded-xl shadow-lg hover:bg-[#046b85] transition duration-300">
-            Scanner un site
-          </button>
-        </motion.div>
-      </div>
 
-      {/* Flèche animée */}
-        <ArrowSeparatorRight data-testid="arrow-separator-right" />
-        {/* <ArrowSeparatorLeft /> */}
+        {/* ESPACEMENT POUR LE BOUTON */}
+        <div className="mt-32 flex justify-center items-center relative">
+          {/* Vagues animées */}
+          {[...Array(3)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full border-2 border-[#05829E]"
+              style={{
+                width: '120px',
+                height: '120px',
+              }}
+              initial={{ opacity: 0.5, scale: 1 }}
+              animate={{ opacity: 0, scale: 2.8 }}
+              transition={{
+                duration: 3.5,
+                repeat: Infinity,
+                repeatDelay: 2,
+                delay: i * 1,
+              }}
+            />
+          ))}
+
+          {/* Bouton principal avec pulsation du texte */}
+          <motion.button
+            className="relative bg-[#05829E] px-10 py-4 text-2xl font-semibold text-white rounded-xl shadow-lg"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            animate={{ scale: [1, 1.03, 1] }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <motion.span
+              animate={{ opacity: [1, 0.7, 1], scale: [1, 1.05, 1] }} // Effet de pulsation du texte
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              Scanner un site
+            </motion.span>
+          </motion.button>
+        </div>
+      </div>
     </header>
   );
 }
