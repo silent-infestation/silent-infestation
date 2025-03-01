@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import localFont from 'next/font/local';
 import { AppProvider } from '@/app/context/AppContext';
 
-import '../styles/globals.css';
+import '@/styles/globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 

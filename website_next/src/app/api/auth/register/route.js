@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function POST(req) {
-  console.log('POST /api/auth/register');
+  console.info('POST /api/auth/register');
 
   try {
     const reqBody = await req.json();
@@ -50,7 +50,7 @@ export async function POST(req) {
       },
     });
 
-    console.log('Nouvel utilisateur créé :', newUser);
+    console.info('Nouvel utilisateur créé :', newUser);
 
     return NextResponse.json(
       { message: 'Utilisateur créé avec succès.', user: { email: newUser.email } },

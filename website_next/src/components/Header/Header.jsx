@@ -8,7 +8,7 @@ import ArrowSeparatorRight from '@/components/_ui/Arrow/ArrowSeparatorRight';
 
 export default function Header() {
   return (
-    <header className="relative flex h-screen items-center justify-center bg-[#DCF0FF] text-center text-[#05829E]">
+    <header className="relative flex h-screen items-center justify-center text-center text-[#05829E]">
       <div className="max-w-2xl p-10">
         <h1 className="mb-10 text-5xl font-bold">
           <span className="block text-[#00202B]">Bienvenue sur</span>
