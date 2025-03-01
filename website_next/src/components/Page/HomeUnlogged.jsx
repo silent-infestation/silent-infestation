@@ -15,8 +15,6 @@ export default function HomeUnlogged() {
       <ArrowSeparatorLeft />
       <About />
       <ArrowSeparatorRight />
-      <Authentification />
-      <Team />
     </div>
   );
 }

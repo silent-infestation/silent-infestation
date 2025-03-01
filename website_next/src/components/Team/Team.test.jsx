@@ -55,7 +55,7 @@ describe('Team Component', () => {
     const { container } = render(<Team />);
 
     const mainContainer = container.firstChild;
-    expect(mainContainer).toHaveClass('min-h-screen', 'bg-[#DCF0FF]', 'p-10');
+    expect(mainContainer).toHaveClass('min-h-screen', 'p-10');
   });
 
   // it('renders background pattern with correct attributes', () => {

@@ -1,47 +1,76 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import Cookies from 'js-cookie'; // Utilisation d'une lib pour lire les cookies
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activePage, setActivePage] = useState('home');
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [activePage, setActivePage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = Cookies.get('authToken');
-    if (token) {
-      setIsAuthenticated(true);
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/status', { credentials: 'include' });
+        const data = await res.json();
 
-      const savedPage = sessionStorage.getItem('activePage') || 'home';
-      setActivePage(savedPage);
-    } else {
-      setIsAuthenticated(false);
-      setActivePage('home');
-    }
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+
+          const savedPage = sessionStorage.getItem('activePage');
+          if (savedPage) {
+            changeActivePage(savedPage);
+          } else {
+            changeActivePage('profile');
+          }
+        } else {
+          setIsAuthenticated(false);
+          changeActivePage('home');
+        }
+      } catch (error) {
+        console.error("Erreur de vérification d'auth:", error);
+        setIsAuthenticated(false);
+        changeActivePage('home');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!loading && isAuthenticated !== null && activePage !== null) {
       sessionStorage.setItem('activePage', activePage);
     }
-  }, [activePage, isAuthenticated]);
+  }, [activePage, isAuthenticated, loading]);
 
   const login = () => {
     setIsAuthenticated(true);
-    setActivePage('profile');
+    changeActivePage('profile'); // Rediriger après connexion
   };
 
-  const logout = () => {
-    Cookies.remove('authToken');
+  const logout = async () => {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
     setIsAuthenticated(false);
-    setActivePage('home');
+    changeActivePage('home');
+  };
+
+  const changeActivePage = (page) => {
+    setActivePage(page);
+    sessionStorage.setItem('activePage', page);
+    window.scrollTo(0, 0);
   };
 
   return (
-    <AppContext.Provider value={{ isAuthenticated, activePage, setActivePage, login, logout }}>
-      {children}
+    <AppContext.Provider
+      value={{ isAuthenticated, activePage, changeActivePage, login, logout, loading }}
+    >
+      {!loading && children} {/* Empêcher le rendu tant que l'auth n'est pas vérifiée */}
     </AppContext.Provider>
   );
 };
