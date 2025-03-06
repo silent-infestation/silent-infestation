@@ -29,7 +29,6 @@ const Login = () => {
 
       if (res.ok) {
         login();
-        console.log(data, 'Connecté');
       } else {
         setMessage(data.message || 'Erreur lors de la connexion');
       }
