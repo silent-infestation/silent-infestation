@@ -10,14 +10,7 @@ RUN npm install
 
 COPY . .
 
-# Exécution
-FROM node:18-alpine
-
-WORKDIR /usr/src/app
-
 RUN apk update && apk add --no-cache bash
-
-COPY --from=build /usr/src/app/node_modules ./node_modules
 
 EXPOSE 3000
 

@@ -1,0 +1,23 @@
+# Build du projet
+FROM node:18-alpine AS build
+
+WORKDIR /usr/src/app
+
+COPY package.json .
+
+RUN npm install --only=production
+
+COPY . .
+
+# Serveur de production
+FROM node:18-alpine
+
+ENV NODE_ENV=production
+
+WORKDIR /usr/src/app
+
+COPY --from=build /usr/src/app/node_modules ./node_modules
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]

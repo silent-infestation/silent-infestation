@@ -15,7 +15,7 @@ chmod +x ./.husky/commit-msg
 For start the project :
 
 ```bash
-docker compose up --build --force-recreate -d
+docker-compose -f docker-compose.dev.yml up -d --build
 ```
 
 ## Website
