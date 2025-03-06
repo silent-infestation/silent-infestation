@@ -2,25 +2,22 @@
 
 'use client';
 
-import HomeLogged from '@/components/Home/HomeLogged';
-import HomeUnlogged from '@/components/Home/HomeUnlogged';
-import HelpModal from '@/components/_ui/HelpModal/HelpModal';
-import { useState } from 'react';
+import { useAppContext } from './context/AppContext';
+import AuthPage from '@/components/Page/AuthPage';
+import HomeUnlogged from '@/components/Page/HomeUnlogged';
+import Contact from '@/components/Contact';
+import Profile from '@/components/Page/Profile';
 
 export default function Index() {
-  const isLogged = false;
-  const [isHelpModalOpen, setisHelpModalOpen] = useState(true);
+  const { activePage, isAuthenticated } = useAppContext();
 
-  return (
-    <>
-      {isLogged ? <HomeLogged /> : <HomeUnlogged />}
-      <HelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setisHelpModalOpen(false)}
-        imageSrc="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnNiM2NhM3l4em5jOWFycGZqbWl0bXZ2bGh6N2t2Z2k4bzN4NXNxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3odxflN8NqzeSIRyvb/giphy.gif"
-        title="Besoin d'aide ?"
-        text="N'hésitez pas à nous contacter si vous avez des questions."
-      />
-    </>
-  );
+  const pageMap = {
+    home: <HomeUnlogged />,
+    authentification: <AuthPage />,
+    contact: isAuthenticated ? <Contact /> : null,
+    profile: isAuthenticated ? <Profile /> : null,
+    history: isAuthenticated ? <Contact /> : null,
+  };
+
+  return <>{pageMap[activePage] || <HomeUnlogged />}</>;
 }

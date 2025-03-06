@@ -1,23 +1,21 @@
 'use client';
 
-import Link from 'next/link';
+import { useAppContext } from '@/app/context/AppContext';
 import Image from 'next/image';
-import { useState } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
+import { useState } from 'react';
 
 const Navbar = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, changeActivePage, logout, activePage } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = () => setIsAuthenticated(false);
-  const handleLogin = () => setIsAuthenticated(true);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <nav className="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-[#00202b] px-6 py-6 text-[#f8f2e2] shadow-md backdrop-blur-md">
       {/* Logo */}
       <div className="flex items-center">
-        <Link href="/">
+        <button onClick={() => changeActivePage('home')}>
           <Image
             src="/images/logo.jpg"
             alt="Logo"
@@ -25,31 +23,31 @@ const Navbar = () => {
             height={60}
             className="cursor-pointer rounded-lg"
           />
-        </Link>
+        </button>
       </div>
 
       {/* Desktop Navigation */}
       <div className="hidden gap-8 text-lg md:flex">
         {isAuthenticated && (
           <>
-            <Link
-              href="/profile"
-              className="text-[#F8F2E2] transition duration-300 hover:text-[#F5F5F5]"
+            <button
+              onClick={() => changeActivePage('profile')}
+              className="transition hover:text-[#F5F5F5]"
             >
               Profil
-            </Link>
-            <Link
-              href="/history"
-              className="text-[#F8F2E2] transition duration-300 hover:text-[#F5F5F5]"
+            </button>
+            <button
+              onClick={() => changeActivePage('history')}
+              className="transition hover:text-[#F5F5F5]"
             >
               Historique
-            </Link>
-            <Link
-              href="/contact"
-              className="text-[#F8F2E2] transition duration-300 hover:text-[#F5F5F5]"
+            </button>
+            <button
+              onClick={() => changeActivePage('contact')}
+              className="transition hover:text-[#F5F5F5]"
             >
               Contact
-            </Link>
+            </button>
           </>
         )}
       </div>
@@ -58,23 +56,21 @@ const Navbar = () => {
       <div className="hidden gap-4 md:flex">
         {isAuthenticated ? (
           <button
-            onClick={handleLogout}
+            onClick={logout}
             className="rounded-lg bg-[#f8f2e2] px-4 py-2 font-bold text-[#00202b] transition hover:bg-gray-300"
           >
             Déconnexion
           </button>
         ) : (
-          <>
+          activePage !== 'authentification' &&
+          isAuthenticated === false && (
             <button
-              onClick={handleLogin}
+              onClick={() => changeActivePage('authentification')}
               className="rounded-lg bg-[#f8f2e2] px-4 py-2 font-bold text-[#00202b] transition hover:bg-gray-300"
             >
               Connexion
             </button>
-            <button className="rounded-lg bg-[#f8f2e2] px-4 py-2 font-bold text-[#00202b] transition hover:bg-gray-300">
-              Inscription
-            </button>
-          </>
+          )
         )}
       </div>
 
@@ -88,39 +84,26 @@ const Navbar = () => {
         <div className="absolute left-0 top-16 flex w-full flex-col gap-6 bg-[#00202b] py-6 text-center md:hidden">
           {isAuthenticated && (
             <>
-              <Link href="/profile" className="text-lg transition hover:text-[#58C4DD]">
+              <button
+                onClick={() => changeActivePage('profile')}
+                className="text-lg transition hover:text-[#58C4DD]"
+              >
                 Profil
-              </Link>
-              <Link href="/history" className="text-lg transition hover:text-[#58C4DD]">
+              </button>
+              <button
+                onClick={() => changeActivePage('history')}
+                className="text-lg transition hover:text-[#58C4DD]"
+              >
                 Historique
-              </Link>
-              <Link href="/contact" className="text-lg transition hover:text-[#58C4DD]">
+              </button>
+              <button
+                onClick={() => changeActivePage('contact')}
+                className="text-lg transition hover:text-[#58C4DD]"
+              >
                 Contact
-              </Link>
+              </button>
             </>
           )}
-          <div className="mt-4">
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="rounded-lg bg-[#f8f2e2] px-4 py-2 font-bold text-[#00202b] transition hover:bg-gray-300"
-              >
-                Déconnexion
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleLogin}
-                  className="block w-full rounded-lg bg-[#f8f2e2] px-4 py-2 font-bold text-[#00202b] transition hover:bg-gray-300"
-                >
-                  Connexion
-                </button>
-                <button className="mt-2 block w-full rounded-lg bg-[#58C4DD] px-4 py-2 font-bold text-white transition hover:bg-[#46A3C3]">
-                  Inscription
-                </button>
-              </>
-            )}
-          </div>
         </div>
       )}
     </nav>
