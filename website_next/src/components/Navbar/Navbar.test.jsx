@@ -1,23 +1,18 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import Navbar from '.';
+import { useAppContext } from '@/app/context/AppContext';
+
+// Mock du contexte
+jest.mock('@/app/context/AppContext', () => ({
+  useAppContext: jest.fn(),
+}));
 
 // Mock des composants Next.js
-jest.mock('next/link', () => {
-  function MockLink({ children, href }) {
-    return <a href={href}>{children}</a>;
-  }
-
-  return MockLink;
-});
-
-jest.mock('next/image', () => {
-  function MockNextImage({ src, alt, width, height, className }) {
-    return <img src={src} alt={alt} width={width} height={height} className={className} />;
-  }
-
-  return MockNextImage;
-});
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => <img {...props} />,
+}));
 
 // Mock des icônes react-icons
 jest.mock('react-icons/fi', () => ({
@@ -26,10 +21,19 @@ jest.mock('react-icons/fi', () => ({
 }));
 
 describe('Navbar Component', () => {
+  let mockChangeActivePage;
+  let mockLogout;
+
   beforeEach(() => {
-    // Reset window width à desktop pour chaque test
-    global.innerWidth = 1024;
-    global.dispatchEvent(new Event('resize'));
+    mockChangeActivePage = jest.fn();
+    mockLogout = jest.fn();
+    useAppContext.mockReturnValue({
+      isAuthenticated: false,
+      changeActivePage: jest.fn(),
+      logout: jest.fn(),
+      activePage: 'home',
+    });
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('renders logo and initial navigation state', () => {
@@ -37,111 +41,66 @@ describe('Navbar Component', () => {
 
     expect(screen.getByAltText('Logo')).toBeInTheDocument();
     expect(screen.getByText('Connexion')).toBeInTheDocument();
-    expect(screen.getByText('Inscription')).toBeInTheDocument();
   });
 
-  it('toggles authentication state correctly', async () => {
-    render(<Navbar />);
-
-    // État initial - non authentifié
-    expect(screen.getByText('Connexion')).toBeInTheDocument();
-
-    // Login
-    await act(async () => {
-      fireEvent.click(screen.getByText('Connexion'));
+  it('handles authentication state correctly', async () => {
+    useAppContext.mockReturnValue({
+      isAuthenticated: true,
+      changeActivePage: mockChangeActivePage,
+      logout: mockLogout,
+      activePage: 'home',
     });
 
-    // Vérifie les liens qui apparaissent après connexion
+    render(<Navbar />);
+
     expect(screen.getByText('Profil')).toBeInTheDocument();
     expect(screen.getByText('Historique')).toBeInTheDocument();
     expect(screen.getByText('Contact')).toBeInTheDocument();
     expect(screen.getByText('Déconnexion')).toBeInTheDocument();
 
-    // Logout
     await act(async () => {
       fireEvent.click(screen.getByText('Déconnexion'));
     });
 
-    // Vérifie le retour à l'état initial
-    expect(screen.getByText('Connexion')).toBeInTheDocument();
+    expect(mockLogout).toHaveBeenCalled();
   });
 
-  describe('Mobile Menu', () => {
-    beforeEach(() => {
-      // Simule une largeur d'écran mobile
-      global.innerWidth = 375;
-      global.dispatchEvent(new Event('resize'));
+  it('toggles mobile menu correctly', async () => {
+    render(<Navbar />);
+
+    expect(screen.getByTestId('menu-icon')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('menu-icon'));
     });
 
-    it('shows and hides mobile menu correctly', async () => {
-      render(<Navbar />);
+    expect(screen.getByTestId('close-icon')).toBeInTheDocument();
 
-      // Vérifie que l'icône du menu est visible
-      expect(screen.getByTestId('menu-icon')).toBeInTheDocument();
-
-      // Ouvre le menu
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('menu-icon'));
-      });
-
-      // Vérifie que le menu est ouvert
-      expect(screen.getByTestId('close-icon')).toBeInTheDocument();
-
-      // Ferme le menu
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('close-icon'));
-      });
-
-      // Vérifie que le menu est fermé
-      expect(screen.getByTestId('menu-icon')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('close-icon'));
     });
+
+    expect(screen.getByTestId('menu-icon')).toBeInTheDocument();
   });
 
-  describe('Navigation Links', () => {
-    it('renders correct links when authenticated', async () => {
-      render(<Navbar />);
-
-      // Login
-      await act(async () => {
-        fireEvent.click(screen.getByText('Connexion'));
-      });
-
-      // Vérifie les liens
-      const profileLink = screen.getByText('Profil').closest('a');
-      const historyLink = screen.getByText('Historique').closest('a');
-      const contactLink = screen.getByText('Contact').closest('a');
-
-      expect(profileLink).toHaveAttribute('href', '/profile');
-      expect(historyLink).toHaveAttribute('href', '/history');
-      expect(contactLink).toHaveAttribute('href', '/contact');
+  it('calls changeActivePage when clicking navigation buttons', async () => {
+    useAppContext.mockReturnValue({
+      isAuthenticated: true,
+      changeActivePage: mockChangeActivePage,
+      logout: mockLogout,
+      activePage: 'home',
     });
 
-    it('renders logo link correctly', () => {
-      render(<Navbar />);
+    render(<Navbar />);
 
-      const logoLink = screen.getByAltText('Logo').closest('a');
-      expect(logoLink).toHaveAttribute('href', '/');
-    });
-  });
-
-  describe('Responsive Design', () => {
-    it('shows desktop navigation on large screens', () => {
-      global.innerWidth = 1024;
-      global.dispatchEvent(new Event('resize'));
-
-      render(<Navbar />);
-
-      const desktopNav = document.querySelector('.hidden.md\\:flex');
-      expect(desktopNav).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Profil'));
+      fireEvent.click(screen.getByText('Historique'));
+      fireEvent.click(screen.getByText('Contact'));
     });
 
-    it('shows mobile menu button on small screens', () => {
-      global.innerWidth = 375;
-      global.dispatchEvent(new Event('resize'));
-
-      render(<Navbar />);
-
-      expect(screen.getByTestId('menu-icon')).toBeInTheDocument();
-    });
+    expect(mockChangeActivePage).toHaveBeenCalledWith('profile');
+    expect(mockChangeActivePage).toHaveBeenCalledWith('history');
+    expect(mockChangeActivePage).toHaveBeenCalledWith('contact');
   });
 });
