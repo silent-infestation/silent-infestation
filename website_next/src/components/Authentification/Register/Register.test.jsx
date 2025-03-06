@@ -20,7 +20,6 @@ describe('Register Component', () => {
   it('renders registration form with all required fields', () => {
     render(<Register />);
 
-    // Vérification de la présence de tous les champs
     expect(screen.getByPlaceholderText('Nom')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Prénom')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Âge')).toBeInTheDocument();
@@ -30,12 +29,11 @@ describe('Register Component', () => {
     expect(screen.getByText("S'inscrire")).toBeInTheDocument();
   });
 
-  it('handles registration error from API', async () => {
-    const errorMessage = 'Email déjà utilisé';
+  it('handles successful registration', async () => {
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
-        ok: false,
-        json: () => Promise.resolve({ message: errorMessage }),
+        ok: true,
+        json: () => Promise.resolve({ message: 'Inscription réussie' }),
       })
     );
 
@@ -57,12 +55,39 @@ describe('Register Component', () => {
       await userEvent.type(fields.society, 'Tech Corp');
       await userEvent.type(fields.email, 'john@example.com');
       await userEvent.type(fields.password, 'password123');
-
       fireEvent.click(screen.getByText("S'inscrire"));
     });
 
     await waitFor(() => {
-      expect(screen.getByText(`Erreur : ${errorMessage}`)).toBeInTheDocument();
+      expect(screen.getByText('Succès : Inscription réussie')).toBeInTheDocument();
+    });
+  });
+
+  it('handles registration error from API', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ message: 'Une erreur est survenue.' }),
+      })
+    );
+
+    render(<Register />);
+
+    // Remplir tous les champs
+    await act(async () => {
+      await userEvent.type(screen.getByPlaceholderText('Nom'), 'John');
+      await userEvent.type(screen.getByPlaceholderText('Prénom'), 'Doe');
+      await userEvent.type(screen.getByPlaceholderText('Âge'), '25');
+      await userEvent.type(screen.getByPlaceholderText('Société'), 'Tech Corp');
+      await userEvent.type(screen.getByPlaceholderText('Email'), 'john@example.com');
+      await userEvent.type(screen.getByPlaceholderText('Mot de passe'), 'password123');
+
+      fireEvent.click(screen.getByText("S'inscrire"));
+    });
+
+    // Vérification du message d'erreur
+    await waitFor(() => {
+      expect(screen.getByText('Erreur : Une erreur est survenue.')).toBeInTheDocument();
     });
   });
 
@@ -71,23 +96,18 @@ describe('Register Component', () => {
 
     render(<Register />);
 
-    const fields = {
-      name: screen.getByPlaceholderText('Nom'),
-      surname: screen.getByPlaceholderText('Prénom'),
-      age: screen.getByPlaceholderText('Âge'),
-      society: screen.getByPlaceholderText('Société'),
-      email: screen.getByPlaceholderText('Email'),
-      password: screen.getByPlaceholderText('Mot de passe'),
-    };
+    await act(async () => {
+      await userEvent.type(screen.getByPlaceholderText('Nom'), 'John');
+      await userEvent.type(screen.getByPlaceholderText('Prénom'), 'Doe');
+      await userEvent.type(screen.getByPlaceholderText('Âge'), '25');
+      await userEvent.type(screen.getByPlaceholderText('Société'), 'Tech Corp');
+      await userEvent.type(screen.getByPlaceholderText('Email'), 'john@example.com');
+      await userEvent.type(screen.getByPlaceholderText('Mot de passe'), 'password123');
+
+      fireEvent.click(screen.getByText("S'inscrire"));
+    });
 
     await act(async () => {
-      await userEvent.type(fields.name, 'John');
-      await userEvent.type(fields.surname, 'Doe');
-      await userEvent.type(fields.age, '25');
-      await userEvent.type(fields.society, 'Tech Corp');
-      await userEvent.type(fields.email, 'john@example.com');
-      await userEvent.type(fields.password, 'password123');
-
       fireEvent.click(screen.getByText("S'inscrire"));
     });
 
@@ -103,7 +123,6 @@ describe('Register Component', () => {
       fireEvent.click(screen.getByText("S'inscrire"));
     });
 
-    // Vérifie que fetch n'a pas été appelé si les champs requis ne sont pas remplis
     expect(fetch).not.toHaveBeenCalled();
   });
 });
