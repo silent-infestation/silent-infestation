@@ -7,7 +7,7 @@ on:
       - completed
   push:
     branches:
-      - main
+      - SI3-222-CI-déploiement-de-la-branch-main-sur-notre-VPS
 
 jobs:
   build-and-push:

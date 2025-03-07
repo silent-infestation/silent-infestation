@@ -4,7 +4,8 @@ on:
   push:
     branches: [main, dev]
   pull_request:
-    branches: [main, dev]
+    branches:
+      [main, dev, SI3-222-CI-déploiement-de-la-branch-main-sur-notre-VPS]
     types: [opened, synchronize, reopened]
 
 jobs:
