@@ -43,7 +43,7 @@ const Register = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-[#DCF0FF] text-[#00202B]">
+    <div className="flex h-screen flex-col items-center justify-center text-[#00202B]">
       <h1 className="mb-6 text-2xl font-bold">Inscription</h1>
       <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-4">
         <input

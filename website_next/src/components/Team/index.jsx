@@ -74,14 +74,14 @@ export default function Team() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#DCF0FF] p-10">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-10 p-10">
       {/* Arrière-plan texturé pour éviter le vide */}
 
-      <h1 className="relative z-10 mb-10 text-center text-4xl font-bold">
+      <h1 className="mb-10 text-center text-4xl font-bold">
         <span className="text-[#00202B]">Notre</span> <span className="text-[#05829E]">Équipe</span>
       </h1>
 
-      <div className="relative z-10 flex flex-col gap-8">
+      <div className="flex w-full max-w-4xl flex-col gap-8">
         {teamMembers.map((member, index) => (
           <div
             key={index}

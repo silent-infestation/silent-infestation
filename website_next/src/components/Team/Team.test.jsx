@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Team from './';
+import Team from '.';
 
 // Mock de AOS
 jest.mock('aos', () => ({
@@ -55,7 +55,7 @@ describe('Team Component', () => {
     const { container } = render(<Team />);
 
     const mainContainer = container.firstChild;
-    expect(mainContainer).toHaveClass('min-h-screen', 'bg-[#DCF0FF]', 'p-10', 'relative');
+    expect(mainContainer).toHaveClass('min-h-screen', 'p-10');
   });
 
   // it('renders background pattern with correct attributes', () => {

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import localFont from 'next/font/local';
+import { AppProvider } from '@/app/context/AppContext';
 
-import '../styles/globals.css';
+import '@/styles/globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -52,9 +53,11 @@ export default function RootLayout({ children }) {
           </main>
         ) : (
           <>
-            <Navbar />
-            <main className="mt-[7rem] min-h-[calc(100vh-7rem)]">{children}</main>
-            <Footer />
+            <AppProvider>
+              <Navbar />
+              <main className="mt-[7rem] min-h-[calc(100vh-7rem)]">{children}</main>
+              <Footer />
+            </AppProvider>
           </>
         )}
       </body>

@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import du router
+import { useAppContext } from '@/app/context/AppContext';
 
 const Login = () => {
-  const router = useRouter(); // Initialisation du router
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [message, setMessage] = useState('');
+  const { login } = useAppContext();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,7 +28,7 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/'); // Redirection après succès
+        login();
       } else {
         setMessage(data.message || 'Erreur lors de la connexion');
       }
@@ -39,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-[#DCF0FF] text-[#00202B]">
+    <div className="flex h-screen flex-col items-center justify-center text-[#00202B]">
       <h1 className="mb-6 text-2xl font-bold">Connexion</h1>
       <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-4">
         <input

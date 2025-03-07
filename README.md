@@ -5,6 +5,16 @@
 ## Setup
 
 ```bash
+chmod +x ./.husky/pre-commit
+```
+
+```bash
+chmod +x ./.husky/commit-msg
+```
+
+For start the project :
+
+```bash
 docker compose up --build --force-recreate -d
 ```
 
