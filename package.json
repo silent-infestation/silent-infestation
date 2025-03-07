@@ -8,5 +8,8 @@
     "@next/eslint-plugin-next": "^15.2.0",
     "eslint-plugin-react": "^7.37.4",
     "husky": "^9.1.7"
+  },
+  "dependencies": {
+    "nodemailer": "^6.10.0"
   }
 }

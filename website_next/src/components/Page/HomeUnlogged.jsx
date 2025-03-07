@@ -11,15 +11,15 @@ import ArrowSeparatorRight from '@/components/_ui/Arrow/ArrowSeparatorRight';
 export default function HomeUnlogged() {
   return (
     <div>
-        <Header />
-        <ArrowSeparatorLeft />
-        <About />
-        <ArrowSeparatorRight />
-        <Solution />
-        <ArrowSeparatorLeft />
-        <Rgpd />
-        <ArrowSeparatorRight />
-        <Team />
+      <Header />
+      <ArrowSeparatorLeft />
+      <About />
+      <ArrowSeparatorRight />
+      <Solution />
+      <ArrowSeparatorLeft />
+      <Rgpd />
+      <ArrowSeparatorRight />
+      <Team />
     </div>
   );
 }
