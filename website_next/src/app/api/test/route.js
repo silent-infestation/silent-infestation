@@ -15,7 +15,7 @@ const sqlInjectionPayloads = [
 
 // Function to detect SQL injection responses with the unique string
 function detectTestingStringResponses($) {
-  console.log('Detecting testing string responses...');
+  console.info('Detecting testing string responses...');
   const responses = [];
   const html = $.html();
 
@@ -34,7 +34,7 @@ function detectTestingStringResponses($) {
 
 // Function to detect SQL injection-like response patterns in <pre> tags
 function detectSQLInjectionResponses($) {
-  console.log('Detecting SQL injection responses...');
+  console.info('Detecting SQL injection responses...');
   const sqlInjectionPatterns = [];
   $('pre').each((i, pre) => {
     const text = $(pre).text().trim();
@@ -50,7 +50,7 @@ function detectSQLInjectionResponses($) {
 
 // Function to find patterns in the HTML response
 function findPatterns(html) {
-  console.log('Finding patterns in HTML response...');
+  console.info('Finding patterns in HTML response...');
   const $ = cheerio.load(html);
   const patterns = [];
   const patternDetectors = [
@@ -70,7 +70,7 @@ function findPatterns(html) {
 
 // Function to fetch and submit all forms on a given URL
 async function fetchAndPostForms(pageUrl) {
-  console.log(`Fetching and posting forms on ${pageUrl}`);
+  console.info(`Fetching and posting forms on ${pageUrl}`);
   const sqlHitUrls = [];
   try {
     const response = await axios.get(pageUrl);
@@ -79,7 +79,7 @@ async function fetchAndPostForms(pageUrl) {
 
     const forms = $('form');
     for (let i = 0; i < forms.length; i++) {
-      console.log(`Processing form ${i + 1} of ${forms.length} on ${pageUrl}`);
+      console.info(`Processing form ${i + 1} of ${forms.length} on ${pageUrl}`);
       const form = forms[i];
       const formAction = $(form).attr('action') || pageUrl;
       const formMethod = $(form).attr('method') || 'GET';
@@ -95,7 +95,7 @@ async function fetchAndPostForms(pageUrl) {
       let actionUrl = new URL(formAction, pageUrl).href;
       if (actionUrl.endsWith('#')) {
         actionUrl = actionUrl.slice(0, -1);
-        console.log('actionUrl 3', actionUrl);
+        console.info('actionUrl 3', actionUrl);
       }
       if (formMethod.toUpperCase() === 'POST') {
         for (const payload of sqlInjectionPayloads) {
@@ -105,7 +105,7 @@ async function fetchAndPostForms(pageUrl) {
           }
 
           try {
-            console.log(`Submitting POST form to ${actionUrl} with payload: ${payload}`);
+            console.info(`Submitting POST form to ${actionUrl} with payload: ${payload}`);
             const formResponse = await axios.post(actionUrl, new URLSearchParams(formData), {
               headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -114,7 +114,7 @@ async function fetchAndPostForms(pageUrl) {
 
             const patterns = findPatterns(formResponse.data);
             if (patterns.length > 0) {
-              console.log(`SQL injection patterns found on ${pageUrl}`);
+              console.info(`SQL injection patterns found on ${pageUrl}`);
               sqlHitUrls.push(pageUrl);
             }
           } catch (error) {
@@ -130,12 +130,12 @@ async function fetchAndPostForms(pageUrl) {
           }
 
           try {
-            console.log(`Submitting GET form to ${actionUrl} with payload: ${payload}`);
+            console.info(`Submitting GET form to ${actionUrl} with payload: ${payload}`);
             const formResponse = await axios.get(actionUrl + '?' + queryParams.toString());
 
             const patterns = findPatterns(formResponse.data);
             if (patterns.length > 0) {
-              console.log(`SQL injection patterns found on ${pageUrl}`);
+              console.info(`SQL injection patterns found on ${pageUrl}`);
               sqlHitUrls.push(pageUrl);
             }
           } catch (error) {
@@ -152,7 +152,7 @@ async function fetchAndPostForms(pageUrl) {
 
 // Function to process and extract links from the page
 function extractLinks($, mainDomain, baseUrl) {
-  console.log(`Extracting links from ${baseUrl}`);
+  console.info(`Extracting links from ${baseUrl}`);
   const links = new Set();
   $('a').each((index, element) => {
     const href = $(element).attr('href');
@@ -174,7 +174,7 @@ function extractLinks($, mainDomain, baseUrl) {
 
 // Function to start the crawler
 async function startCrawler(startUrl) {
-  console.log(`Starting crawler at ${startUrl}`);
+  console.info(`Starting crawler at ${startUrl}`);
   const mainDomain = new URL(startUrl).hostname;
   const sqlHitUrls = [];
 
@@ -188,7 +188,7 @@ async function startCrawler(startUrl) {
         const $ = res.$;
         const pageUrl = res.options.url;
         if ($ && pageUrl) {
-          console.log(`Crawling page: ${pageUrl}`);
+          console.info(`Crawling page: ${pageUrl}`);
           visitedUrls.add(pageUrl);
           const pageSqlHits = await fetchAndPostForms(pageUrl);
           sqlHitUrls.push(...pageSqlHits);
@@ -209,7 +209,7 @@ async function startCrawler(startUrl) {
   return new Promise((resolve) => {
     crawler.queue(startUrl);
     crawler.on('drain', () => {
-      console.log('Crawler finished', sqlHitUrls.length, 'SQL injection hits found.', sqlHitUrls);
+      console.info('Crawler finished', sqlHitUrls.length, 'SQL injection hits found.', sqlHitUrls);
       resolve(sqlHitUrls);
     });
   });
@@ -217,14 +217,14 @@ async function startCrawler(startUrl) {
 
 // Placeholder function for XSS testing
 async function performXSSAttempt(url) {
-  console.log(`Performing XSS attempt on ${url}`);
+  console.info(`Performing XSS attempt on ${url}`);
   // Placeholder logic for XSS testing
   return { url, result: 'XSS attempt placeholder' };
 }
 
 // Placeholder function for another security check
 async function performAdditionalCheck(url) {
-  console.log(`Performing additional check on ${url}`);
+  console.info(`Performing additional check on ${url}`);
   // Placeholder logic for another security test
   return { url, result: 'Additional check placeholder' };
 }
@@ -237,14 +237,14 @@ export async function POST(req) {
     return NextResponse.json({ error: 'startUrl is required' }, { status: 400 });
   }
 
-  console.log(`Received API request with startUrl: ${startUrl}`);
+  console.info(`Received API request with startUrl: ${startUrl}`);
 
   try {
     const crawlerResults = await startCrawler(startUrl);
     const xssResults = await performXSSAttempt(startUrl);
     const additionalCheckResults = await performAdditionalCheck(startUrl);
 
-    console.log('API request processing complete.');
+    console.info('API request processing complete.');
     return NextResponse.json({
       crawlerResults,
       xssResults,

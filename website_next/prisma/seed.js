@@ -26,7 +26,7 @@ async function main() {
     },
   });
 
-  console.log('Admin user ensured to exist.');
+  console.info('Admin user ensured to exist.');
 }
 
 main()

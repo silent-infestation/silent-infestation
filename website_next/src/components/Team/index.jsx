@@ -74,7 +74,7 @@ export default function Team() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-10 bg-[#DCF0FF] p-10">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-10 p-10">
       {/* Arrière-plan texturé pour éviter le vide */}
 
       <h1 className="mb-10 text-center text-4xl font-bold">
