@@ -2,11 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches:
-      [main, dev, SI3-222-CI-déploiement-de-la-branch-main-sur-notre-VPS]
+    branches: [main, dev]
   pull_request:
-    branches:
-      [main, dev, SI3-222-CI-déploiement-de-la-branch-main-sur-notre-VPS]
+    branches: [main, dev]
     types: [opened, synchronize, reopened]
 
 jobs:

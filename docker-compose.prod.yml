@@ -5,7 +5,7 @@ services:
     build: ./psql_database
     restart: always
     ports:
-      - "25432:5432"
+      - "5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -23,7 +23,7 @@ services:
     image: ${DOCKER_USERNAME}/silent-infestation:latest
     restart: always
     env_file:
-      - fileName: .env
+      - .env.prod
     networks:
       - silen2festation
     ports:
@@ -31,7 +31,7 @@ services:
     volumes:
       - ./website_next:/usr/src/app
     command: >
-      sh -c "./wait-for-it.sh db_silen2festation:5432 -- npx prisma migrate dev && npx prisma db seed && npm run start"
+      sh -c "./wait-for-it.sh db_silen2festation:5432 -- npx prisma migrate deploy && npx prisma db seed && npm run start"
 
 networks:
   silen2festation:
