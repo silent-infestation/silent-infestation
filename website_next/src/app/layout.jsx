@@ -22,7 +22,7 @@ const geistMono = localFont({
 const metadata = {
   title: 'Silent infestation',
   icons: {
-    icon: 'public/images/logo.jpg',
+    icon: '/images/logo.jpg',
   },
 };
 

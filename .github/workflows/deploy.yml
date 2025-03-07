@@ -25,12 +25,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Vérifier les fichiers du repo
-        run: ls -la website_next
-
       - name: 🐳 Build and push de l'image Docker
         uses: docker/build-push-action@v3
         with:
+          context: ./website_next
           file: ./website_next/Dockerfile.prod
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest
