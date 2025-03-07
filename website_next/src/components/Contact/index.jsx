@@ -82,7 +82,7 @@ const Contact = () => {
       />
       <div className="flex flex-col items-center gap-20 p-4 sm:p-20">
         <h1
-          className="text-4xl font-bold text-gray-900 text-shadow"
+          className="text-4xl font-bold text-gray-900 shadow"
           dangerouslySetInnerHTML={{ __html: locales.contact.title }}
         />
         <p className="max-w-[75rem]">{locales.contact.description}</p>

@@ -8,7 +8,12 @@ const prisma = new PrismaClient();
 async function main() {
   const email = process.env.DEFAULT_ADMIN_EMAIL;
   const hashedPassword = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD, 10);
+  const existingUser = await prisma.user.findUnique({ where: { email } });
 
+  if (existingUser) {
+    console.info('Admin user already exists.');
+    return;
+  }
   await prisma.user.upsert({
     where: { email },
     update: {},

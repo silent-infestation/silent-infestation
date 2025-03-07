@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 import AOS from 'aos';
 import 'aos/dist/aos.css'; // Importer le style AOS
 import { FaStar } from 'react-icons/fa'; // Import d'une icône pour le rôle
@@ -89,7 +90,7 @@ export default function Team() {
             className={`flex items-center justify-between rounded-2xl bg-[#00202B] p-10 text-[#F8F2E2] shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-2xl ${index % 2 === 0 ? 'mr-40 flex-row' : 'ml-40 flex-row-reverse'}`}
           >
             {/* Image */}
-            <img
+            <Image
               src={member.image}
               alt={member.name}
               className="h-32 w-32 rounded-full border-4 border-[#F8F2E2] object-cover shadow-md"
