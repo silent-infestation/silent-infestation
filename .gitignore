@@ -1,8 +1,7 @@
 # Node.js dependencies
-node_modules/
+**/node_modules/
 .next/
-out/
-dist/
+**/dist/
 
 # Environment variables
 .env
@@ -63,3 +62,4 @@ logs/
 
 # Postgres
 postgres
+*storybook.log

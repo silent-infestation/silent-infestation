@@ -1,0 +1,51 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install Dependencies
+        working-directory: ./website_next
+        run: npm install
+
+      - name: Run Tests
+        working-directory: ./website_next
+        run: npm test
+
+      - name: Setup Jira
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_MAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Extract Jira Issue
+        if: github.event_name == 'pull_request'
+        id: extract_jira
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          JIRA_KEY=$(echo $PR_TITLE | grep -oE 'SI3-[0-9]+' || echo '')
+          echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+
+      - name: Create Jira Comment
+        if: github.event_name == 'pull_request' && steps.extract_jira.outputs.jira_key != ''
+        uses: atlassian/gajira-comment@v3
+        with:
+          issue: ${{ steps.extract_jira.outputs.jira_key }}
+          comment: |
+            Build Status: ${{ job.status }}
+            PR: ${{ github.event.pull_request.html_url }}

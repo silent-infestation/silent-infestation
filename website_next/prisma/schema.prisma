@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_DOCKER_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -26,4 +26,13 @@ model User {
   scanID    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Site {
+  id          Int     @id @default(autoincrement())
+  id_user     Int
+  url_site    String  @unique
+  auth_key    String  @unique
+  auth_url    String  @unique
+  auth_email  String
 }

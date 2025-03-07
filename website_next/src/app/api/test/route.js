@@ -1,8 +1,8 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
-import Crawler from "crawler";
-import { NextResponse } from "next/server";
-import { URL } from "url";
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import Crawler from 'crawler';
+import { NextResponse } from 'next/server';
+import { URL } from 'url';
 
 // Set to keep track of visited URLs
 const visitedUrls = new Set();
@@ -15,34 +15,28 @@ const sqlInjectionPayloads = [
 
 // Function to detect SQL injection responses with the unique string
 function detectTestingStringResponses($) {
-  console.log("Detecting testing string responses...");
+  console.info('Detecting testing string responses...');
   const responses = [];
   const html = $.html();
 
-  const targetString = "57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING";
-  const fullPayloadRegex =
-    /'\s*UNION\s*SELECT.*57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING.*--/i;
+  const targetString = '57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING';
+  const fullPayloadRegex = /'\s*UNION\s*SELECT.*57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING.*--/i;
 
-  const targetOccurrences = html.match(new RegExp(targetString, "g")) || [];
+  const targetOccurrences = html.match(new RegExp(targetString, 'g')) || [];
   const fullPayloadOccurrences = html.match(fullPayloadRegex) || [];
 
-  if (
-    targetOccurrences.length > 0 &&
-    targetOccurrences.length > fullPayloadOccurrences.length
-  ) {
+  if (targetOccurrences.length > 0 && targetOccurrences.length > fullPayloadOccurrences.length) {
     responses.push(targetString);
   }
 
-  return responses.length
-    ? { type: "testing_string_response", data: responses }
-    : null;
+  return responses.length ? { type: 'testing_string_response', data: responses } : null;
 }
 
 // Function to detect SQL injection-like response patterns in <pre> tags
 function detectSQLInjectionResponses($) {
-  console.log("Detecting SQL injection responses...");
+  console.info('Detecting SQL injection responses...');
   const sqlInjectionPatterns = [];
-  $("pre").each((i, pre) => {
+  $('pre').each((i, pre) => {
     const text = $(pre).text().trim();
     if (/ID:\s*'[^']*--/.test(text)) {
       sqlInjectionPatterns.push(text);
@@ -50,13 +44,13 @@ function detectSQLInjectionResponses($) {
   });
 
   return sqlInjectionPatterns.length
-    ? { type: "sql_injection_response", data: sqlInjectionPatterns }
+    ? { type: 'sql_injection_response', data: sqlInjectionPatterns }
     : null;
 }
 
 // Function to find patterns in the HTML response
 function findPatterns(html) {
-  console.log("Finding patterns in HTML response...");
+  console.info('Finding patterns in HTML response...');
   const $ = cheerio.load(html);
   const patterns = [];
   const patternDetectors = [
@@ -76,34 +70,34 @@ function findPatterns(html) {
 
 // Function to fetch and submit all forms on a given URL
 async function fetchAndPostForms(pageUrl) {
-  console.log(`Fetching and posting forms on ${pageUrl}`);
+  console.info(`Fetching and posting forms on ${pageUrl}`);
   const sqlHitUrls = [];
   try {
     const response = await axios.get(pageUrl);
     const body = response.data;
     const $ = cheerio.load(body);
 
-    const forms = $("form");
+    const forms = $('form');
     for (let i = 0; i < forms.length; i++) {
-      console.log(`Processing form ${i + 1} of ${forms.length} on ${pageUrl}`);
+      console.info(`Processing form ${i + 1} of ${forms.length} on ${pageUrl}`);
       const form = forms[i];
-      const formAction = $(form).attr("action") || pageUrl;
-      const formMethod = $(form).attr("method") || "GET";
-      const inputs = $(form).find("input, select, textarea");
+      const formAction = $(form).attr('action') || pageUrl;
+      const formMethod = $(form).attr('method') || 'GET';
+      const inputs = $(form).find('input, select, textarea');
 
       const formData = {};
       inputs.each((index, input) => {
-        const name = $(input).attr("name");
-        const value = $(input).attr("value") || "";
+        const name = $(input).attr('name');
+        const value = $(input).attr('value') || '';
         if (name) formData[name] = value;
       });
 
       let actionUrl = new URL(formAction, pageUrl).href;
-      if (actionUrl.endsWith("#")) {
+      if (actionUrl.endsWith('#')) {
         actionUrl = actionUrl.slice(0, -1);
-        console.log("actionUrl 3", actionUrl);
+        console.info('actionUrl 3', actionUrl);
       }
-      if (formMethod.toUpperCase() === "POST") {
+      if (formMethod.toUpperCase() === 'POST') {
         for (const payload of sqlInjectionPayloads) {
           const inputKeys = Object.keys(formData);
           if (inputKeys.length > 0) {
@@ -111,29 +105,23 @@ async function fetchAndPostForms(pageUrl) {
           }
 
           try {
-            console.log(
-              `Submitting POST form to ${actionUrl} with payload: ${payload}`
-            );
-            const formResponse = await axios.post(
-              actionUrl,
-              new URLSearchParams(formData),
-              {
-                headers: {
-                  "Content-Type": "application/x-www-form-urlencoded",
-                },
-              }
-            );
+            console.info(`Submitting POST form to ${actionUrl} with payload: ${payload}`);
+            const formResponse = await axios.post(actionUrl, new URLSearchParams(formData), {
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+            });
 
             const patterns = findPatterns(formResponse.data);
             if (patterns.length > 0) {
-              console.log(`SQL injection patterns found on ${pageUrl}`);
+              console.info(`SQL injection patterns found on ${pageUrl}`);
               sqlHitUrls.push(pageUrl);
             }
           } catch (error) {
             console.error(`Error submitting POST form: ${error.message}`);
           }
         }
-      } else if (formMethod.toUpperCase() === "GET") {
+      } else if (formMethod.toUpperCase() === 'GET') {
         for (const payload of sqlInjectionPayloads) {
           const queryParams = new URLSearchParams(formData);
           const inputKeys = Array.from(queryParams.keys());
@@ -142,16 +130,12 @@ async function fetchAndPostForms(pageUrl) {
           }
 
           try {
-            console.log(
-              `Submitting GET form to ${actionUrl} with payload: ${payload}`
-            );
-            const formResponse = await axios.get(
-              actionUrl + "?" + queryParams.toString()
-            );
+            console.info(`Submitting GET form to ${actionUrl} with payload: ${payload}`);
+            const formResponse = await axios.get(actionUrl + '?' + queryParams.toString());
 
             const patterns = findPatterns(formResponse.data);
             if (patterns.length > 0) {
-              console.log(`SQL injection patterns found on ${pageUrl}`);
+              console.info(`SQL injection patterns found on ${pageUrl}`);
               sqlHitUrls.push(pageUrl);
             }
           } catch (error) {
@@ -168,26 +152,20 @@ async function fetchAndPostForms(pageUrl) {
 
 // Function to process and extract links from the page
 function extractLinks($, mainDomain, baseUrl) {
-  console.log(`Extracting links from ${baseUrl}`);
+  console.info(`Extracting links from ${baseUrl}`);
   const links = new Set();
-  $("a").each((index, element) => {
-    const href = $(element).attr("href");
+  $('a').each((index, element) => {
+    const href = $(element).attr('href');
     if (href) {
       try {
         const fullUrl = new URL(href, baseUrl).href;
         const urlObj = new URL(fullUrl);
-        if (
-          /\.(jpg|jpeg|png|gif|bmp|svg|webp|yml|yaml)$/i.test(urlObj.pathname)
-        )
-          return;
+        if (/\.(jpg|jpeg|png|gif|bmp|svg|webp|yml|yaml)$/i.test(urlObj.pathname)) return;
         if (urlObj.hostname === mainDomain) {
           links.add(fullUrl);
         }
       } catch (err) {
-        console.error(
-          `Error creating URL from href: ${href} with base: ${baseUrl}`,
-          err.message
-        );
+        console.error(`Error creating URL from href: ${href} with base: ${baseUrl}`, err.message);
       }
     }
   });
@@ -196,7 +174,7 @@ function extractLinks($, mainDomain, baseUrl) {
 
 // Function to start the crawler
 async function startCrawler(startUrl) {
-  console.log(`Starting crawler at ${startUrl}`);
+  console.info(`Starting crawler at ${startUrl}`);
   const mainDomain = new URL(startUrl).hostname;
   const sqlHitUrls = [];
 
@@ -205,15 +183,12 @@ async function startCrawler(startUrl) {
     retries: 3,
     callback: async (error, res, done) => {
       if (error) {
-        console.error(
-          `Error crawling ${res.options?.uri || "unknown URL"}:`,
-          error.message
-        );
+        console.error(`Error crawling ${res.options?.uri || 'unknown URL'}:`, error.message);
       } else {
         const $ = res.$;
         const pageUrl = res.options.url;
         if ($ && pageUrl) {
-          console.log(`Crawling page: ${pageUrl}`);
+          console.info(`Crawling page: ${pageUrl}`);
           visitedUrls.add(pageUrl);
           const pageSqlHits = await fetchAndPostForms(pageUrl);
           sqlHitUrls.push(...pageSqlHits);
@@ -233,13 +208,8 @@ async function startCrawler(startUrl) {
 
   return new Promise((resolve) => {
     crawler.queue(startUrl);
-    crawler.on("drain", () => {
-      console.log(
-        "Crawler finished",
-        sqlHitUrls.length,
-        "SQL injection hits found.",
-        sqlHitUrls
-      );
+    crawler.on('drain', () => {
+      console.info('Crawler finished', sqlHitUrls.length, 'SQL injection hits found.', sqlHitUrls);
       resolve(sqlHitUrls);
     });
   });
@@ -247,47 +217,41 @@ async function startCrawler(startUrl) {
 
 // Placeholder function for XSS testing
 async function performXSSAttempt(url) {
-  console.log(`Performing XSS attempt on ${url}`);
+  console.info(`Performing XSS attempt on ${url}`);
   // Placeholder logic for XSS testing
-  return { url, result: "XSS attempt placeholder" };
+  return { url, result: 'XSS attempt placeholder' };
 }
 
 // Placeholder function for another security check
 async function performAdditionalCheck(url) {
-  console.log(`Performing additional check on ${url}`);
+  console.info(`Performing additional check on ${url}`);
   // Placeholder logic for another security test
-  return { url, result: "Additional check placeholder" };
+  return { url, result: 'Additional check placeholder' };
 }
 
 // API route handler
 export async function POST(req) {
   const { startUrl } = await req.json();
   if (!startUrl) {
-    console.error("startUrl is required but missing.");
-    return NextResponse.json(
-      { error: "startUrl is required" },
-      { status: 400 }
-    );
+    console.error('startUrl is required but missing.');
+    return NextResponse.json({ error: 'startUrl is required' }, { status: 400 });
   }
 
-  console.log(`Received API request with startUrl: ${startUrl}`);
+  console.info(`Received API request with startUrl: ${startUrl}`);
 
   try {
     const crawlerResults = await startCrawler(startUrl);
     const xssResults = await performXSSAttempt(startUrl);
     const additionalCheckResults = await performAdditionalCheck(startUrl);
 
-    console.log("API request processing complete.");
+    console.info('API request processing complete.');
     return NextResponse.json({
       crawlerResults,
       xssResults,
       additionalCheckResults,
     });
   } catch (error) {
-    console.error("Internal Server Error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error('Internal Server Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
