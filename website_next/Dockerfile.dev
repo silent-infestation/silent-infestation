@@ -15,4 +15,3 @@ RUN apk update && apk add --no-cache bash
 EXPOSE 3000
 
 CMD ["npm", "run", "dev"]
-# Changer pour npm run start pour la production

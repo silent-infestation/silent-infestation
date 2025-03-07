@@ -31,15 +31,19 @@ module.exports = {
       textShadow: {
         default: '3px 3px 6px rgba(0, 0, 0, 0.4)',
       },
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'monospace'],
+      },
     },
+    plugins: [
+      function ({ addUtilities }) {
+        addUtilities({
+          '.text-shadow': {
+            'text-shadow': '3px 3px 6px rgba(0, 0, 0, 0.4)',
+          },
+        });
+      },
+    ],
   },
-  plugins: [
-    function ({ addUtilities }) {
-      addUtilities({
-        '.text-shadow': {
-          'text-shadow': '3px 3px 6px rgba(0, 0, 0, 0.4)',
-        },
-      });
-    },
-  ],
 };
