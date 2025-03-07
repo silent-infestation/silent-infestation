@@ -15,7 +15,9 @@ describe('Rgpd Component', () => {
   });
 
   test('renders the description text', () => {
-    const description = screen.getByText(/Nous nous engageons à respecter la confidentialité et la sécurité des données/i);
+    const description = screen.getByText(
+      /Nous nous engageons à respecter la confidentialité et la sécurité des données/i
+    );
     expect(description).toBeInTheDocument();
   });
 

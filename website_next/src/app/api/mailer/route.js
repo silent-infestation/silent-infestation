@@ -1,31 +1,31 @@
 // app/api/mail/route.js
 import nodemailer from 'nodemailer';
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';  // Module natif Node.js pour la cryptographie
+import crypto from 'crypto'; // Module natif Node.js pour la cryptographie
 
 // Configuration du transporteur SMTP pour Gmail
 // Cette configuration est utilisée pour établir la connexion avec le serveur SMTP de Gmail
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",    // Serveur SMTP de Gmail
-  port: 587,                 // Port standard pour STARTTLS
-  secure: false,             // false pour 587 (STARTTLS), true pour 465 (SSL/TLS)
+  host: 'smtp.gmail.com', // Serveur SMTP de Gmail
+  port: 587, // Port standard pour STARTTLS
+  secure: false, // false pour 587 (STARTTLS), true pour 465 (SSL/TLS)
   auth: {
-    user: process.env.EMAIL_USER,      // Email Gmail configuré dans .env.local
-    pass: process.env.EMAIL_PASSWORD,  // Mot de passe d'application généré dans les paramètres Google
+    user: process.env.EMAIL_USER, // Email Gmail configuré dans .env.local
+    pass: process.env.EMAIL_PASSWORD, // Mot de passe d'application généré dans les paramètres Google
   },
 });
 
 /**
  * Génère les identifiants de sécurité pour l'authentification
  * Crée une clé unique et une URL personnalisée pour l'accès sécurisé
- * 
+ *
  * @returns {Object} Un objet contenant la clé de sécurité et le chemin URL
  * @property {string} securityKey - Clé hexadécimale de 32 caractères
  * @property {string} urlPath - Chemin URL unique de 24 caractères
  */
 function generateSecurityCredentials() {
-  const securityKey = crypto.randomBytes(16).toString('hex');  // Génère 16 octets -> 32 caractères hex
-  const urlPath = crypto.randomBytes(12).toString('hex');      // Génère 12 octets -> 24 caractères hex
+  const securityKey = crypto.randomBytes(16).toString('hex'); // Génère 16 octets -> 32 caractères hex
+  const urlPath = crypto.randomBytes(12).toString('hex'); // Génère 12 octets -> 24 caractères hex
   return { securityKey, urlPath };
 }
 
@@ -85,31 +85,31 @@ export async function POST(request) {
 
     // Configuration et envoi de l'email
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,  // Expéditeur (doit correspondre à l'email authentifié)
-      to: destinataire,              // Destinataire(s)
-      subject: sujet,                // Sujet de l'email
-      text: `${message}\n\nURL d'accès : http://votresite.com/${urlPath}\nClé de sécurité : ${securityKey}`,  // Version texte
-      html: htmlContent,             // Version HTML du message
+      from: process.env.EMAIL_USER, // Expéditeur (doit correspondre à l'email authentifié)
+      to: destinataire, // Destinataire(s)
+      subject: sujet, // Sujet de l'email
+      text: `${message}\n\nURL d'accès : http://votresite.com/${urlPath}\nClé de sécurité : ${securityKey}`, // Version texte
+      html: htmlContent, // Version HTML du message
     });
 
     // Réponse en cas de succès avec les credentials générés
     return NextResponse.json({
       success: true,
-      messageId: info.messageId,     // Identifiant unique de l'email envoyé
-      credentials: {                 // Credentials à sauvegarder côté serveur
+      messageId: info.messageId, // Identifiant unique de l'email envoyé
+      credentials: {
+        // Credentials à sauvegarder côté serveur
         securityKey,
         urlPath,
         destinataire,
-        createdAt: new Date().toISOString()
-      }
+        createdAt: new Date().toISOString(),
+      },
     });
-
   } catch (error) {
     // Gestion des erreurs
     return NextResponse.json(
       {
-        error: 'Erreur lors de l\'envoi de l\'email',
-        details: error.message
+        error: "Erreur lors de l'envoi de l'email",
+        details: error.message,
       },
       { status: 500 }
     );
@@ -123,6 +123,6 @@ export async function POST(request) {
 export async function GET() {
   return NextResponse.json({
     status: 'Service email opérationnel',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
