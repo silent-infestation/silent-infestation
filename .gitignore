@@ -28,9 +28,9 @@ Thumbs.db
 *.swo
 
 # Prisma
-prisma/dev.db
-prisma/dev.db-journal
-prisma/migrations/*
+# prisma/dev.db
+# prisma/dev.db-journal
+# prisma/migrations/*
 
 # Tailwind cache
 .tailwind/
