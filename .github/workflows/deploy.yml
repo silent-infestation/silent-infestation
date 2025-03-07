@@ -34,8 +34,7 @@ jobs:
           file: ./website_next/Dockerfile.prod
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
 
   deploy:
     needs: build-and-push
