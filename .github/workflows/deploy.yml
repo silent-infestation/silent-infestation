@@ -25,6 +25,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Vérifier les fichiers du repo
+        run: ls -la
+
       - name: 🐳 Build and push de l'image Docker
         uses: docker/build-push-action@v3
         with:
