@@ -59,11 +59,6 @@ Thumbs.db
 # Ignorer les fichiers de configuration de Husky
 .husky
 
-# Ignorer les fichiers de configuration de Lint
-.eslintrc
-.prettierrc
-.prettierignore
-
 # Ignorer les fichiers de configuration de Test
 jest.config.js
 jest.setup.js
