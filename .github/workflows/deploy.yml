@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./website_next
-          file: ./Dockerfile.prod
+          file: Dockerfile.prod
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest
