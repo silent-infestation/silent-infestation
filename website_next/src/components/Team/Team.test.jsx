@@ -15,6 +15,12 @@ jest.mock('react-icons/fa', () => ({
   FaStar: () => <div data-testid="star-icon">★</div>,
 }));
 
+jest.mock('next/image', () => {
+  const MockImage = (props) => <img {...props} />;
+  MockImage.displayName = 'NextImageMock';
+  return MockImage;
+});
+
 describe('Team Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -41,9 +47,8 @@ describe('Team Component', () => {
     render(<Team />);
 
     const images = screen.getAllByRole('img');
-    expect(images).toHaveLength(9); // Nombre total de membres
+    expect(images).toHaveLength(9);
 
-    // Vérifie les attributs des images
     images.forEach((img) => {
       expect(img).toHaveAttribute('class', expect.stringContaining('rounded-full'));
       expect(img).toHaveAttribute('alt', expect.any(String));
