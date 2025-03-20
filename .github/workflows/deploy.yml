@@ -57,4 +57,5 @@ jobs:
             ls -la $PROJECT_PATH
             cd $PROJECT_PATH
             ls -la
+            chmod +x deploy.sh
             ./deploy.sh
