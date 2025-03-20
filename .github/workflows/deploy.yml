@@ -52,5 +52,9 @@ jobs:
           envs: DOCKER_USERNAME,DOCKER_PASSWORD,PROJECT_PATH
           script: |
             echo "✅ Connexion réussie au serveur"
+            whoami
+            hostname
+            ls -la $PROJECT_PATH
             cd $PROJECT_PATH
+            ls -la
             ./deploy.sh
