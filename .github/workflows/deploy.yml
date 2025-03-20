@@ -1,5 +1,10 @@
 name: Deploy to Production
 
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  PROJECT_PATH: /home/grigou.fr/silent-infestation
+
 on:
   workflow_run:
     workflows: ["CI Pipeline"]
@@ -44,10 +49,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY_GHA }}
-          envs: PROJECT_PATH=${{ secrets.PROJECT_PATH }}
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
-
+          envs: DOCKER_USERNAME=$DOCKER_USERNAME,DOCKER_PASSWORD=$DOCKER_PASSWORD,PROJECT_PATH=$PROJECT_PATH
           script: |
             echo "✅ Connexion réussie au serveur"
             whoami
