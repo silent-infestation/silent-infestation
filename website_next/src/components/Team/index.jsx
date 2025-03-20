@@ -93,6 +93,8 @@ export default function Team() {
             <Image
               src={member.image}
               alt={member.name}
+              width={128}
+              height={128}
               className="h-32 w-32 rounded-full border-4 border-[#F8F2E2] object-cover shadow-md"
             />
 
