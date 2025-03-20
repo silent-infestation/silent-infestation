@@ -56,4 +56,4 @@ jobs:
             hostname
             ls -la $PROJECT_PATH
             cd $PROJECT_PATH
-            ./deploy.sh
+            ls -la $PROJECT_PATH
