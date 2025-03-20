@@ -4,7 +4,7 @@ set -e  # Stoppe le script en cas d'erreur
 echo "📂 Déploiement dans $PATH_TO_PROJECT..."
 
 # Vérifier la présence du fichier .env (mais ne pas bloquer sur les variables passées par GitHub Actions)
-if [ ! -f "$PATH_TO_PROJECT/.env" ]; then
+if [ ! -f ".env" ]; then
     echo "❌ ERREUR : Le fichier .env est manquant ! Certaines variables pourraient ne pas être chargées."
     exit 1
 else
@@ -39,16 +39,16 @@ echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 echo "📦 Vérification et pull de l'image Docker..."
 
 # Vérifier si l'image Docker existe
-if [ "$(docker images -q MYDOCKERHUBUSERNAME/silent-infestation:latest)" = "" ]; then
+if [ "$(docker images -q $DOCKER_USERNAME/silent-infestation:latest)" = "" ]; then
     echo "🚨 L'image Docker n'existe pas, pull nécessaire..."
     RESTART_REQUIRED=true
 fi
 
 echo "📦 Pull de l'image Docker..."
-docker pull MYDOCKERHUBUSERNAME/silent-infestation:latest
+docker pull $DOCKER_USERNAME/silent-infestation:latest
 
 # Vérifier si l’image est différente avant de redémarrer
-if [ "$RESTART_REQUIRED" = false ] && [ "$(docker images -q MYDOCKERHUBUSERNAME/silent-infestation:latest)" != "$(docker ps -aq --filter ancestor=MYDOCKERHUBUSERNAME/silent-infestation:latest)" ]; then
+if [ "$RESTART_REQUIRED" = false ] && [ "$(docker images -q $DOCKER_USERNAME/silent-infestation:latest)" != "$(docker ps -aq --filter ancestor=MYDOCKERHUBUSERNAME/silent-infestation:latest)" ]; then
     echo "📦 Nouvelle image détectée, mise à jour nécessaire..."
     RESTART_REQUIRED=true
 fi
