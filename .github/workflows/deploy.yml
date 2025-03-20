@@ -7,7 +7,7 @@ on:
       - completed
   push:
     branches:
-      - main
+      - fic_ci
 
 jobs:
   build-and-push:
