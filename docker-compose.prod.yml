@@ -1,4 +1,3 @@
-name: "silen2festation prod"
 services:
   database:
     container_name: db_silen2festation
