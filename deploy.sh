@@ -4,7 +4,7 @@ set -e  # Stoppe le script en cas d'erreur
 echo "📂 Déploiement dans $PATH_TO_PROJECT..."
 
 echo "📥 Vérification et mise à jour de deploy.sh et docker-compose.prod.yml..."
-git fetch origin main --quiet
+# git fetch origin main --quiet
 
 # Mettre à jour uniquement deploy.sh
 # if git diff --name-only origin/main | grep -q "deploy.sh"; then
@@ -16,21 +16,21 @@ git fetch origin main --quiet
 # fi
 
 # Mettre à jour uniquement docker-compose.prod.yml
-if git diff --name-only origin/main | grep -q "docker-compose.prod.yml"; then
-    echo "🔄 docker-compose.prod.yml a changé, mise à jour..."
-    git checkout origin/main -- docker-compose.prod.yml
-    RESTART_REQUIRED=true
-else
-    echo "✅ docker-compose.prod.yml est déjà à jour."
-fi
+# if git diff --name-only origin/main | grep -q "docker-compose.prod.yml"; then
+#     echo "🔄 docker-compose.prod.yml a changé, mise à jour..."
+#     git checkout origin/main -- docker-compose.prod.yml
+#     RESTART_REQUIRED=true
+# else
+#     echo "✅ docker-compose.prod.yml est déjà à jour."
+# fi
 
 # Vérifier la présence du fichier .env (mais ne pas bloquer sur les variables passées par GitHub Actions)
 if [ ! -f ".env" ]; then
     echo "❌ ERREUR : Le fichier .env est manquant ! Certaines variables pourraient ne pas être chargées."
     exit 1
-else
-    echo "✅ .env trouvé, chargement des variables..."
-    export $(grep -v '^#' ".env" | xargs)
+# else
+#     echo "✅ .env trouvé, chargement des variables..."
+#     export $(grep -v '^#' ".env" | xargs)
 fi
 
 echo "🐳 Connexion à Docker Hub..."
