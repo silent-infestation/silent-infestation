@@ -46,5 +46,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY_GHA }}
           envs: PROJECT_PATH, DOCKER_USERNAME, DOCKER_PASSWORD
           script: |
+            echo "✅ Connexion réussie au serveur"
+            whoami
+            hostname
+            ls -la $PROJECT_PATH
             cd $PROJECT_PATH
             ./deploy.sh
