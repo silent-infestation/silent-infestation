@@ -16,6 +16,16 @@
   --font-family-elements: 'Poppins', sans-serif;
   --border-focus: 1px solid rgba(68, 68, 68, 0.5);
   --border-element: 1px solid #ccc;
+  --font-geist-mono: monospace;
+  --font-geist-sans: sans-serif;
+}
+
+.font-sans {
+  font-family: var(--font-geist-sans);
+}
+
+.font-mono {
+  font-family: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
