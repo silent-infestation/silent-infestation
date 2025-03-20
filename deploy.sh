@@ -7,13 +7,13 @@ echo "📥 Vérification et mise à jour de deploy.sh et docker-compose.prod.yml
 git fetch origin main --quiet
 
 # Mettre à jour uniquement deploy.sh
-if git diff --name-only origin/main | grep -q "deploy.sh"; then
-    echo "🔄 deploy.sh a changé, mise à jour..."
-    git checkout origin/main -- deploy.sh
-    chmod +x deploy.sh  # Assurer que deploy.sh reste exécutable
-else
-    echo "✅ deploy.sh est déjà à jour."
-fi
+# if git diff --name-only origin/main | grep -q "deploy.sh"; then
+#     echo "🔄 deploy.sh a changé, mise à jour..."
+#     git checkout origin/main -- deploy.sh
+#     chmod +x deploy.sh  # Assurer que deploy.sh reste exécutable
+# else
+#     echo "✅ deploy.sh est déjà à jour."
+# fi
 
 # Mettre à jour uniquement docker-compose.prod.yml
 if git diff --name-only origin/main | grep -q "docker-compose.prod.yml"; then
@@ -30,7 +30,7 @@ if [ ! -f ".env" ]; then
     exit 1
 else
     echo "✅ .env trouvé, chargement des variables..."
-    export $(grep -v '^#' "$PATH_TO_PROJECT/.env" | xargs)
+    export $(grep -v '^#' ".env" | xargs)
 fi
 
 echo "🐳 Connexion à Docker Hub..."
@@ -48,7 +48,7 @@ echo "📦 Pull de l'image Docker..."
 docker pull $DOCKER_USERNAME/silent-infestation:latest
 
 # Vérifier si l’image est différente avant de redémarrer
-if [ "$RESTART_REQUIRED" = false ] && [ "$(docker images -q $DOCKER_USERNAME/silent-infestation:latest)" != "$(docker ps -aq --filter ancestor=MYDOCKERHUBUSERNAME/silent-infestation:latest)" ]; then
+if [ "$RESTART_REQUIRED" = false ] && [ "$(docker images -q $DOCKER_USERNAME/silent-infestation:latest)" != "$(docker ps -aq --filter ancestor=$DOCKER_USERNAME/silent-infestation:latest)" ]; then
     echo "📦 Nouvelle image détectée, mise à jour nécessaire..."
     RESTART_REQUIRED=true
 fi
