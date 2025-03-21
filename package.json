@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "dev": "next dev -H 0.0.0.0",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -7,6 +8,7 @@
     "@commitlint/config-conventional": "^19.7.1",
     "@next/eslint-plugin-next": "^15.2.0",
     "eslint-plugin-react": "^7.37.4",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "@prisma/client": "^3.0.0"
   }
 }
