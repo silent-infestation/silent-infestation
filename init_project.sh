@@ -1,40 +1,28 @@
 #!/bin/bash
 
-# Lancer la création/recréation des conteneurs via Docker Compose
-echo -e "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
-docker compose -f docker-compose.dev.yml up -d --build --force-recreate
-DOCKER_EXIT_CODE=$?
-
-if [ $DOCKER_EXIT_CODE -ne 0 ]; then
-    echo -e "\e[31m[ERREUR] La commande Docker Compose a échoué avec le code d'erreur $DOCKER_EXIT_CODE.\e[0m"
-    exit 1
-fi
-
-echo -e "\e[32m[SUCCÈS] Les conteneurs ont été créés/recréés avec succès.\e[0m"
-
 # Définir le nom du conteneur PostgreSQL
 CONTAINER_NAME="db_silen2festation"
 
-# Récupérer l'adresse IP du conteneur PostgreSQL
-echo -e "\e[34m[INFO] Récupération de l'adresse IP du conteneur PostgreSQL '$CONTAINER_NAME'...\e[0m"
+# Récupérer l'adresse IP du conteneur
 DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
 
+# Lancer la création/recréation des conteneurs via Docker Compose
+echo "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
+docker compose -f docker-compose.dev.yml up -d --build --force-recreate
+DOCKER_EXIT_CODE=$?
+
+# Vérifier si l'IP a été trouvée
 if [ -z "$DB_IP" ]; then
     echo -e "\e[31m[ERREUR] Impossible de récupérer l'IP du conteneur PostgreSQL ($CONTAINER_NAME).\e[0m"
     exit 1
 fi
 
-echo -e "\e[32m[SUCCÈS] Adresse IP récupérée : $DB_IP.\e[0m"
-
 # Définir le chemin du fichier .env
 ENV_FILE="website_next/.env"
 
 # Création du répertoire si nécessaire
-echo -e "\e[34m[INFO] Vérification/création du répertoire 'website_next'...\e[0m"
-mkdir -p website_next
-
-# Génération du fichier .env avec les valeurs
-echo -e "\e[34m[INFO] Génération du fichier .env avec les paramètres de connexion...\e[0m"
+touch $ENV_FILE
+# Création du fichier .env avec les valeurs
 cat <<EOF > $ENV_FILE
 # Node environment (dev, prod, test)
 NODE_ENV=dev
@@ -63,16 +51,15 @@ DATABASE_DOCKER_URL="postgresql://pascal_parasite:bugman_@$CONTAINER_NAME:5432/d
 WEBSITE_PORT=23000
 EOF
 
-echo -e "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès.\e[0m"
+echo -e "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès !\e[0m"
 
 # Exécuter les migrations Prisma
-sleep 1
-
-echo -e "\e[34m[INFO] Lancement des migrations Prisma...\e[0m"
 cd website_next || exit
+echo -e "\e[34m[INFO] Lancement des migrations Prisma...\e[0m"
 npx prisma migrate dev --name init
 PRISMA_EXIT_CODE=$?
 
+# Préparation du message concernant les migrations Prisma
 if [ $PRISMA_EXIT_CODE -eq 0 ]; then
     MIGRATION_MSG="\e[32m[SUCCÈS] Les migrations Prisma ont été exécutées avec succès.\e[0m"
 else
@@ -80,8 +67,7 @@ else
 fi
 
 # Message final récapitulatif dynamique
-echo "- Les conteneurs ont été créés/recréés avec la commande : 'docker compose -f docker-compose.dev.yml up -d --build --force-recreate'.
-- Le conteneur PostgreSQL '$CONTAINER_NAME' a fourni l'adresse IP : $DB_IP.
+echo "\e[35m- Le conteneur PostgreSQL '$CONTAINER_NAME' a fourni l'adresse IP : $DB_IP.
 - Le fichier .env a été généré dans le répertoire 'website_next' avec les paramètres de connexion.
 - L'URL de connexion à la base de données est : postgresql://pascal_parasite:bugman_@$DB_IP:5432/dev_silen2festation?schema=public.
 - $MIGRATION_MSG
