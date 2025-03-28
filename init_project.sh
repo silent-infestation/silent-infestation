@@ -10,7 +10,7 @@ DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end
 echo "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
 docker compose -f docker-compose.dev.yml up -d --build --force-recreate
 DOCKER_EXIT_CODE=$?
-
+sleep 5
 # Vérifier si l'IP a été trouvée
 if [ -z "$DB_IP" ]; then
     echo -e "\e[31m[ERREUR] Impossible de récupérer l'IP du conteneur PostgreSQL ($CONTAINER_NAME).\e[0m"
