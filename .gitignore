@@ -43,7 +43,6 @@ docker-crontab
 .next/
 
 # Dependencies lock files (if using different package managers)
-package-lock.json*
 yarn.lock
 pnpm-lock.yaml
 
