@@ -53,10 +53,13 @@ EOF
 
 echo -e "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès !\e[0m"
 
+sleep 60
+
 # Exécuter les migrations Prisma
-cd website_next || exit
-echo -e "\e[34m[INFO] Lancement des migrations Prisma...\e[0m"
-npx prisma migrate dev --name init
+# cd website_next || exit
+# echo -e "\e[34m[INFO] Lancement des migrations Prisma...\e[0m"
+docker exec -it website_silen2festation sh -c "npx prisma migrate dev --name init"
+# exit
 PRISMA_EXIT_CODE=$?
 
 # Préparation du message concernant les migrations Prisma
