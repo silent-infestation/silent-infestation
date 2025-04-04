@@ -6,13 +6,9 @@ env:
   PROJECT_PATH: /home/grigou.fr/silent-infestation
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
   push:
     branches:
-      - fic_ci
+      - main
 
 jobs:
   build-and-push:
@@ -20,10 +16,8 @@ jobs:
     outputs:
       deploy_required: ${{ steps.compare_digest.outputs.deploy_required }}
     steps:
-      - name: 📥 Récupération du code (branche fic_ci)
+      - name: 📥 Récupération du code
         uses: actions/checkout@v3
-        with:
-          ref: fic_ci
 
       - name: 🛠️ Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
