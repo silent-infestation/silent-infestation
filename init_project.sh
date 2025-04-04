@@ -3,14 +3,17 @@
 # Définir le nom du conteneur PostgreSQL
 CONTAINER_NAME="db_silen2festation"
 
-# Récupérer l'adresse IP du conteneur
-DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
-
 # Lancer la création/recréation des conteneurs via Docker Compose
-echo "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
+echo -e "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
 docker compose -f docker-compose.dev.yml up -d --build --force-recreate
 DOCKER_EXIT_CODE=$?
-sleep 5
+
+# Attendre que le conteneur soit opérationnel
+sleep 20
+
+# Récupérer l'adresse IP du conteneur après son démarrage
+DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
+
 # Vérifier si l'IP a été trouvée
 if [ -z "$DB_IP" ]; then
     echo -e "\e[31m[ERREUR] Impossible de récupérer l'IP du conteneur PostgreSQL ($CONTAINER_NAME).\e[0m"
@@ -22,6 +25,7 @@ ENV_FILE="website_next/.env"
 
 # Création du répertoire si nécessaire
 touch $ENV_FILE
+
 # Création du fichier .env avec les valeurs
 cat <<EOF > $ENV_FILE
 # Node environment (dev, prod, test)
@@ -67,7 +71,7 @@ else
 fi
 
 # Message final récapitulatif dynamique
-echo "\e[35m- Le conteneur PostgreSQL '$CONTAINER_NAME' a fourni l'adresse IP : $DB_IP.
+echo -e "\e[35m- Le conteneur PostgreSQL '$CONTAINER_NAME' a fourni l'adresse IP : $DB_IP.
 - Le fichier .env a été généré dans le répertoire 'website_next' avec les paramètres de connexion.
 - L'URL de connexion à la base de données est : postgresql://pascal_parasite:bugman_@$DB_IP:5432/dev_silen2festation?schema=public.
 - $MIGRATION_MSG

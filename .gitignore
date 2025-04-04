@@ -63,3 +63,4 @@ logs/
 # Postgres
 postgres
 *storybook.log
+/website_next/.env.dev
