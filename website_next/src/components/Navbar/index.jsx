@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useAppContext } from '@/app/context/AppContext';
-import Image from 'next/image';
-import { FiMenu, FiX } from 'react-icons/fi';
-import { useState } from 'react';
+import { useAppContext } from "@/app/context/AppContext";
+import Image from "next/image";
+import { FiMenu, FiX } from "react-icons/fi";
+import { useState } from "react";
 
 const Navbar = () => {
   const { isAuthenticated, changeActivePage, logout, activePage } = useAppContext();
@@ -15,7 +15,7 @@ const Navbar = () => {
     <nav className="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-[#00202b] px-6 py-6 text-[#f8f2e2] shadow-md backdrop-blur-md">
       {/* Logo */}
       <div className="flex items-center">
-        <button onClick={() => changeActivePage('home')}>
+        <button onClick={() => changeActivePage("home")}>
           <Image
             src="/images/logo.jpg"
             alt="Logo"
@@ -31,19 +31,19 @@ const Navbar = () => {
         {isAuthenticated && (
           <>
             <button
-              onClick={() => changeActivePage('profile')}
+              onClick={() => changeActivePage("profile")}
               className="transition hover:text-[#F5F5F5]"
             >
               Profil
             </button>
             <button
-              onClick={() => changeActivePage('history')}
+              onClick={() => changeActivePage("history")}
               className="transition hover:text-[#F5F5F5]"
             >
               Historique
             </button>
             <button
-              onClick={() => changeActivePage('contact')}
+              onClick={() => changeActivePage("contact")}
               className="transition hover:text-[#F5F5F5]"
             >
               Contact
@@ -62,10 +62,10 @@ const Navbar = () => {
             Déconnexion
           </button>
         ) : (
-          activePage !== 'authentification' &&
+          activePage !== "authentification" &&
           isAuthenticated === false && (
             <button
-              onClick={() => changeActivePage('authentification')}
+              onClick={() => changeActivePage("authentification")}
               className="rounded-lg bg-[#f8f2e2] px-4 py-2 font-bold text-[#00202b] transition hover:bg-gray-300"
             >
               Connexion
@@ -85,19 +85,19 @@ const Navbar = () => {
           {isAuthenticated && (
             <>
               <button
-                onClick={() => changeActivePage('profile')}
+                onClick={() => changeActivePage("profile")}
                 className="text-lg transition hover:text-[#58C4DD]"
               >
                 Profil
               </button>
               <button
-                onClick={() => changeActivePage('history')}
+                onClick={() => changeActivePage("history")}
                 className="text-lg transition hover:text-[#58C4DD]"
               >
                 Historique
               </button>
               <button
-                onClick={() => changeActivePage('contact')}
+                onClick={() => changeActivePage("contact")}
                 className="text-lg transition hover:text-[#58C4DD]"
               >
                 Contact

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    surname: '',
-    age: '',
-    email: '',
-    password: '',
-    society: '',
+    name: "",
+    surname: "",
+    age: "",
+    email: "",
+    password: "",
+    society: "",
   });
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   // Gestion des changements dans les champs du formulaire
   const handleChange = (e) => {
@@ -23,9 +23,9 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -34,11 +34,11 @@ const Register = () => {
       if (res.ok) {
         setMessage(`Succès : ${data.message}`);
       } else {
-        setMessage(`Erreur : ${data.message || 'Une erreur est survenue.'}`);
+        setMessage(`Erreur : ${data.message || "Une erreur est survenue."}`);
       }
     } catch (error) {
       console.error(error);
-      setMessage('Impossible de contacter le serveur.');
+      setMessage("Impossible de contacter le serveur.");
     }
   };
 

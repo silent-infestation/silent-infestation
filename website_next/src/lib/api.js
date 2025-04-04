@@ -8,7 +8,7 @@ class Api {
     const options = {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     };
 
@@ -19,30 +19,30 @@ class Api {
     const response = await fetch(`${this.baseURL}${url}`, options);
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
+      throw new Error(error.message || "Something went wrong");
     }
 
     return response.json();
   }
 
   get(url) {
-    return this.request(url, 'GET');
+    return this.request(url, "GET");
   }
 
   post(url, data) {
-    return this.request(url, 'POST', data);
+    return this.request(url, "POST", data);
   }
 
   put(url, data) {
-    return this.request(url, 'PUT', data);
+    return this.request(url, "PUT", data);
   }
 
   del(url) {
-    return this.request(url, 'DELETE');
+    return this.request(url, "DELETE");
   }
 }
 
 // Création d'une instance unique de l'API
-const api = new Api('http://localhost:3000/api');
+const api = new Api("http://localhost:3000/api");
 
 export default api;

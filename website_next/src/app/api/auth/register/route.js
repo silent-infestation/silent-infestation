@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { hash } from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function POST(req) {
-  console.info('POST /api/auth/register');
+  console.info("POST /api/auth/register");
 
   try {
     const reqBody = await req.json();
@@ -14,7 +14,7 @@ export async function POST(req) {
     // Vérification des champs obligatoires
     if (!email || !password || !name || !surname || !age || !society) {
       return NextResponse.json(
-        { message: 'Tous les champs sont requis (email, password, name, surname, age, society).' },
+        { message: "Tous les champs sont requis (email, password, name, surname, age, society)." },
         { status: 400 }
       );
     }
@@ -31,7 +31,7 @@ export async function POST(req) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ message: 'Email déjà utilisé.' }, { status: 400 });
+      return NextResponse.json({ message: "Email déjà utilisé." }, { status: 400 });
     }
 
     // Hachage du mot de passe
@@ -46,19 +46,19 @@ export async function POST(req) {
         surname,
         age,
         society,
-        role: 'guest',
+        role: "guest",
       },
     });
 
-    console.info('Nouvel utilisateur créé :', newUser);
+    console.info("Nouvel utilisateur créé :", newUser);
 
     return NextResponse.json(
-      { message: 'Utilisateur créé avec succès.', user: { email: newUser.email } },
+      { message: "Utilisateur créé avec succès.", user: { email: newUser.email } },
       { status: 201 }
     );
   } catch (error) {
     console.error("Erreur lors de la création de l'utilisateur :", error);
 
-    return NextResponse.json({ message: 'Erreur serveur : ' + error.message }, { status: 500 });
+    return NextResponse.json({ message: "Erreur serveur : " + error.message }, { status: 500 });
   }
 }

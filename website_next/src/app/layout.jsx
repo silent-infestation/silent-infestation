@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { AppProvider } from '@/app/context/AppContext';
+import { useEffect, useState } from "react";
+import { AppProvider } from "@/app/context/AppContext";
 
-import '@/styles/globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import "@/styles/globals.css";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const metadata = {
-  title: 'Silent infestation',
+  title: "Silent infestation",
   icons: {
-    icon: '/images/logo.jpg',
+    icon: "/images/logo.jpg",
   },
 };
 
@@ -24,8 +24,8 @@ export default function RootLayout({ children }) {
 
     checkScreenSize();
 
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   return (

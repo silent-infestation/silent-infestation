@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function GET({ params }) {
   try {
@@ -11,7 +11,7 @@ export async function GET({ params }) {
       },
     });
     if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
     const { password: _, ...userWithoutPassword } = user;
     return NextResponse.json(userWithoutPassword);
@@ -68,17 +68,17 @@ export async function DELETE({ params }) {
       },
     });
 
-    return NextResponse.json({ message: 'User deleted' }, { status: 200 });
+    return NextResponse.json({ message: "User deleted" }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: error.status || 500 });
   }
 }
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 let prisma;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   prisma = new PrismaClient();
 } else {
   if (!global.prisma) {

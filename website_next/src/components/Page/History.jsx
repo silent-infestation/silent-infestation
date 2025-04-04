@@ -56,9 +56,9 @@ export default function Historique() {
   };
 
   return (
-    <section className="min-h-screen p-10 text-[#00202B] bg-[#DCF0FF]">
+    <section className="min-h-screen bg-[#DCF0FF] p-10 text-[#00202B]">
       {/* Titre animé */}
-      <h1 className="mb-8 text-4xl font-bold text-center">
+      <h1 className="mb-8 text-center text-4xl font-bold">
         <TypeAnimation
           sequence={["Historique des scans", 2000, "Vérifiez vos analyses", 2000]}
           wrapper="span"
@@ -69,12 +69,12 @@ export default function Historique() {
       </h1>
 
       {/* Barre de recherche */}
-      <div className="flex justify-center mb-6">
+      <div className="mb-6 flex justify-center">
         <div className="relative">
           <input
             type="text"
             placeholder="Rechercher un site..."
-            className="w-80 p-3 pl-10 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#05829E]"
+            className="w-80 rounded-lg border border-gray-300 bg-white p-3 pl-10 text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#05829E]"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -83,7 +83,7 @@ export default function Historique() {
       </div>
 
       {/* Timeline des tests */}
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="mx-auto max-w-3xl space-y-6">
         {filteredTests.length > 0 ? (
           filteredTests.map((test, index) => (
             <motion.div
@@ -91,14 +91,14 @@ export default function Historique() {
               initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: index * 0.2 }}
-              className="p-5 bg-white rounded-lg shadow-md border-l-4"
+              className="rounded-lg border-l-4 bg-white p-5 shadow-md"
               style={{
                 borderColor:
                   test.status === "safe"
                     ? "#10B981"
                     : test.status === "warning"
-                    ? "#F59E0B"
-                    : "#EF4444",
+                      ? "#F59E0B"
+                      : "#EF4444",
               }}
             >
               <div className="flex items-center justify-between">
@@ -128,7 +128,7 @@ export default function Historique() {
 
               {/* Bouton de téléchargement */}
               <button
-                className="mt-4 flex items-center gap-2 px-4 py-2 text-white bg-[#05829E] rounded-lg shadow hover:bg-[#04657B] transition"
+                className="mt-4 flex items-center gap-2 rounded-lg bg-[#05829E] px-4 py-2 text-white shadow transition hover:bg-[#04657B]"
                 onClick={() => generatePDF(test)}
               >
                 <Download size={18} />

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,7 @@ async function main() {
 
   if (!email || !password) {
     console.error(
-      '❌ DEFAULT_ADMIN_EMAIL ou DEFAULT_ADMIN_PASSWORD manquant dans les variables d’environnement.'
+      "❌ DEFAULT_ADMIN_EMAIL ou DEFAULT_ADMIN_PASSWORD manquant dans les variables d’environnement."
     );
     process.exit(1);
   }
@@ -20,7 +20,7 @@ async function main() {
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (existingUser) {
-    console.info('Admin user already exists.');
+    console.info("Admin user already exists.");
     return;
   }
   await prisma.user.upsert({
@@ -29,18 +29,18 @@ async function main() {
     create: {
       email,
       password: hashedPassword,
-      role: 'ADMIN',
-      name: 'Admin',
-      surname: 'User',
+      role: "ADMIN",
+      name: "Admin",
+      surname: "User",
       age: 30,
-      society: 'MyCompany',
+      society: "MyCompany",
       scanID: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   });
 
-  console.info('Admin user ensured to exist.');
+  console.info("Admin user ensured to exist.");
 }
 
 main()

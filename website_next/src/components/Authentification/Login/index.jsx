@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAppContext } from '@/app/context/AppContext';
+import { useState } from "react";
+import { useAppContext } from "@/app/context/AppContext";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const { login } = useAppContext();
 
   const handleChange = (e) => {
@@ -19,9 +19,9 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -30,11 +30,11 @@ const Login = () => {
       if (res.ok) {
         login();
       } else {
-        setMessage(data.message || 'Erreur lors de la connexion');
+        setMessage(data.message || "Erreur lors de la connexion");
       }
     } catch (error) {
       console.error(error);
-      setMessage('Impossible de contacter le serveur.');
+      setMessage("Impossible de contacter le serveur.");
     }
   };
 

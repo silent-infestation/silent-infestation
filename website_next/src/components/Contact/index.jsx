@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-import locales from '@/locales';
-import Alert from '@/components/Alert/Alert';
-import FormTemplate from '@/components/_ui/Forms/FormTemplate';
+import locales from "@/locales";
+import Alert from "@/components/Alert/Alert";
+import FormTemplate from "@/components/_ui/Forms/FormTemplate";
 
 const Contact = () => {
   const [alert, setAlert] = useState({
     isShowingAlert: false,
     isAlertErrorMessage: false,
-    alertTitle: '',
+    alertTitle: "",
   });
 
   const contactFields = [
-    { name: 'email', placeholder: 'ENTER YOUR EMAIL', label: 'Email' },
-    { name: 'subject', placeholder: 'SUBJECT', label: 'Subject' },
+    { name: "email", placeholder: "ENTER YOUR EMAIL", label: "Email" },
+    { name: "subject", placeholder: "SUBJECT", label: "Subject" },
     {
-      name: 'message',
-      type: 'textarea',
-      placeholder: 'YOUR MESSAGE',
-      label: 'Message',
+      name: "message",
+      type: "textarea",
+      placeholder: "YOUR MESSAGE",
+      label: "Message",
     },
   ];
 
@@ -28,7 +28,7 @@ const Contact = () => {
     setAlert({
       isShowingAlert: false,
       isAlertErrorMessage: false,
-      alertTitle: '',
+      alertTitle: "",
     });
   }, 3000);
 
@@ -37,16 +37,16 @@ const Contact = () => {
       setAlert({
         isShowingAlert: true,
         isAlertErrorMessage: true,
-        alertTitle: 'Please fill all fields',
+        alertTitle: "Please fill all fields",
       });
       return;
     }
 
-    if (!data.email.includes('@epitech.eu')) {
+    if (!data.email.includes("@epitech.eu")) {
       setAlert({
         isShowingAlert: true,
         isAlertErrorMessage: true,
-        alertTitle: 'Email must be an EPITECH email',
+        alertTitle: "Email must be an EPITECH email",
       });
       return;
     }
@@ -55,12 +55,12 @@ const Contact = () => {
       setAlert({
         isShowingAlert: true,
         isAlertErrorMessage: true,
-        alertTitle: 'Subject and message cannot be empty',
+        alertTitle: "Subject and message cannot be empty",
       });
       return;
     }
 
-    console.log('Form submitted successfully', data);
+    console.log("Form submitted successfully", data);
     // Envoyer les données du formulaire à l'API
 
     // Masquer l'alerte après 3 secondes
@@ -68,7 +68,7 @@ const Contact = () => {
       setAlert({
         isShowingAlert: false,
         isAlertErrorMessage: false,
-        alertTitle: '',
+        alertTitle: "",
       });
     }, 3000);
   };

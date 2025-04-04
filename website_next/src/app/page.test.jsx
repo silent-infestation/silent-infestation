@@ -1,41 +1,41 @@
 // ./page.test.jsx
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import Index from './page';
+import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import Index from "./page";
 
 // Mock du composant Contact
-jest.mock('@/components/Contact', () => {
+jest.mock("@/components/Contact", () => {
   return function MockContact() {
     return <div data-testid="mock-contact">Contact Component</div>;
   };
 });
 
-describe.skip('Index Page', () => {
-  it('rend correctement la page', () => {
+describe.skip("Index Page", () => {
+  it("rend correctement la page", () => {
     render(<Index />);
-    expect(screen.getByTestId('mock-contact')).toBeInTheDocument();
+    expect(screen.getByTestId("mock-contact")).toBeInTheDocument();
   });
 
-  it('rend le composant Contact', () => {
+  it("rend le composant Contact", () => {
     render(<Index />);
-    const contactComponent = screen.getByTestId('mock-contact');
+    const contactComponent = screen.getByTestId("mock-contact");
     expect(contactComponent).toBeInTheDocument();
-    expect(contactComponent).toHaveTextContent('Contact Component');
+    expect(contactComponent).toHaveTextContent("Contact Component");
   });
 
-  it('maintient la structure attendue de la page', () => {
+  it("maintient la structure attendue de la page", () => {
     const { container } = render(<Index />);
     expect(container.firstChild?.childNodes).toHaveLength(1);
   });
 
-  it('correspond au snapshot', () => {
+  it("correspond au snapshot", () => {
     const { container } = render(<Index />);
     expect(container).toMatchSnapshot();
   });
 
-  it('intègre correctement avec le composant Contact', () => {
+  it("intègre correctement avec le composant Contact", () => {
     const { container } = render(<Index />);
-    const contactElement = screen.getByTestId('mock-contact');
+    const contactElement = screen.getByTestId("mock-contact");
     expect(contactElement).toBeInTheDocument();
     expect(container.firstChild).toContainElement(contactElement);
   });
