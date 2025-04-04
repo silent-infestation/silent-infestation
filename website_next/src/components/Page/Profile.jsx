@@ -1,24 +1,56 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Profile() {
   const [user, setUser] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
+    firstName: '',
+    lastName: '',
+    email: '',
   });
-
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
+
+  useEffect(() => {
+    // Charger les infos de l'utilisateur depuis l'API
+    fetch('/api/user')
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data);
+        setEditedUser(data);
+      });
+  }, []);
 
   const handleEditChange = (e) => {
     setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    setUser(editedUser);
-    setIsEditing(false);
+  const handleSave = async () => {
+    const response = await fetch('/api/user', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editedUser),
+    });
+    if (response.ok) {
+      setUser(editedUser);
+      setIsEditing(false);
+    } else {
+      alert('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+      const response = await fetch('/api/user', {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        alert('Compte supprimé avec succès.');
+        window.location.href = '/'; // Redirection après suppression
+      } else {
+        alert('Erreur lors de la suppression du compte');
+      }
+    }
   };
 
   return (
@@ -84,6 +116,7 @@ export default function Profile() {
           )}
 
           <button
+            onClick={handleDeleteAccount}
             className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
           >
             Supprimer mon compte
