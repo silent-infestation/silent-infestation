@@ -1,10 +1,62 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TypeAnimation } from 'react-type-animation';
 import { motion } from 'framer-motion';
 
+// Composant pour la Pop-up
+function Popup({ isOpen, onClose, onSubmit }) {
+  const [url, setUrl] = useState('');
+
+  const handleSubmit = () => {
+    onSubmit(url);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+        <h2 className="text-xl font-semibold mb-4">Entrez l'URL du site</h2>
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+          placeholder="http://exemple.com"
+        />
+        <div className="flex justify-between">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 rounded-lg"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            Scanner
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Header() {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const handleScanClick = () => {
+    setIsPopupOpen(true);
+  };
+
+  const handlePopupSubmit = (url) => {
+    console.log('URL à scanner :', url);
+    // Ici, vous pouvez ajouter la logique pour scanner le site
+  };
+
   return (
     <header className="relative flex h-screen items-center justify-center text-center text-[#05829E]">
       <div className="max-w-2xl p-10">
@@ -55,6 +107,7 @@ export default function Header() {
 
           {/* Bouton principal avec pulsation du texte */}
           <motion.button
+            onClick={handleScanClick}
             className="relative rounded-xl bg-[#05829E] px-10 py-4 text-2xl font-semibold text-white shadow-lg"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -78,6 +131,13 @@ export default function Header() {
           </motion.button>
         </div>
       </div>
+
+      {/* Pop-up */}
+      <Popup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        onSubmit={handlePopupSubmit}
+      />
     </header>
   );
 }
