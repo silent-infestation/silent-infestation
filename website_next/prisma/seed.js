@@ -1,13 +1,22 @@
 #!/usr/bin/env node
 
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   const email = process.env.DEFAULT_ADMIN_EMAIL;
-  const hashedPassword = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD, 10);
+  const password = process.env.DEFAULT_ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    console.error(
+      '❌ DEFAULT_ADMIN_EMAIL ou DEFAULT_ADMIN_PASSWORD manquant dans les variables d’environnement.'
+    );
+    process.exit(1);
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (existingUser) {

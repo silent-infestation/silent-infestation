@@ -1,31 +1,28 @@
-# Étape 1 : Build du projet
 FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
-COPY package.json ./
-RUN npm install
+COPY package*.json ./
+
+RUN npm ci
 
 COPY . .
 
 RUN npx prisma generate --schema=prisma/schema.prisma
-
 RUN npm run build
 
-RUN rm -rf node_modules .next/cache
+RUN rm -rf .next/cache
 RUN npm prune --production
 
-# Étape 2 : Serveur de production
+# Étape 2 : Création de l'image de production
 FROM node:20-alpine
 
 ENV NODE_ENV=production
-
 WORKDIR /usr/src/app
 
-COPY --from=build /usr/src/app/.next ./.next
-COPY --from=build /usr/src/app/package.json ./
-COPY --from=build /usr/src/app/public ./public
-RUN npm install --only=production
+COPY --from=build /usr/src/app ./
+
+RUN apk add --no-cache bash
 
 EXPOSE 3000
 
