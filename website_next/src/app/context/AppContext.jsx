@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import api from "@/lib/api";
 
 const AppContext = createContext();
 
@@ -12,15 +13,14 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/auth/status", { credentials: "include" });
-        const data = await res.json();
+        const res = await api.get("/auth/status");
 
-        if (data.authenticated) {
+        if (res.ok && res.data.authenticated) {
           setIsAuthenticated(true);
 
           const savedPage = sessionStorage.getItem("activePage");
           if (savedPage) {
-            changeActivePage(savedPage);
+            changeActivePage(savedPage === "home" ? "profile" : savedPage);
           } else {
             changeActivePage("profile");
           }
@@ -48,7 +48,7 @@ export const AppProvider = ({ children }) => {
 
   const login = () => {
     setIsAuthenticated(true);
-    changeActivePage("profile"); // Rediriger après connexion
+    changeActivePage("profile");
   };
 
   const logout = async () => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppProvider } from "@/app/context/AppContext";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 import "@/styles/globals.css";
 import Navbar from "@/components/Navbar";
@@ -23,7 +24,6 @@ export default function RootLayout({ children }) {
     };
 
     checkScreenSize();
-
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
@@ -40,13 +40,13 @@ export default function RootLayout({ children }) {
             Screen too small
           </main>
         ) : (
-          <>
-            <AppProvider>
+          <AppProvider>
+            <AuthProvider>
               <Navbar />
               <main className="mt-[7rem] min-h-[calc(100vh-7rem)]">{children}</main>
               <Footer />
-            </AppProvider>
-          </>
+            </AuthProvider>
+          </AppProvider>
         )}
       </body>
     </html>

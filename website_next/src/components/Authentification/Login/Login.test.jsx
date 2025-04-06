@@ -5,6 +5,15 @@ import Login from ".";
 
 const mockLogin = jest.fn();
 
+jest.mock("@/app/context/AuthProvider", () => ({
+  useAuth: () => ({
+    refreshUser: jest.fn(),
+    user: null,
+    loading: false,
+    setUser: jest.fn(),
+  }),
+}));
+
 jest.mock("@/app/context/AppContext", () => ({
   useAppContext: () => ({
     login: mockLogin,

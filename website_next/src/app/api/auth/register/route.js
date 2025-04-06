@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
+import { sign } from "jsonwebtoken";
 
 const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 
 export async function POST(req) {
   console.info("POST /api/auth/register");
@@ -41,24 +43,43 @@ export async function POST(req) {
     const newUser = await prisma.user.create({
       data: {
         email,
-        password: hashedPassword, // Stockage du mot de passe haché
+        password: hashedPassword,
         name,
         surname,
         age,
         society,
         role: "guest",
       },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        name: true,
+        surname: true,
+        age: true,
+        society: true,
+      },
     });
 
-    console.info("Nouvel utilisateur créé :", newUser);
+    // Générer le token JWT
+    const token = sign({ id: newUser.id, email: newUser.email, role: newUser.role }, JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     return NextResponse.json(
-      { message: "Utilisateur créé avec succès.", user: { email: newUser.email } },
-      { status: 201 }
+      {
+        message: "Inscription réussie",
+        user: newUser,
+      },
+      {
+        status: 200,
+        headers: {
+          "Set-Cookie": `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`,
+        },
+      }
     );
   } catch (error) {
     console.error("Erreur lors de la création de l'utilisateur :", error);
-
     return NextResponse.json({ message: "Erreur serveur : " + error.message }, { status: 500 });
   }
 }
