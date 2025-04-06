@@ -6,6 +6,15 @@ import Register from ".";
 // Mock de fetch
 global.fetch = jest.fn();
 
+jest.mock("@/app/context/AuthProvider", () => ({
+  useAuth: () => ({
+    refreshUser: jest.fn(),
+    user: null,
+    loading: false,
+    setUser: jest.fn(),
+  }),
+}));
+
 jest.mock("@/app/context/AppContext", () => ({
   useAppContext: () => ({
     login: jest.fn(),
