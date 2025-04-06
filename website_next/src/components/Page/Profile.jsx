@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthProvider";
+import { useAppContext } from "@/app/context/AppContext";
 import Alert from "../Alert/Alert";
 import api from "@/lib/api";
 
 export default function Profile() {
+  const { logout } = useAppContext();
   const { user: authUser, loading } = useAuth();
   const [alert, setAlert] = useState({
     isShowingAlert: false,
@@ -73,6 +75,40 @@ export default function Profile() {
           alertTitle: "Erreur lors de la mise à jour du profil.",
         });
       });
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirm = window.confirm(
+      "Es-tu sûr de vouloir supprimer ton compte ? Cette action est irréversible."
+    );
+
+    if (!confirm) return;
+
+    try {
+      const res = await api.del("/user/me");
+
+      if (res.ok) {
+        await logout();
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: false,
+          alertTitle: "Compte supprimé avec succès.",
+        });
+      } else {
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: res.data.message || "Erreur lors de la suppression du compte.",
+        });
+      }
+    } catch (err) {
+      console.error("Erreur suppression compte :", err);
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Erreur inattendue lors de la suppression du compte.",
+      });
+    }
   };
 
   if (loading) return <p className="mt-10 text-center">Chargement du profil...</p>;
@@ -146,7 +182,10 @@ export default function Profile() {
               </button>
             )}
 
-            <button className="bg-red-500·hover:bg-red-600·rounded-md·px-4·py-2·text-white·transition">
+            <button
+              onClick={handleDeleteAccount}
+              className="bg-red-500·hover:bg-red-600·rounded-md·px-4·py-2·text-white·transition"
+            >
               Supprimer mon compte
             </button>
           </div>
