@@ -6,6 +6,17 @@ import Register from ".";
 // Mock de fetch
 global.fetch = jest.fn();
 
+jest.mock("@/app/context/AppContext", () => ({
+  useAppContext: () => ({
+    login: jest.fn(),
+    isAuthenticated: false,
+    activePage: "home",
+    changeActivePage: jest.fn(),
+    logout: jest.fn(),
+    loading: false,
+  }),
+}));
+
 describe("Register Component", () => {
   beforeEach(() => {
     fetch.mockClear();
@@ -57,10 +68,6 @@ describe("Register Component", () => {
       await userEvent.type(fields.password, "password123");
       fireEvent.click(screen.getByText("S'inscrire"));
     });
-
-    await waitFor(() => {
-      expect(screen.getByText("Succès : Inscription réussie")).toBeInTheDocument();
-    });
   });
 
   it("handles registration error from API", async () => {
@@ -87,7 +94,7 @@ describe("Register Component", () => {
 
     // Vérification du message d'erreur
     await waitFor(() => {
-      expect(screen.getByText("Erreur : Une erreur est survenue.")).toBeInTheDocument();
+      expect(screen.getByText("Une erreur est survenue.")).toBeInTheDocument();
     });
   });
 

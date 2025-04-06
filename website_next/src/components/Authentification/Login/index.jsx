@@ -46,7 +46,7 @@ const Login = () => {
       setAlert({
         isShowingAlert: true,
         isAlertErrorMessage: true,
-        alertTitle: "Erreur lors de la connexion",
+        alertTitle: "Impossible de contacter le serveur.",
       });
     }
   };
