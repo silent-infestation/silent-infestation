@@ -15,6 +15,8 @@ module.exports = {
         foreground: "var(--foreground)",
         element: "var(--background-element)",
         red: "#FF0000",
+        "red-500": "#FF0000",
+        "red-600": "#CC0000",
       },
       boxShadow: {
         default: "var(--box-shadow)",
