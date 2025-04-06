@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { useAppContext } from "@/app/context/AppContext";
 import Alert from "@/components/Alert/Alert";
+import { useAuth } from "@/app/context/AuthProvider";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const { refreshUser } = useAuth();
+  const [message, setMessage] = useState("");
   const { login } = useAppContext();
   const [alert, setAlert] = useState({
     isShowingAlert: false,
@@ -34,6 +37,7 @@ const Login = () => {
 
       if (res.ok) {
         login();
+        await refreshUser();
       } else {
         setAlert({
           isShowingAlert: true,

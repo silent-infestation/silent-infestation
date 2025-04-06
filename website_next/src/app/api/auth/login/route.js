@@ -16,6 +16,18 @@ export async function POST(request) {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        password: true,
+        email: true,
+        role: true,
+        name: true,
+        surname: true,
+        age: true,
+        society: true,
+        createdAt: false,
+        updatedAt: false,
+      },
     });
 
     if (!user) {
@@ -34,13 +46,9 @@ export async function POST(request) {
       { expiresIn: "1d" }
     );
 
-    const { password: _, ...userWithoutPassword } = user;
-
     return NextResponse.json(
       {
         message: "Connexion réussie",
-        user: userWithoutPassword,
-        token,
       },
       {
         status: 200,

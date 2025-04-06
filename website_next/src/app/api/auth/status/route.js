@@ -13,7 +13,11 @@ export async function GET() {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return NextResponse.json({ authenticated: true, user: decoded });
+    if (!decoded) {
+      return NextResponse.json({ authenticated: false });
+    }
+
+    return NextResponse.json({ authenticated: true });
   } catch (err) {
     console.error("Error verifying token:", err);
     return NextResponse.json({ authenticated: false });

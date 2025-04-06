@@ -1,6 +1,5 @@
 class Api {
   constructor(baseURL) {
-    // Assurez-vous d'inclure le protocole (http:// ou https://)
     this.baseURL = baseURL;
   }
 
@@ -10,6 +9,7 @@ class Api {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     };
 
     if (data) {
@@ -17,12 +17,13 @@ class Api {
     }
 
     const response = await fetch(`${this.baseURL}${url}`, options);
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Something went wrong");
-    }
+    const json = await response.json().catch(() => ({}));
 
-    return response.json();
+    return {
+      ok: response.ok,
+      status: response.status,
+      data: json,
+    };
   }
 
   get(url) {
