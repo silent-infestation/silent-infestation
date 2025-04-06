@@ -1,11 +1,19 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Login from ".";
-import { useAppContext } from "@/app/context/AppContext";
+
+const mockLogin = jest.fn();
 
 jest.mock("@/app/context/AppContext", () => ({
-  useAppContext: jest.fn(),
+  useAppContext: () => ({
+    login: mockLogin,
+    isAuthenticated: false,
+    activePage: "home",
+    changeActivePage: jest.fn(),
+    logout: jest.fn(),
+    loading: false,
+  }),
 }));
 
 jest.mock("next/navigation", () => ({
@@ -18,14 +26,12 @@ global.fetch = jest.fn();
 
 describe("Login Component", () => {
   let user;
-  let loginMock;
 
   beforeEach(() => {
     fetch.mockClear();
     jest.clearAllMocks();
+    mockLogin.mockClear(); // ✅ mockLogin est bien défini ici
     user = userEvent.setup();
-    loginMock = jest.fn();
-    useAppContext.mockReturnValue({ login: loginMock });
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -62,18 +68,12 @@ describe("Login Component", () => {
 
     render(<Login />);
 
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Mot de passe");
-    const submitButton = screen.getByText("Se connecter");
-
-    await act(async () => {
-      await user.type(emailInput, "test@example.com");
-      await user.type(passwordInput, "password123");
-      fireEvent.click(submitButton);
-    });
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    fireEvent.click(screen.getByText("Se connecter"));
 
     await waitFor(() => {
-      expect(screen.getByText("Erreur lors de la connexion")).toBeInTheDocument();
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
   });
 
@@ -87,19 +87,13 @@ describe("Login Component", () => {
 
     render(<Login />);
 
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Mot de passe");
-    const submitButton = screen.getByText("Se connecter");
-
-    await act(async () => {
-      await user.type(emailInput, "test@example.com");
-      await user.type(passwordInput, "password123");
-      fireEvent.click(submitButton);
-    });
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    fireEvent.click(screen.getByText("Se connecter"));
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith("/api/auth/login", expect.any(Object));
-      expect(loginMock).toHaveBeenCalled();
+      expect(mockLogin).toHaveBeenCalled(); // ✅ mock fonctionnel
     });
   });
 
@@ -108,15 +102,9 @@ describe("Login Component", () => {
 
     render(<Login />);
 
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Mot de passe");
-    const submitButton = screen.getByText("Se connecter");
-
-    await act(async () => {
-      await user.type(emailInput, "test@example.com");
-      await user.type(passwordInput, "password123");
-      fireEvent.click(submitButton);
-    });
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    fireEvent.click(screen.getByText("Se connecter"));
 
     await waitFor(() => {
       expect(screen.getByText("Impossible de contacter le serveur.")).toBeInTheDocument();

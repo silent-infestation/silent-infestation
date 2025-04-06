@@ -42,15 +42,6 @@ const Contact = () => {
       return;
     }
 
-    if (!data.email.includes("@epitech.eu")) {
-      setAlert({
-        isShowingAlert: true,
-        isAlertErrorMessage: true,
-        alertTitle: "Email must be an EPITECH email",
-      });
-      return;
-    }
-
     if (!data.subject || !data.message) {
       setAlert({
         isShowingAlert: true,
@@ -62,15 +53,6 @@ const Contact = () => {
 
     console.log("Form submitted successfully", data);
     // Envoyer les données du formulaire à l'API
-
-    // Masquer l'alerte après 3 secondes
-    setTimeout(() => {
-      setAlert({
-        isShowingAlert: false,
-        isAlertErrorMessage: false,
-        alertTitle: "",
-      });
-    }, 3000);
   };
 
   return (
@@ -79,6 +61,7 @@ const Contact = () => {
         isShowingAlert={alert.isShowingAlert}
         isAlertErrorMessage={alert.isAlertErrorMessage}
         alertTitle={alert.alertTitle}
+        onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
       <div className="flex flex-col items-center gap-20 p-4 sm:p-20">
         <h1

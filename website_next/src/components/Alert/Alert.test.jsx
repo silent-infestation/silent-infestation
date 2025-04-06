@@ -23,7 +23,7 @@ describe("Alert Component", () => {
 
     const alert = screen.getByText("Error Message");
     const section = alert.parentElement;
-    expect(section).toHaveClass("bg-black", "text-white");
+    expect(section).toHaveClass("bg-red", "text-white");
   });
 
   it("should render with success styles when isAlertErrorMessage is false", () => {
