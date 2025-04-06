@@ -11,7 +11,6 @@ const Login = () => {
     password: "",
   });
   const { refreshUser } = useAuth();
-  const [message, setMessage] = useState("");
   const { login } = useAppContext();
   const [alert, setAlert] = useState({
     isShowingAlert: false,

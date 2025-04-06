@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useAppContext } from "@/app/context/AppContext";
 import Alert from "@/components/Alert/Alert";
+import { useAuth } from "@/app/context/AuthProvider";
 
 const Register = () => {
   const { login } = useAppContext();
+  const { refreshUser } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -40,6 +42,7 @@ const Register = () => {
 
       if (res.ok) {
         login();
+        await refreshUser();
       } else {
         setAlert({
           isShowingAlert: true,

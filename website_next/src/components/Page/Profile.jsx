@@ -120,6 +120,7 @@ export default function Profile() {
         isShowingAlert={alert.isShowingAlert}
         isAlertErrorMessage={alert.isAlertErrorMessage}
         alertTitle={alert.alertTitle}
+        onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
       <div className="flex min-h-screen items-center justify-center bg-[#DCF0FF] p-6">
         <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg">
