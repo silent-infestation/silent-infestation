@@ -31,6 +31,7 @@ services:
       - "${PORT_FRONT}:3000"
     volumes:
       - ./website_next:/usr/src/app
+      - /usr/src/app/node_modules
 networks:
   silen2festation:
 
