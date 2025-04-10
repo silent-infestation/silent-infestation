@@ -1,15 +1,47 @@
 #!/bin/bash
 
+# Fonction pour arrêter et supprimer un conteneur s'il existe
+stop_and_remove_container() {
+    container_name=$1
+    # Vérifie si le conteneur existe
+    if docker ps -a --format '{{.Names}}' | grep -w "$container_name" > /dev/null; then
+        echo "Arrêt du conteneur $container_name ..."
+        docker stop "$container_name"
+        echo "Suppression du conteneur $container_name ..."
+        docker rm "$container_name"
+    else
+        echo "Le conteneur $container_name n'existe pas."
+    fi
+}
+
+# Fonction pour supprimer un volume Docker s'il existe
+remove_volume() {
+    volume_name=$1
+    # Vérifie si le volume existe
+    if docker volume ls --format '{{.Name}}' | grep -w "$volume_name" > /dev/null; then
+        echo "Suppression du volume $volume_name ..."
+        docker volume rm "$volume_name"
+    else
+        echo "Le volume $volume_name n'existe pas."
+    fi
+}
+
+# Arrêt et suppression des conteneurs si ils existent
+stop_and_remove_container "db_silen2festation"
+stop_and_remove_container "website_silen2festation"
+
+# Suppression du volume
+remove_volume "silen2festationdev_postgres_data"
+
+echo "\e[32mNettoyage terminé."
+
 # Définir le nom du conteneur PostgreSQL
 CONTAINER_NAME="db_silen2festation"
 
 # Lancer la création/recréation des conteneurs via Docker Compose
-echo -e "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
+echo "\e[34m[INFO] Démarrage de la création/recréation des conteneurs avec Docker Compose...\e[0m"
 docker compose -f docker-compose.dev.yml up -d --build --force-recreate
 DOCKER_EXIT_CODE=$?
-
-# Attendre que le conteneur soit opérationnel
-sleep 20
 
 # Récupérer l'adresse IP du conteneur après son démarrage
 DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
@@ -55,26 +87,28 @@ DATABASE_DOCKER_URL="postgresql://pascal_parasite:bugman_@$CONTAINER_NAME:5432/d
 WEBSITE_PORT=23000
 EOF
 
-echo -e "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès !\e[0m"
-
-sleep 60
+echo "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès !\e[0m"
 
 # Exécuter les migrations Prisma
 # cd website_next || exit
 # echo -e "\e[34m[INFO] Lancement des migrations Prisma...\e[0m"
+
+echo "Waiting for PostgreSQL to be ready..."
+sleep 5
+
 docker exec -it website_silen2festation sh -c "npx prisma migrate dev --name init"
 # exit
 PRISMA_EXIT_CODE=$?
 
 # Préparation du message concernant les migrations Prisma
 if [ $PRISMA_EXIT_CODE -eq 0 ]; then
-    MIGRATION_MSG="\e[32m[SUCCÈS] Les migrations Prisma ont été exécutées avec succès.\e[0m"
+    MIGRATION_MSG="\e[32m Les migrations Prisma ont été exécutées avec succès.\e[0m"
 else
-    MIGRATION_MSG="\e[31m[ERREUR] Une erreur est survenue lors de l'exécution des migrations Prisma. Code d'erreur: $PRISMA_EXIT_CODE\e[0m"
+    MIGRATION_MSG="\e[31m Une erreur est survenue lors de l'exécution des migrations Prisma. Code d'erreur: $PRISMA_EXIT_CODE\e[0m"
 fi
 
 # Message final récapitulatif dynamique
-echo -e "\e[35m- Le conteneur PostgreSQL '$CONTAINER_NAME' a fourni l'adresse IP : $DB_IP.
+echo "\e[35m- Le conteneur PostgreSQL '$CONTAINER_NAME' a fourni l'adresse IP : $DB_IP.
 - Le fichier .env a été généré dans le répertoire 'website_next' avec les paramètres de connexion.
 - L'URL de connexion à la base de données est : postgresql://pascal_parasite:bugman_@$DB_IP:5432/dev_silen2festation?schema=public.
 - $MIGRATION_MSG
