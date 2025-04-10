@@ -57,6 +57,24 @@ function createSecurityEmailContent(securityKey, urlPath) {
 }
 
 /**
+ * Crée le contenu de l'email pour le message de contact
+ * @param {string} email
+ * @param {string} sujet
+ * @param {string} message
+ * @returns {string} Contenu HTML formaté de l'email
+ */
+function createContactEmailContent(email, sujet, message) {
+  return `
+    <div style="font-family: Arial, sans-serif;">
+      <h2>Nouveau message de contact</h2>
+      <p><strong>De :</strong> ${email}</p>
+      <p><strong>Sujet :</strong> ${sujet}</p>
+      <p>${message.replace(/\n/g, "<br/>")}</p>
+    </div>
+  `;
+}
+
+/**
  * Gestion des requêtes POST pour l'envoi d'emails sécurisés
  * Cette fonction traite les requêtes entrantes, génère les credentials de sécurité
  * et envoie un email contenant les instructions d'accès
@@ -66,53 +84,78 @@ function createSecurityEmailContent(securityKey, urlPath) {
  */
 export async function POST(request) {
   try {
-    // Extraction des données de la requête
-    const { destinataire, sujet, message } = await request.json();
+    const { type, email, sujet, message, destinataire } = await request.json();
 
-    // Validation des données requises
-    if (!destinataire || !sujet || !message) {
-      return NextResponse.json(
-        { error: "Tous les champs sont requis (destinataire, sujet, message)" },
-        { status: 400 }
-      );
+    if (!type || !sujet || !message) {
+      return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
     }
 
-    // Génération des credentials de sécurité
-    const { securityKey, urlPath } = generateSecurityCredentials();
+    let mailOptions = {};
+    let extraData = {};
 
-    // Création du contenu HTML sécurisé
-    const htmlContent = createSecurityEmailContent(message, securityKey, urlPath);
+    if (type === "contact") {
+      if (!email) {
+        return NextResponse.json(
+          { error: "Email requis pour un message de contact." },
+          { status: 400 }
+        );
+      }
 
-    // Configuration et envoi de l'email
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER, // Expéditeur (doit correspondre à l'email authentifié)
-      to: destinataire, // Destinataire(s)
-      subject: sujet, // Sujet de l'email
-      text: `${message}\n\nURL d'accès : http://votresite.com/${urlPath}\nClé de sécurité : ${securityKey}`, // Version texte
-      html: htmlContent, // Version HTML du message
-    });
+      mailOptions = {
+        from: `"Contact App" <${process.env.EMAIL_USER}>`,
+        to: process.env.ADMIN_EMAIL,
+        replyTo: email,
+        subject: `[Contact App] ${sujet}`,
+        text: `${message}\n\nEnvoyé par : ${email}`,
+        html: createContactEmailContent(email, sujet, message),
+      };
+    } else if (type === "security") {
+      if (!destinataire) {
+        return NextResponse.json(
+          { error: "Destinataire requis pour un mail de sécurité." },
+          { status: 400 }
+        );
+      }
 
-    // Réponse en cas de succès avec les credentials générés
+      const { securityKey, urlPath } = generateSecurityCredentials();
+
+      mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: destinataire,
+        subject: sujet,
+        text: `${message}\n\nURL : http://votresite.com/${urlPath}\nClé : ${securityKey}`,
+        html: createSecurityEmailContent(message, securityKey, urlPath),
+      };
+
+      extraData = {
+        credentials: {
+          securityKey,
+          urlPath,
+          destinataire,
+          createdAt: new Date().toISOString(),
+        },
+      };
+    } else {
+      return NextResponse.json({ error: "Type d'email inconnu." }, { status: 400 });
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    await transporter
+      .verify()
+      .then(() => {
+        console.log("[MAILER] Transporteur vérifié avec succès");
+      })
+      .catch((error) => {
+        console.error("[MAILER] Erreur de vérification du transporteur", error);
+      });
+
     return NextResponse.json({
       success: true,
-      messageId: info.messageId, // Identifiant unique de l'email envoyé
-      credentials: {
-        // Credentials à sauvegarder côté serveur
-        securityKey,
-        urlPath,
-        destinataire,
-        createdAt: new Date().toISOString(),
-      },
+      messageId: info.messageId,
+      ...extraData,
     });
   } catch (error) {
-    // Gestion des erreurs
-    return NextResponse.json(
-      {
-        error: "Erreur lors de l'envoi de l'email",
-        details: error.message,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur email", details: error.message }, { status: 500 });
   }
 }
 
