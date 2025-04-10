@@ -9,7 +9,8 @@ const getModalState = (page) => {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     return stored[page] || { disabled: false, nextDelay: 1000, lastClosed: null };
-  } catch (e) {
+  } catch (error) {
+    console.error("Error parsing localStorage data", error);
     return { disabled: false, nextDelay: 1000, lastClosed: null };
   }
 };
