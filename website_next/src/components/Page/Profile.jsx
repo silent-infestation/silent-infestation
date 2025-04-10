@@ -20,9 +20,27 @@ export default function Profile() {
     lastName: "",
     email: "",
   });
-
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
+  const [trustedUrls, setTrustedUrls] = useState([]);
+  const [newUrl, setNewUrl] = useState('');
+
+  useEffect(() => {
+    // Charger les infos de l'utilisateur depuis l'API
+    fetch('/api/user')
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data);
+        setEditedUser(data);
+      });
+
+    // Charger les URLs fiables depuis l'API (si disponible)
+    fetch('/api/trusted-urls')
+      .then((res) => res.json())
+      .then((data) => {
+        setTrustedUrls(data);
+      });
+  }, []);
 
   useEffect(() => {
     if (authUser) {
@@ -111,6 +129,64 @@ export default function Profile() {
     }
   };
 
+  const handleAddUrl = async () => {
+    if (!newUrl.trim()) return;
+
+    try {
+      const res = await api.post("/trusted-urls", { url: newUrl });
+      if (res.status === 200 || res.ok) {
+        setTrustedUrls((prev) => [...prev, newUrl]);
+        setNewUrl("");
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: false,
+          alertTitle: "URL ajoutée avec succès.",
+        });
+      } else {
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: res.message || "Erreur lors de l'ajout de l'URL.",
+        });
+      }
+    } catch (err) {
+      console.error("Erreur ajout URL :", err);
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Erreur inattendue lors de l'ajout de l'URL.",
+      });
+    }
+  };
+
+  const handleDeleteUrl = async (urlToDelete) => {
+    try {
+      const res = await api.delete("/trusted-urls", { data: { url: urlToDelete } });
+      if (res.status === 200 || res.ok) {
+        setTrustedUrls((prev) => prev.filter((url) => url !== urlToDelete));
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: false,
+          alertTitle: "URL supprimée avec succès.",
+        });
+      } else {
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: res.message || "Erreur lors de la suppression de l'URL.",
+        });
+      }
+    } catch (err) {
+      console.error("Erreur suppression URL :", err);
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Erreur inattendue lors de la suppression de l'URL.",
+      });
+    }
+  };
+
+
   if (loading) return <p className="mt-10 text-center">Chargement du profil...</p>;
   if (!authUser) return <p className="mt-10 text-center">Utilisateur non connecté.</p>;
 
@@ -122,7 +198,9 @@ export default function Profile() {
         alertTitle={alert.alertTitle}
         onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
-      <div className="flex min-h-screen items-center justify-center bg-[#DCF0FF] p-6">
+      <div className="flex flex-col lg:flex-row min-h-screen items-start justify-center bg-[#DCF0FF] p-6 gap-10">
+
+        {/* Profil */}
         <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg">
           <h1 className="mb-6 text-center text-3xl font-bold text-[#00202B]">
             Mon <span className="text-[#05829E]">Profil</span>
@@ -185,11 +263,53 @@ export default function Profile() {
 
             <button
               onClick={handleDeleteAccount}
-              className="bg-red-500·hover:bg-red-600·rounded-md·px-4·py-2·text-white·transition"
+              className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition"
             >
               Supprimer mon compte
             </button>
           </div>
+        </div>
+
+        {/* Carte des URLs Fiables */}
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+          <h2 className="text-2xl font-bold text-[#00202B] mb-6">URLs Fiables</h2>
+
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <input
+              type="url"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              placeholder="Ajouter une URL fiable"
+              className="flex-1 rounded-md border p-3 focus:border-[#05829E] focus:ring-[#05829E]"
+            />
+            <button
+              onClick={handleAddUrl}
+              className="rounded-md bg-[#05829E] px-5 py-3 text-white hover:bg-[#026A72] transition"
+            >
+              Ajouter
+            </button>
+          </div>
+
+          {trustedUrls.length === 0 ? (
+            <p className="text-gray-500 italic">Aucune URL ajoutée pour le moment.</p>
+          ) : (
+            <div className="space-y-3">
+              {trustedUrls.map((url) => (
+                <div
+                  key={url}
+                  className="flex justify-between items-center rounded-md border px-4 py-2 bg-gray-50"
+                >
+                  <span className="break-all text-sm text-[#00202B]">{url}</span>
+                  <button
+                    onClick={() => handleDeleteUrl(url)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>
