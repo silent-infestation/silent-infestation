@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
+import api from "@/lib/api";
 
 const AppContext = createContext();
 
@@ -12,26 +13,25 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/status', { credentials: 'include' });
-        const data = await res.json();
+        const res = await api.get("/auth/status");
 
-        if (data.authenticated) {
+        if (res.ok && res.data.authenticated) {
           setIsAuthenticated(true);
 
-          const savedPage = sessionStorage.getItem('activePage');
+          const savedPage = sessionStorage.getItem("activePage");
           if (savedPage) {
-            changeActivePage(savedPage);
+            changeActivePage(savedPage === "home" ? "profile" : savedPage);
           } else {
-            changeActivePage('profile');
+            changeActivePage("profile");
           }
         } else {
           setIsAuthenticated(false);
-          changeActivePage('home');
+          changeActivePage("home");
         }
       } catch (error) {
         console.error("Erreur de vérification d'auth:", error);
         setIsAuthenticated(false);
-        changeActivePage('home');
+        changeActivePage("home");
       } finally {
         setLoading(false);
       }
@@ -42,27 +42,27 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     if (!loading && isAuthenticated !== null && activePage !== null) {
-      sessionStorage.setItem('activePage', activePage);
+      sessionStorage.setItem("activePage", activePage);
     }
   }, [activePage, isAuthenticated, loading]);
 
   const login = () => {
     setIsAuthenticated(true);
-    changeActivePage('profile'); // Rediriger après connexion
+    changeActivePage("profile");
   };
 
   const logout = async () => {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
     });
     setIsAuthenticated(false);
-    changeActivePage('home');
+    changeActivePage("home");
   };
 
   const changeActivePage = (page) => {
     setActivePage(page);
-    sessionStorage.setItem('activePage', page);
+    sessionStorage.setItem("activePage", page);
     window.scrollTo(0, 0);
   };
 

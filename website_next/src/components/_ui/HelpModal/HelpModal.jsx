@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const HelpModal = ({ isOpen, onClose, imageSrc, title, text }) => {
   if (!isOpen) return null;

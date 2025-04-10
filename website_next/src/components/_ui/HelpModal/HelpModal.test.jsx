@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import HelpModal from './HelpModal';
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import HelpModal from "./HelpModal";
 
-describe('HelpModal Component', () => {
-  test('renders correctly when open', () => {
+describe("HelpModal Component", () => {
+  test("renders correctly when open", () => {
     render(
       <HelpModal
         isOpen={true}
@@ -14,12 +14,12 @@ describe('HelpModal Component', () => {
       />
     );
 
-    expect(screen.getByText('Test Title')).toBeInTheDocument();
-    expect(screen.getByText('Test text content')).toBeInTheDocument();
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'test-image.jpg');
+    expect(screen.getByText("Test Title")).toBeInTheDocument();
+    expect(screen.getByText("Test text content")).toBeInTheDocument();
+    expect(screen.getByRole("img")).toHaveAttribute("src", "test-image.jpg");
   });
 
-  test('does not render when closed', () => {
+  test("does not render when closed", () => {
     render(
       <HelpModal
         isOpen={false}
@@ -30,10 +30,10 @@ describe('HelpModal Component', () => {
       />
     );
 
-    expect(screen.queryByText('Test Title')).not.toBeInTheDocument();
+    expect(screen.queryByText("Test Title")).not.toBeInTheDocument();
   });
 
-  test('calls onClose when close button is clicked', () => {
+  test("calls onClose when close button is clicked", () => {
     const onCloseMock = jest.fn();
 
     render(

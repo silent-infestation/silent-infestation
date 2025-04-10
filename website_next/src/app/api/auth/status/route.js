@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const tokenCookie = cookieStore.get('token');
+    const tokenCookie = cookieStore.get("token");
     const token = tokenCookie ? tokenCookie.value : null;
 
     if (!token) {
@@ -13,9 +13,13 @@ export async function GET() {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return NextResponse.json({ authenticated: true, user: decoded });
+    if (!decoded) {
+      return NextResponse.json({ authenticated: false });
+    }
+
+    return NextResponse.json({ authenticated: true });
   } catch (err) {
-    console.error('Error verifying token:', err);
+    console.error("Error verifying token:", err);
     return NextResponse.json({ authenticated: false });
   }
 }

@@ -1,9 +1,9 @@
-import React from 'react';
-import { render, screen, act } from '@testing-library/react';
-import Contact from '.';
+import React from "react";
+import { render, screen, act } from "@testing-library/react";
+import Contact from ".";
 
 // Mock des composants externes
-jest.mock('../_ui/Forms/FormTemplate', () => {
+jest.mock("../_ui/Forms/FormTemplate", () => {
   return function MockFormTemplate({ onSubmit }) {
     return (
       <form
@@ -27,14 +27,14 @@ jest.mock('../_ui/Forms/FormTemplate', () => {
   };
 });
 
-jest.mock('@/locales', () => ({
+jest.mock("@/locales", () => ({
   contact: {
-    title: 'Contact Title',
-    description: 'Contact Description',
+    title: "Contact Title",
+    description: "Contact Description",
   },
 }));
 
-describe('Contact Component', () => {
+describe("Contact Component", () => {
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -47,13 +47,13 @@ describe('Contact Component', () => {
     jest.clearAllTimers();
   });
 
-  it('renders the contact form with title and description', () => {
+  it("renders the contact form with title and description", () => {
     act(() => {
       render(<Contact />);
     });
 
-    expect(screen.getByText('Contact Title')).toBeInTheDocument();
-    expect(screen.getByText('Contact Description')).toBeInTheDocument();
-    expect(screen.getByTestId('form-template')).toBeInTheDocument();
+    expect(screen.getByText("Contact Title")).toBeInTheDocument();
+    expect(screen.getByText("Contact Description")).toBeInTheDocument();
+    expect(screen.getByTestId("form-template")).toBeInTheDocument();
   });
 });

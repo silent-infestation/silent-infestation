@@ -43,7 +43,6 @@ docker-crontab
 .next/
 
 # Dependencies lock files (if using different package managers)
-package-lock.json*
 yarn.lock
 pnpm-lock.yaml
 
@@ -63,3 +62,4 @@ logs/
 # Postgres
 postgres
 *storybook.log
+/website_next/.env.dev

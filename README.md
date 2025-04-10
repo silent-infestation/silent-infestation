@@ -12,7 +12,7 @@ chmod +x ./.husky/pre-commit
 chmod +x ./.husky/commit-msg
 ```
 
-For start the project :
+To start the project :
 
 ```bash
 docker-compose -f docker-compose.dev.yml up -d --build

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { TypeAnimation } from 'react-type-animation';
-import { motion } from 'framer-motion';
+import React from "react";
+import { TypeAnimation } from "react-type-animation";
+import { motion } from "framer-motion";
 
 export default function Header() {
   return (
@@ -12,13 +12,13 @@ export default function Header() {
           <span className="block text-[#00202B]">Bienvenue sur</span>
           <TypeAnimation
             sequence={[
-              'notre plateforme sécurisée',
+              "notre plateforme sécurisée",
               2000,
-              'un espace innovant',
+              "un espace innovant",
               2000,
-              'votre outil de confiance',
+              "votre outil de confiance",
               2000,
-              'un service de qualité',
+              "un service de qualité",
               2000,
             ]}
             wrapper="span"
@@ -39,8 +39,8 @@ export default function Header() {
               key={i}
               className="absolute rounded-full border-2 border-[#05829E]"
               style={{
-                width: '120px',
-                height: '120px',
+                width: "120px",
+                height: "120px",
               }}
               initial={{ opacity: 0.5, scale: 1 }}
               animate={{ opacity: 0, scale: 2.8 }}
@@ -62,7 +62,7 @@ export default function Header() {
             transition={{
               duration: 2.5,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: "easeInOut",
             }}
           >
             <motion.span
@@ -70,7 +70,7 @@ export default function Header() {
               transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: 'easeInOut',
+                ease: "easeInOut",
               }}
             >
               Scanner un site

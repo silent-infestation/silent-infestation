@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
-describe('Solution Component', () => {
-  it('renders the solution component', () => {
+describe("Solution Component", () => {
+  it("renders the solution component", () => {
     return undefined;
   });
 });

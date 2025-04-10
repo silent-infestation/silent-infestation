@@ -1,7 +1,7 @@
-import React from 'react';
-import Input from '../Input/InputForm';
+import React from "react";
+import Input from "../Input/InputForm";
 
-const FormTemplate = ({ fields, onSubmit, submitButtonText = 'Submit', submitButton }) => {
+const FormTemplate = ({ fields, onSubmit, submitButtonText = "Submit", submitButton }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -13,7 +13,7 @@ const FormTemplate = ({ fields, onSubmit, submitButtonText = 'Submit', submitBut
     <form onSubmit={handleSubmit} className="grid w-full grid-cols-1 gap-6 rounded-lg">
       {fields.map(({ name, type, placeholder, label, required }) => (
         <div key={name} className="flex flex-col">
-          {type === 'textarea' ? (
+          {type === "textarea" ? (
             <textarea
               name={name}
               aria-label={label}

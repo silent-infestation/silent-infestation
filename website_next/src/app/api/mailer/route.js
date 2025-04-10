@@ -1,12 +1,12 @@
 // app/api/mail/route.js
-import nodemailer from 'nodemailer';
-import { NextResponse } from 'next/server';
-import crypto from 'crypto'; // Module natif Node.js pour la cryptographie
+import nodemailer from "nodemailer";
+import { NextResponse } from "next/server";
+import crypto from "crypto"; // Module natif Node.js pour la cryptographie
 
 // Configuration du transporteur SMTP pour Gmail
 // Cette configuration est utilisée pour établir la connexion avec le serveur SMTP de Gmail
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com', // Serveur SMTP de Gmail
+  host: "smtp.gmail.com", // Serveur SMTP de Gmail
   port: 587, // Port standard pour STARTTLS
   secure: false, // false pour 587 (STARTTLS), true pour 465 (SSL/TLS)
   auth: {
@@ -24,8 +24,8 @@ const transporter = nodemailer.createTransport({
  * @property {string} urlPath - Chemin URL unique de 24 caractères
  */
 function generateSecurityCredentials() {
-  const securityKey = crypto.randomBytes(16).toString('hex'); // Génère 16 octets -> 32 caractères hex
-  const urlPath = crypto.randomBytes(12).toString('hex'); // Génère 12 octets -> 24 caractères hex
+  const securityKey = crypto.randomBytes(16).toString("hex"); // Génère 16 octets -> 32 caractères hex
+  const urlPath = crypto.randomBytes(12).toString("hex"); // Génère 12 octets -> 24 caractères hex
   return { securityKey, urlPath };
 }
 
@@ -72,7 +72,7 @@ export async function POST(request) {
     // Validation des données requises
     if (!destinataire || !sujet || !message) {
       return NextResponse.json(
-        { error: 'Tous les champs sont requis (destinataire, sujet, message)' },
+        { error: "Tous les champs sont requis (destinataire, sujet, message)" },
         { status: 400 }
       );
     }
@@ -122,7 +122,7 @@ export async function POST(request) {
  */
 export async function GET() {
   return NextResponse.json({
-    status: 'Service email opérationnel',
+    status: "Service email opérationnel",
     timestamp: new Date().toISOString(),
   });
 }

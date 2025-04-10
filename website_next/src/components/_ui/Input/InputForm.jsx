@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import PropTypes from 'prop-types';
+import React, { useRef } from "react";
+import PropTypes from "prop-types";
 
 const Input = ({ ariaLabel, type, placeholder, icon, name, value, onChange, required }) => {
   const inputRef = useRef(null);
@@ -41,8 +41,8 @@ Input.propTypes = {
 };
 
 Input.defaultProps = {
-  type: 'text',
-  placeholder: '',
+  type: "text",
+  placeholder: "",
   icon: null,
   required: false,
 };

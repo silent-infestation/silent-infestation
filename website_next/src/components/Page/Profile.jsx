@@ -1,12 +1,24 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/app/context/AuthProvider";
+import { useAppContext } from "@/app/context/AppContext";
+import Alert from "../Alert/Alert";
+import api from "@/lib/api";
 
 export default function Profile() {
+  const { logout } = useAppContext();
+  const { user: authUser, loading } = useAuth();
+  const [alert, setAlert] = useState({
+    isShowingAlert: false,
+    isAlertErrorMessage: false,
+    alertTitle: "",
+  });
+
   const [user, setUser] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: "",
+    lastName: "",
+    email: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
@@ -30,84 +42,170 @@ export default function Profile() {
       });
   }, []);
 
+  useEffect(() => {
+    if (authUser) {
+      const hydratedUser = {
+        firstName: authUser.name || "",
+        lastName: authUser.surname || "",
+        email: authUser.email || "",
+      };
+      setUser(hydratedUser);
+      setEditedUser(hydratedUser);
+    }
+  }, [authUser]);
+
   const handleEditChange = (e) => {
     setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
   };
 
   const handleSave = async () => {
-    const response = await fetch('/api/user', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editedUser),
-    });
-    if (response.ok) {
-      setUser(editedUser);
-      setIsEditing(false);
-    } else {
-      alert('Erreur lors de la mise à jour');
-    }
+    setUser(editedUser);
+    setIsEditing(false);
+
+    await api
+      .put("/user/me", {
+        name: editedUser.firstName,
+        surname: editedUser.lastName,
+        email: editedUser.email,
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          console.log("Profil mis à jour avec succès");
+          setAlert({
+            isShowingAlert: true,
+            isAlertErrorMessage: false,
+            alertTitle: "Profil mis à jour avec succès !",
+          });
+        } else {
+          console.log("Erreur lors de la mise à jour du profil");
+          setAlert({
+            isShowingAlert: true,
+            isAlertErrorMessage: true,
+            alertTitle: res.message || "Erreur lors de la mise à jour du profil.",
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Erreur lors de la mise à jour du profil :", err);
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: "Erreur lors de la mise à jour du profil.",
+        });
+      });
   };
 
   const handleDeleteAccount = async () => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
-      const response = await fetch('/api/user', {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        alert('Compte supprimé avec succès.');
-        window.location.href = '/'; // Redirection après suppression
+    const confirm = window.confirm(
+      "Es-tu sûr de vouloir supprimer ton compte ? Cette action est irréversible."
+    );
+
+    if (!confirm) return;
+
+    try {
+      const res = await api.del("/user/me");
+
+      if (res.ok) {
+        await logout();
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: false,
+          alertTitle: "Compte supprimé avec succès.",
+        });
       } else {
-        alert('Erreur lors de la suppression du compte');
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: res.data.message || "Erreur lors de la suppression du compte.",
+        });
       }
+    } catch (err) {
+      console.error("Erreur suppression compte :", err);
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Erreur inattendue lors de la suppression du compte.",
+      });
     }
   };
 
   const handleAddUrl = async () => {
-    if (newUrl.trim() === '') {
-      alert('L\'URL ne peut pas être vide.');
-      return;
+    if (!newUrl.trim()) return;
+
+    try {
+      const res = await api.post("/trusted-urls", { url: newUrl });
+      if (res.status === 200 || res.ok) {
+        setTrustedUrls((prev) => [...prev, newUrl]);
+        setNewUrl("");
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: false,
+          alertTitle: "URL ajoutée avec succès.",
+        });
+      } else {
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: res.message || "Erreur lors de l'ajout de l'URL.",
+        });
+      }
+    } catch (err) {
+      console.error("Erreur ajout URL :", err);
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Erreur inattendue lors de l'ajout de l'URL.",
+      });
     }
+  };
 
-    const response = await fetch('/api/sites', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url_site: newUrl,
-        auth_email: user.email // Utilisez l'email de l'utilisateur connecté
-      }),
-    });
-
-    if (response.ok) {
-      const addedUrl = await response.json();
-      setTrustedUrls([...trustedUrls, addedUrl]);
-      setNewUrl('');
-    } else {
-      const error = await response.json();
-      alert(`Erreur: ${error.message}`);
+  const handleDeleteUrl = async (urlToDelete) => {
+    try {
+      const res = await api.delete("/trusted-urls", { data: { url: urlToDelete } });
+      if (res.status === 200 || res.ok) {
+        setTrustedUrls((prev) => prev.filter((url) => url !== urlToDelete));
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: false,
+          alertTitle: "URL supprimée avec succès.",
+        });
+      } else {
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: res.message || "Erreur lors de la suppression de l'URL.",
+        });
+      }
+    } catch (err) {
+      console.error("Erreur suppression URL :", err);
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Erreur inattendue lors de la suppression de l'URL.",
+      });
     }
   };
 
-  const handleDeleteUrl = async (url) => {
-    const response = await fetch('/api/trusted-urls', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
-    if (response.ok) {
-      setTrustedUrls(trustedUrls.filter((item) => item !== url));
-    } else {
-      alert('Erreur lors de la suppression de l\'URL.');
-    }
-  };
+
+  if (loading) return <p className="mt-10 text-center">Chargement du profil...</p>;
+  if (!authUser) return <p className="mt-10 text-center">Utilisateur non connecté.</p>;
 
   return (
-    <div className="min-h-screen bg-[#DCF0FF] p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Carte Profil */}
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h1 className="text-3xl font-bold text-[#00202B] text-center mb-6">
+    <>
+      <Alert
+        isShowingAlert={alert.isShowingAlert}
+        isAlertErrorMessage={alert.isAlertErrorMessage}
+        alertTitle={alert.alertTitle}
+        onClose={() => setAlert({ ...alert, isShowingAlert: false })}
+      />
+      <div className="flex flex-col lg:flex-row min-h-screen items-start justify-center bg-[#DCF0FF] p-6 gap-10">
+
+        {/* Profil */}
+        <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg">
+          <h1 className="mb-6 text-center text-3xl font-bold text-[#00202B]">
             Mon <span className="text-[#05829E]">Profil</span>
           </h1>
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Prénom</label>
@@ -117,7 +215,7 @@ export default function Profile() {
                 value={editedUser.firstName}
                 onChange={handleEditChange}
                 disabled={!isEditing}
-                className="w-full mt-1 p-2 border rounded-md focus:ring-[#05829E] focus:border-[#05829E] disabled:bg-gray-100"
+                className="mt-1 w-full rounded-md border p-2 focus:border-[#05829E] focus:ring-[#05829E] disabled:bg-gray-100"
               />
             </div>
 
@@ -129,7 +227,7 @@ export default function Profile() {
                 value={editedUser.lastName}
                 onChange={handleEditChange}
                 disabled={!isEditing}
-                className="w-full mt-1 p-2 border rounded-md focus:ring-[#05829E] focus:border-[#05829E] disabled:bg-gray-100"
+                className="mt-1 w-full rounded-md border p-2 focus:border-[#05829E] focus:ring-[#05829E] disabled:bg-gray-100"
               />
             </div>
 
@@ -141,7 +239,7 @@ export default function Profile() {
                 value={editedUser.email}
                 onChange={handleEditChange}
                 disabled={!isEditing}
-                className="w-full mt-1 p-2 border rounded-md focus:ring-[#05829E] focus:border-[#05829E] disabled:bg-gray-100"
+                className="mt-1 w-full rounded-md border p-2 focus:border-[#05829E] focus:ring-[#05829E] disabled:bg-gray-100"
               />
             </div>
           </div>
@@ -150,14 +248,14 @@ export default function Profile() {
             {isEditing ? (
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-[#05829E] text-white rounded-md hover:bg-[#026A72] transition"
+                className="rounded-md bg-[#05829E] px-4 py-2 text-white transition hover:bg-[#026A72]"
               >
                 Enregistrer
               </button>
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300"
               >
                 Modifier
               </button>
@@ -165,7 +263,7 @@ export default function Profile() {
 
             <button
               onClick={handleDeleteAccount}
-              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+              className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition"
             >
               Supprimer mon compte
             </button>
@@ -173,41 +271,47 @@ export default function Profile() {
         </div>
 
         {/* Carte des URLs Fiables */}
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-[#00202B] mb-6">URLs Fiables</h2>
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+          <h2 className="text-2xl font-bold text-[#00202B] mb-6">URLs Fiables</h2>
 
-          <div className="mb-4 flex">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <input
               type="url"
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               placeholder="Ajouter une URL fiable"
-              className="w-full p-2 border rounded-md focus:ring-[#05829E] focus:border-[#05829E]"
+              className="flex-1 rounded-md border p-3 focus:border-[#05829E] focus:ring-[#05829E]"
             />
             <button
               onClick={handleAddUrl}
-              className="ml-4 px-4 py-2 bg-[#05829E] text-white rounded-md hover:bg-[#026A72] transition"
+              className="rounded-md bg-[#05829E] px-5 py-3 text-white hover:bg-[#026A72] transition"
             >
               Ajouter
             </button>
           </div>
 
-          <div className="space-y-2">
-            {trustedUrls.map((url) => (
-              <div key={url} className="flex justify-between items-center">
-                <span>{url}</span>
-                <button
-                  onClick={() => handleDeleteUrl(url)}
-                  className="text-red-500 hover:text-red-700"
+          {trustedUrls.length === 0 ? (
+            <p className="text-gray-500 italic">Aucune URL ajoutée pour le moment.</p>
+          ) : (
+            <div className="space-y-3">
+              {trustedUrls.map((url) => (
+                <div
+                  key={url}
+                  className="flex justify-between items-center rounded-md border px-4 py-2 bg-gray-50"
                 >
-                  Supprimer
-                </button>
-              </div>
-            ))}
-          </div>
+                  <span className="break-all text-sm text-[#00202B]">{url}</span>
+                  <button
+                    onClick={() => handleDeleteUrl(url)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-
       </div>
-    </div>
+    </>
   );
 }

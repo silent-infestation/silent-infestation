@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/dist/ScrollTrigger'; // Version compatible avec Jest
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import React, { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import ScrollTrigger from "gsap/dist/ScrollTrigger"; // Version compatible avec Jest
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Enregistrement du plugin ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
 
 const solutions = [
   {
-    title: 'Analyse',
+    title: "Analyse",
     description:
-      'Notre outil scanne votre site en profondeur pour identifier les failles potentielles.',
-    icon: '📊',
+      "Notre outil scanne votre site en profondeur pour identifier les failles potentielles.",
+    icon: "📊",
   },
   {
-    title: 'Détecte',
-    description: 'Nous détectons les vulnérabilités et vous fournissons un rapport détaillé.',
-    icon: '🔍',
+    title: "Détecte",
+    description: "Nous détectons les vulnérabilités et vous fournissons un rapport détaillé.",
+    icon: "🔍",
   },
   {
-    title: 'Corrige',
-    description: 'Bénéficiez de recommandations précises pour sécuriser vos applications web.',
-    icon: '🛠️',
+    title: "Corrige",
+    description: "Bénéficiez de recommandations précises pour sécuriser vos applications web.",
+    icon: "🛠️",
   },
 ];
 
@@ -43,10 +43,10 @@ export default function Solution() {
 
     gsap.to(container, {
       xPercent: -100 * (totalSlides - 1),
-      ease: 'power1.inOut',
+      ease: "power1.inOut",
       scrollTrigger: {
         trigger: section,
-        start: 'top top',
+        start: "top top",
         end: () => `+=${window.innerWidth * (totalSlides - 1)}`,
         scrub: 1,
         pin: true,
@@ -117,9 +117,9 @@ export default function Solution() {
           <div
             key={index}
             className={`flex flex-col items-center md:flex-row ${
-              index % 2 === 0 ? 'md:flex-row-reverse' : ''
+              index % 2 === 0 ? "md:flex-row-reverse" : ""
             }`}
-            data-aos={index % 2 === 0 ? 'fade-left' : 'fade-right'}
+            data-aos={index % 2 === 0 ? "fade-left" : "fade-right"}
           >
             {/* Icône */}
             <div className="flex h-24 w-28 items-center justify-center rounded-full bg-[#FFFFFF] text-6xl text-white shadow-lg">
@@ -131,7 +131,7 @@ export default function Solution() {
               <h3 className="text-4xl font-bold text-[#00202B]">{solution.title}</h3>
               <p className="mt-2 text-lg text-gray-700">
                 {/* Description modifiée pour chaque solution */}
-                {solution.title === 'Analyse' && (
+                {solution.title === "Analyse" && (
                   <>
                     Notre outil effectue une analyse approfondie de votre site web, en inspectant
                     chaque ligne de code, chaque requête et chaque ressource. Grâce à des
@@ -143,7 +143,7 @@ export default function Solution() {
                     attaquants.
                   </>
                 )}
-                {solution.title === 'Détecte' && (
+                {solution.title === "Détecte" && (
                   <>
                     Une fois l’analyse terminée, notre système met en lumière les vulnérabilités
                     détectées en les classant par niveau de criticité. Nous identifions les portes
@@ -154,7 +154,7 @@ export default function Solution() {
                     priorité pour sécuriser efficacement votre site.
                   </>
                 )}
-                {solution.title === 'Corrige' && (
+                {solution.title === "Corrige" && (
                   <>
                     La dernière étape consiste à appliquer des correctifs adaptés aux failles
                     détectées. Nous fournissons des recommandations précises et personnalisées,
