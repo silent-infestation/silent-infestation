@@ -23,11 +23,11 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
   const [trustedUrls, setTrustedUrls] = useState([]);
-  const [newUrl, setNewUrl] = useState('');
+  const [newUrl, setNewUrl] = useState("");
 
   useEffect(() => {
     // Charger les infos de l'utilisateur depuis l'API
-    fetch('/api/user')
+    fetch("/api/user")
       .then((res) => res.json())
       .then((data) => {
         setUser(data);
@@ -35,7 +35,7 @@ export default function Profile() {
       });
 
     // Charger les URLs fiables depuis l'API (si disponible)
-    fetch('/api/trusted-urls')
+    fetch("/api/trusted-urls")
       .then((res) => res.json())
       .then((data) => {
         setTrustedUrls(data);
@@ -186,7 +186,6 @@ export default function Profile() {
     }
   };
 
-
   if (loading) return <p className="mt-10 text-center">Chargement du profil...</p>;
   if (!authUser) return <p className="mt-10 text-center">Utilisateur non connecté.</p>;
 
@@ -198,8 +197,7 @@ export default function Profile() {
         alertTitle={alert.alertTitle}
         onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
-      <div className="flex flex-col lg:flex-row min-h-screen items-start justify-center bg-[#DCF0FF] p-6 gap-10">
-
+      <div className="flex min-h-screen flex-col items-start justify-center gap-10 bg-[#DCF0FF] p-6 lg:flex-row">
         {/* Profil */}
         <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg">
           <h1 className="mb-6 text-center text-3xl font-bold text-[#00202B]">
@@ -263,7 +261,7 @@ export default function Profile() {
 
             <button
               onClick={handleDeleteAccount}
-              className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition"
+              className="rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
             >
               Supprimer mon compte
             </button>
@@ -272,9 +270,9 @@ export default function Profile() {
 
         {/* Carte des URLs Fiables */}
         <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
-          <h2 className="text-2xl font-bold text-[#00202B] mb-6">URLs Fiables</h2>
+          <h2 className="mb-6 text-2xl font-bold text-[#00202B]">URLs Fiables</h2>
 
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row">
             <input
               type="url"
               value={newUrl}
@@ -284,25 +282,25 @@ export default function Profile() {
             />
             <button
               onClick={handleAddUrl}
-              className="rounded-md bg-[#05829E] px-5 py-3 text-white hover:bg-[#026A72] transition"
+              className="rounded-md bg-[#05829E] px-5 py-3 text-white transition hover:bg-[#026A72]"
             >
               Ajouter
             </button>
           </div>
 
           {trustedUrls.length === 0 ? (
-            <p className="text-gray-500 italic">Aucune URL ajoutée pour le moment.</p>
+            <p className="italic text-gray-500">Aucune URL ajoutée pour le moment.</p>
           ) : (
             <div className="space-y-3">
               {trustedUrls.map((url) => (
                 <div
                   key={url}
-                  className="flex justify-between items-center rounded-md border px-4 py-2 bg-gray-50"
+                  className="flex items-center justify-between rounded-md border bg-gray-50 px-4 py-2"
                 >
                   <span className="break-all text-sm text-[#00202B]">{url}</span>
                   <button
                     onClick={() => handleDeleteUrl(url)}
-                    className="text-red-500 hover:text-red-700 text-sm"
+                    className="hover:text-red-700 text-sm text-red-500"
                   >
                     Supprimer
                   </button>
