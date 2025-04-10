@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Alert from "@/components/Alert/Alert";
 import { TypeAnimation } from "react-type-animation";
+import api from "@/lib/api";
 
 const Contact = () => {
   const [alert, setAlert] = useState({
@@ -16,7 +17,13 @@ const Contact = () => {
   const contactFields = [
     { name: "email", placeholder: "Votre Email", label: "Email", type: "email", required: true },
     { name: "subject", placeholder: "Sujet", label: "Sujet", type: "text", required: true },
-    { name: "message", placeholder: "Votre message", label: "Message", type: "textarea", required: true },
+    {
+      name: "message",
+      placeholder: "Votre message",
+      label: "Message",
+      type: "textarea",
+      required: true,
+    },
   ];
 
   const handleContactSubmit = async (e) => {
@@ -26,17 +33,14 @@ const Contact = () => {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      const response = await api.post("/mailer", {
+        type: "contact",
+        email: data.email,
+        sujet: data.subject,
+        message: data.message,
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         setAlert({
           isShowingAlert: true,
           isAlertErrorMessage: false,
@@ -46,10 +50,11 @@ const Contact = () => {
         setAlert({
           isShowingAlert: true,
           isAlertErrorMessage: true,
-          alertTitle: result.error || "Erreur lors de l'envoi du message.",
+          alertTitle: response.error || "Erreur lors de l'envoi du message.",
         });
       }
     } catch (error) {
+      console.error("Erreur lors de l'envoi du message :", error);
       setAlert({
         isShowingAlert: true,
         isAlertErrorMessage: true,
@@ -69,8 +74,8 @@ const Contact = () => {
   return (
     <>
       <Alert {...alert} onClose={() => setAlert({ ...alert, isShowingAlert: false })} />
-      <div className="flex flex-col items-center gap-10 p-4 sm:p-20 bg-[#DCF0FF] min-h-screen">
-        <h1 className="text-4xl font-bold text-center text-[#05829E]">
+      <div className="flex min-h-screen flex-col items-center gap-10 bg-[#DCF0FF] p-4 sm:p-20">
+        <h1 className="text-center text-4xl font-bold text-[#05829E]">
           <TypeAnimation
             sequence={["Contactez-nous", 2000, "On est là pour vous", 2000]}
             wrapper="span"
@@ -80,20 +85,27 @@ const Contact = () => {
         </h1>
 
         <p className="max-w-3xl text-center text-gray-700">
-          Vous avez des questions, des suggestions ou besoin d'assistance ? Remplissez le formulaire ci-dessous, et notre équipe vous répondra rapidement.
+          Vous avez des questions, des suggestions ou besoin d&apos;assistance ? Remplissez le
+          formulaire ci-dessous, et notre équipe vous répondra rapidement.
         </p>
 
-        <form ref={formRef} onSubmit={handleContactSubmit} className="w-full max-w-lg space-y-6 bg-white p-6 rounded-xl shadow-lg">
+        <form
+          ref={formRef}
+          onSubmit={handleContactSubmit}
+          className="w-full max-w-lg space-y-6 rounded-xl bg-white p-6 shadow-lg"
+        >
           {contactFields.map(({ name, label, type, placeholder, required }) => (
             <div key={name} className="flex flex-col">
-              <label htmlFor={name} className="text-lg font-medium text-[#05829E] mb-2">{label}</label>
+              <label htmlFor={name} className="mb-2 text-lg font-medium text-[#05829E]">
+                {label}
+              </label>
               {type === "textarea" ? (
                 <textarea
                   id={name}
                   name={name}
                   placeholder={placeholder}
                   required={required}
-                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#05829E] transition duration-300"
+                  className="rounded-lg border border-gray-300 p-3 transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#05829E]"
                   rows={4}
                 />
               ) : (
@@ -103,13 +115,16 @@ const Contact = () => {
                   name={name}
                   placeholder={placeholder}
                   required={required}
-                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#05829E] transition duration-300"
+                  className="rounded-lg border border-gray-300 p-3 transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#05829E]"
                 />
               )}
             </div>
           ))}
 
-          <button type="submit" className="w-full py-3 mt-6 bg-[#05829E] text-white text-lg font-semibold rounded-lg hover:bg-[#046b7b] transition duration-300">
+          <button
+            type="submit"
+            className="mt-6 w-full rounded-lg bg-[#05829E] py-3 text-lg font-semibold text-white transition duration-300 hover:bg-[#046b7b]"
+          >
             Envoyer le message
           </button>
         </form>
