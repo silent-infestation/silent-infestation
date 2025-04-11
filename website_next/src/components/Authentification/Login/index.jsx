@@ -62,9 +62,8 @@ const Login = () => {
         alertTitle={alert.alertTitle}
         onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
-      <div className="flex h-screen flex-col items-center justify-center text-[#00202B]">
-        <h1 className="mb-6 text-2xl font-bold">Connexion</h1>
-        <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-4">
+      <div className="flex flex-col items-center justify-center text-[#00202B]">
+        <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-6">
           <input
             type="email"
             name="email"
@@ -83,6 +82,9 @@ const Login = () => {
             className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
             required
           />
+          <div className="flex justify-center">
+            <span className="text-2xl">↓</span>
+          </div>
           <button
             type="submit"
             className="rounded bg-[#00202B] p-3 text-[#f8f2e2] shadow-xl transition hover:bg-[#003345]"
@@ -90,9 +92,6 @@ const Login = () => {
             Se connecter
           </button>
         </form>
-        <button className="mt-4 rounded bg-blue-500 p-3 text-white shadow-xl transition hover:bg-blue-600">
-          Se connecter avec Google
-        </button>
       </div>
     </>
   );
