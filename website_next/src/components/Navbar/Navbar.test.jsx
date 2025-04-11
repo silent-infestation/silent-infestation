@@ -56,6 +56,7 @@ describe("Navbar Component", () => {
     expect(screen.getByText("Profil")).toBeInTheDocument();
     expect(screen.getByText("Historique")).toBeInTheDocument();
     expect(screen.getByText("Contact")).toBeInTheDocument();
+    expect(screen.getByText("Accueil")).toBeInTheDocument();
     expect(screen.getByText("Déconnexion")).toBeInTheDocument();
 
     await act(async () => {
@@ -97,10 +98,12 @@ describe("Navbar Component", () => {
       fireEvent.click(screen.getByText("Profil"));
       fireEvent.click(screen.getByText("Historique"));
       fireEvent.click(screen.getByText("Contact"));
+      fireEvent.click(screen.getByText("Accueil"));
     });
 
     expect(mockChangeActivePage).toHaveBeenCalledWith("profile");
     expect(mockChangeActivePage).toHaveBeenCalledWith("history");
     expect(mockChangeActivePage).toHaveBeenCalledWith("contact");
+    expect(mockChangeActivePage).toHaveBeenCalledWith("home");
   });
 });
