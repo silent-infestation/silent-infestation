@@ -19,22 +19,22 @@ datasource db {
 // ------------------------
 
 model User {
-  id              Int       @id @default(autoincrement())
-  email           String    @unique
-  password_crypté String
-  login           String
-  firstname       String
-  lastname        String
-  phone           String?
-  disable         Boolean   @default(false)
-  chgpwd          Boolean   @default(false)
-  last_connexion  DateTime?
-  last_chgpwd     DateTime?
-  date_inscription DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String
+  name      String
+  surname   String
+  age       Int?
+  society   String  
+  scanID    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  sites           Site[]
-  scans           Scan[]
-  analyses        Analyse[]
+  // Relations vers les autres modèles  
+  sites     Site[]
+  scans     Scan[]
+  analyses  Analyse[]
 }
 
 // ------------------------
