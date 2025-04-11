@@ -70,7 +70,7 @@ const Login = () => {
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
             required
           />
           <input
@@ -79,7 +79,7 @@ const Login = () => {
             placeholder="Mot de passe"
             value={formData.password}
             onChange={handleChange}
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
             required
           />
           <div className="flex justify-center">
@@ -87,7 +87,7 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="rounded bg-[#00202B] p-3 text-[#f8f2e2] shadow-xl transition hover:bg-[#003345]"
+            className="rounded bg-[#00202B] p-3 text-[#ffff] shadow-xl transition hover:bg-[#003345]"
           >
             Se connecter
           </button>
