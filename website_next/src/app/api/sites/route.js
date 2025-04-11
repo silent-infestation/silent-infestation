@@ -1,11 +1,11 @@
 // pages/api/sites.js
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     const { url_site, auth_email } = req.body;
 
     if (!url_site || !auth_email) {
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Erreur lors de l'ajout du site." });
     }
   } else {
-    res.status(405).json({ message: 'Méthode non autorisée' });
+    res.status(405).json({ message: "Méthode non autorisée" });
   }
 }
 
