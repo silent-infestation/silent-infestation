@@ -68,8 +68,7 @@ const Register = () => {
         alertTitle={alert.alertTitle}
         onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
-      <div className="flex h-screen flex-col items-center justify-center text-[#00202B]">
-        <h1 className="mb-6 text-2xl font-bold">Inscription</h1>
+      <div className="flex flex-col items-center justify-center text-[#00202B]">
         <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-4">
           <input
             type="text"

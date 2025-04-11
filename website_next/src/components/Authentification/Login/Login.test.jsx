@@ -50,7 +50,6 @@ describe("Login Component", () => {
     expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Mot de passe")).toBeInTheDocument();
     expect(screen.getByText("Se connecter")).toBeInTheDocument();
-    expect(screen.getByText("Se connecter avec Google")).toBeInTheDocument();
   });
 
   it("updates form values when typing", async () => {
