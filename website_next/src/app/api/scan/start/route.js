@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { parse } from "cookie";
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 
 const scanStatusMap = global.scanStatusMap || new Map();
@@ -28,7 +26,7 @@ export async function POST(req) {
 
     const userStatus = scanStatusMap.get(userId) || {
       isRunning: false,
-      status: 'not_started',
+      status: "not_started",
     };
 
     if (userStatus.isRunning) {
@@ -39,11 +37,10 @@ export async function POST(req) {
     }
 
     userStatus.isRunning = true;
-    userStatus.status = 'running';
+    userStatus.status = "running";
     scanStatusMap.set(userId, userStatus);
 
     // fonction asynchrone de scan
-
 
     setTimeout(async () => {
       try {
@@ -51,14 +48,12 @@ export async function POST(req) {
         // await lancerMonAudit(userId);
 
         userStatus.isRunning = false;
-        userStatus.status = 'success';
+        userStatus.status = "success";
         scanStatusMap.set(userId, userStatus);
-
-
       } catch (error) {
-        console.error('Erreur dans le scan async :', error);
+        console.error("Erreur dans le scan async :", error);
         userStatus.isRunning = false;
-        userStatus.status = 'error';
+        userStatus.status = "error";
         scanStatusMap.set(userId, userStatus);
       }
     }, 0);

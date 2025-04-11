@@ -25,16 +25,17 @@ export async function GET(req) {
 
     const status = scanStatusMap.get(userId) || {
       isRunning: false,
-      status: 'not_started',
-      result: null, 
+      status: "not_started",
+      result: null,
     };
 
     return NextResponse.json({
-        isRunning: status.isRunning,
-        status: status.status,
-        result: status.result || null,
-      });
+      isRunning: status.isRunning,
+      status: status.status,
+      result: status.result || null,
+    });
   } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: "Token invalide ou expiré" }, { status: 401 });
   }
 }
