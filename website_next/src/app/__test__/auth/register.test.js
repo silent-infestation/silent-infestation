@@ -29,7 +29,7 @@ import { POST } from "@/app/api/auth/register/route";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 
-describe.only("POST /api/auth/register", () => {
+describe("POST /api/auth/register", () => {
   const mockRequest = (body) => ({
     json: () => Promise.resolve(body),
   });
