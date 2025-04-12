@@ -57,33 +57,35 @@ const Navbar = () => {
       </div>
 
       {/* Desktop Navigation */}
-      <div ref={containerRef} className="relative hidden text-lg md:flex md:gap-x-[30px]">
-        {/* Barre animée */}
-        <div
-          className="absolute bottom-0 h-[3px] bg-[#71b9cf] transition-all duration-300"
-          style={{
-            left: `${sliderStyle.left}px`,
-            width: `${sliderStyle.width}px`,
-          }}
-        />
-        {isAuthenticated &&
-          navItems.map(({ key, label }) => (
-            <div key={key} className="min-w-[120px] text-center">
-              <button
-                onClick={() => changeActivePage(key)}
-                className={`w-full transition ${
-                  activePage === key
-                    ? "mb-2 text-2xl font-bold text-[#71b9cf]"
-                    : "hover:text-[#F5F5F5]"
-                }`}
-              >
-                <span ref={textRefs[key]} className="inline-block">
-                  {label}
-                </span>
-              </button>
-            </div>
-          ))}
-      </div>
+      {isAuthenticated && (
+        <div ref={containerRef} className="relative hidden text-lg md:flex md:gap-x-[30px]">
+          {/* Barre animée */}
+          <div
+            className="absolute bottom-0 h-[3px] bg-[#71b9cf] transition-all duration-300"
+            style={{
+              left: `${sliderStyle.left}px`,
+              width: `${sliderStyle.width}px`,
+            }}
+          />
+          {isAuthenticated &&
+            navItems.map(({ key, label }) => (
+              <div key={key} className="min-w-[120px] text-center">
+                <button
+                  onClick={() => changeActivePage(key)}
+                  className={`w-full transition ${
+                    activePage === key
+                      ? "mb-2 text-2xl font-bold text-[#71b9cf]"
+                      : "hover:text-[#F5F5F5]"
+                  }`}
+                >
+                  <span ref={textRefs[key]} className="inline-block">
+                    {label}
+                  </span>
+                </button>
+              </div>
+            ))}
+        </div>
+      )}
 
       {/* Auth Buttons */}
       <div className="hidden gap-4 md:flex">

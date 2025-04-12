@@ -85,6 +85,10 @@ DATABASE_URL="postgresql://pascal_parasite:bugman_@$DB_IP:5432/dev_silen2festati
 DATABASE_DOCKER_URL="postgresql://pascal_parasite:bugman_@$CONTAINER_NAME:5432/dev_silen2festation?schema=public"
 
 WEBSITE_PORT=23000
+
+EMAIL_USER="silent2festation@gmail.com"
+ADMIN_EMAIL="silent2festation@gmail.com"
+EMAIL_PASSWORD="mssu gtmt ecqm nvma"
 EOF
 
 echo "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès !\e[0m"
