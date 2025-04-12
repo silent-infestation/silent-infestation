@@ -7,11 +7,6 @@ jest.mock("@/lib/api");
 describe("Contact Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, "error").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it("affiche tous les champs du formulaire", () => {

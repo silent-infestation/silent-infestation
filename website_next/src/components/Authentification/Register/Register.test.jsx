@@ -30,7 +30,6 @@ describe("Register Component", () => {
   beforeEach(() => {
     fetch.mockClear();
     jest.clearAllMocks();
-    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
