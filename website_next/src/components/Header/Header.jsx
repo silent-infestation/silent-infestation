@@ -4,16 +4,15 @@ import React, { useState } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import {useAppContext} from "@/app/context/AppContext";
+import { useAppContext } from "@/app/context/AppContext";
 
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupStep, setPopupStep] = useState(null);
   const [selectedUrl, setSelectedUrl] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const router = useRouter();
-  const {changeActivePage} = useAppContext();
+  const { changeActivePage } = useAppContext();
 
   // Simule les données utilisateur
   const user = {
@@ -40,11 +39,9 @@ export default function Header() {
     if (!selectedUrl) return;
 
     setPopupStep("loading");
-    setIsLoading(true);
     setShowDownload(false);
 
     setTimeout(() => {
-      setIsLoading(false);
       setPopupStep("done");
       setShowDownload(true);
     }, 3000);
@@ -144,7 +141,7 @@ export default function Header() {
             {popupStep === "no-url" && (
               <>
                 <p className="mb-4 text-gray-800">
-                  Vous n'avez pas encore d'URL fiable enregistrée.
+                  Vous n&rsquo;avez pas encore d&rsquo;URL fiable enregistrée.
                 </p>
                 <button
                   onClick={handleGoToProfile}
@@ -160,27 +157,27 @@ export default function Header() {
               <>
                 <p className="mb-4 font-medium text-gray-700">Sélectionnez une URL à scanner :</p>
                 <div className="mb-4 flex flex-col items-start space-y-2">
-                    {user.trustedUrls.map((url) => (
-                        <button
-                        key={url}
-                        onClick={() => setSelectedUrl(url)}
-                        className={`w-full text-left rounded px-4 py-2 transition ${
-                            selectedUrl === url
-                            ? "bg-[#05829E] text-white"
-                            : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                        }`}
-                        >
-                        {url}
-                        </button>
-                    ))}
-                    </div>
+                  {user.trustedUrls.map((url) => (
+                    <button
+                      key={url}
+                      onClick={() => setSelectedUrl(url)}
+                      className={`w-full rounded px-4 py-2 text-left transition ${
+                        selectedUrl === url
+                          ? "bg-[#05829E] text-white"
+                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      }`}
+                    >
+                      {url}
+                    </button>
+                  ))}
+                </div>
                 <button
                   disabled={!selectedUrl}
                   onClick={startScan}
                   className={`mt-2 rounded px-4 py-2 text-white ${
                     selectedUrl
                       ? "bg-[#05829E] hover:bg-[#046e87]"
-                      : "bg-gray-400 cursor-not-allowed"
+                      : "cursor-not-allowed bg-gray-400"
                   }`}
                 >
                   Lancer le scan
@@ -191,7 +188,7 @@ export default function Header() {
             {/* LOADING */}
             {popupStep === "loading" && (
               <>
-                <p className="mb-4 text-gray-800">Analyse de l'URL en cours...</p>
+                <p className="mb-4 text-gray-800">Analyse de l&rsquo;URL en cours...</p>
                 <div className="h-2 w-full overflow-hidden rounded bg-gray-200">
                   <motion.div
                     className="h-full bg-[#05829E]"
