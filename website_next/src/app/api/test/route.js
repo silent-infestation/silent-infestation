@@ -25,13 +25,18 @@ const PARAM_TAMPERING_PAYLOADS = [
 // ------------------------
 const visitedUrls = new Map(); // URL -> cheerio object
 const securityFindings = [];
+const recordedFindings = new Set(); // For deduplicating across all notes
 
 // ------------------------
-// Enhanced noteFinding
+// Enhanced noteFinding (with deduplication)
 // ------------------------
 /**
- * Record or update a security-related finding.
- * 
+ * Record a security-related finding, avoiding duplicates.
+ *
+ * We create a "signature" that identifies the uniqueness of a finding
+ * based on (type, domain, detail). If that signature already exists,
+ * we do not add it again.
+ *
  * @param {string} type - The short code for the vulnerability category (e.g. 'insecure_transport')
  * @param {string} url - The URL where this was observed
  * @param {string} detail - A short explanation or data point
@@ -39,11 +44,23 @@ const securityFindings = [];
  *    e.g., { confidence: 'high', severity: 'critical' }
  */
 function noteFinding(type, url, detail, options = {}) {
-  const {
-    confidence = "medium",
-    severity = "medium",
-  } = options;
+  let domain;
+  try {
+    domain = new URL(url).hostname;
+  } catch {
+    // fallback if URL parsing fails
+    domain = url;
+  }
 
+  // Create a signature to avoid repeating the same finding
+  const signature = `${type}::${domain}::${detail}`;
+  if (recordedFindings.has(signature)) {
+    // It's already recorded; skip
+    return;
+  }
+  recordedFindings.add(signature);
+
+  const { confidence = "medium", severity = "medium" } = options;
   securityFindings.push({ type, url, detail, confidence, severity });
 }
 
@@ -72,15 +89,13 @@ function isSameDomain(url, domain) {
 /**
  * 1. Check if the site is using HTTPS. If it’s pure HTTP and does not redirect, we note it as insecure.
  * 
- * You might do a preliminary HEAD request to see if the site redirects to HTTPS 
+ * We do a preliminary HEAD request to see if the site redirects to HTTPS 
  * before declaring an 'insecure_transport' finding.
  */
 async function checkHTTPS(pageUrl) {
-  // If the page is already https://, skip
   if (pageUrl.toLowerCase().startsWith("https://")) {
     return;
   }
-  // Attempt a HEAD to see if it redirects to https
   try {
     const resp = await axios.head(pageUrl, { maxRedirects: 0 });
     // If we do not get a 301/302 to https, note the finding
@@ -106,8 +121,6 @@ async function checkHTTPS(pageUrl) {
 /**
  * 2. Check if credentials appear in URL query parameters. 
  * We do simple pattern matching for 'token', 'auth', 'password', etc.
- * 
- * Additional logic: If the param is obviously unimportant, skip.
  */
 function checkCredentialsInUrl(pageUrl) {
   try {
@@ -118,8 +131,6 @@ function checkCredentialsInUrl(pageUrl) {
 
       // Heuristic: skip if param is obviously not sensitive
       if (kLower.includes("pagetoken") || kLower.includes("csrftoken")) {
-        // Some frameworks call any token a "csrf token" in the URL, 
-        // which might not be sensitive. You decide how broad to be.
         continue;
       }
 
@@ -142,7 +153,6 @@ function checkCredentialsInUrl(pageUrl) {
 
 /**
  * 3. Check for a password reset route. 
- * This is only a clue; it doesn't confirm an exploit. We'll mark it low severity.
  */
 function checkForPasswordReset(pageUrl) {
   const lowerUrl = pageUrl.toLowerCase();
@@ -157,32 +167,42 @@ function checkForPasswordReset(pageUrl) {
 }
 
 /**
- * 4. Check cookies for missing HttpOnly/Secure flags or suspicious session usage
- * We also skip if the domain is "localhost" for the Secure flag, as that wouldn't apply.
+ * 4. Check cookies for missing HttpOnly/Secure flags or suspicious session usage.
+ *    We unify multiple missing flags into a single note, so that
+ *    "Cookie 'PHPSESSID' missing flags: Secure, HttpOnly" only appears once.
  */
 function checkCookiesForSecurityFlags(setCookieHeader, pageUrl) {
   if (!setCookieHeader) return;
   const domain = new URL(pageUrl).hostname;
-
   const cookieArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+
   cookieArray.forEach((cookieStr) => {
     const lower = cookieStr.toLowerCase();
-    // If cookie name suggests it's session/auth
-    if (/(session|auth|jwt|sid)/i.test(cookieStr)) {
+
+    // Extract cookie name (e.g. "PHPSESSID")
+    const matchName = cookieStr.match(/^([^=]+)=/);
+    if (!matchName) return;
+    const cookieName = matchName[1].trim();
+
+    // If it's likely a session/auth cookie
+    if (/(session|auth|jwt|sid)/i.test(cookieName)) {
+      const missingFlags = [];
+
       // If domain is not localhost and no secure flag
       if (!lower.includes("secure") && domain !== "localhost") {
-        noteFinding(
-          "insecure_cookie",
-          pageUrl,
-          `Missing Secure flag on auth cookie: ${cookieStr}`,
-          { confidence: "high", severity: "medium" }
-        );
+        missingFlags.push("Secure");
       }
+      // If there's no HttpOnly
       if (!lower.includes("httponly")) {
+        missingFlags.push("HttpOnly");
+      }
+
+      // If any flags are missing, record as a single combined finding
+      if (missingFlags.length > 0) {
         noteFinding(
           "insecure_cookie",
           pageUrl,
-          `Missing HttpOnly flag on auth cookie: ${cookieStr}`,
+          `Cookie '${cookieName}' missing flags: ${missingFlags.join(", ")}`,
           { confidence: "high", severity: "medium" }
         );
       }
@@ -224,14 +244,12 @@ async function attemptJWTExploitation(originalToken, pageUrl, requestRestrictedF
         .replace(/\//g, "_")
         .replace(/=/g, "");
 
-    const tamperedToken =
-      toBase64Url(tamperedHeader) + "." + toBase64Url(payloadObj) + "."; // no signature
+    const tamperedToken = `${toBase64Url(tamperedHeader)}.${toBase64Url(payloadObj)}.`; // no signature
 
     const tamperedResp = await requestRestrictedFn(tamperedToken);
     const status = tamperedResp.status;
 
     if (status >= 200 && status < 300) {
-      // e.g. success status (200, 202, etc.)
       noteFinding(
         "improper_jwt_handling",
         pageUrl,
@@ -249,10 +267,8 @@ async function attemptJWTExploitation(originalToken, pageUrl, requestRestrictedF
           { confidence: "high", severity: "critical" }
         );
       }
-    } else if (status === 401 || status === 403) {
-      // The server properly rejected the tampered token
-      // We do nothing, which means it's likely secure here.
     }
+    // If 401 or 403, the server properly rejected the token (no finding).
   } catch (err) {
     console.warn("[JWT Exploit Error]", err.message);
   }
@@ -276,7 +292,6 @@ function detectTestingStringResponses($) {
 }
 
 function detectSQLInjectionResponses($) {
-  // Example: detect error-based or echoed statements in <pre>
   const results = [];
   $("pre").each((_, el) => {
     const txt = $(el).text().trim();
@@ -288,29 +303,15 @@ function detectSQLInjectionResponses($) {
   return results.length ? { type: "sql_injection_response", data: results } : null;
 }
 
-/**
- * We can add logic for severity or confidence based on repeated patterns or known DB error messages
- */
 function detectPatterns($) {
   const detections = [detectSQLInjectionResponses, detectTestingStringResponses]
     .map((fn) => fn($))
     .filter(Boolean);
 
-  // For demo, if multiple patterns are triggered, we might raise confidence
   if (detections.length > 1) {
-    return {
-      combined: true,
-      detections,
-      confidence: "high",
-      severity: "high",
-    };
+    return { combined: true, detections, confidence: "high", severity: "high" };
   } else if (detections.length === 1) {
-    return {
-      combined: false,
-      detections,
-      confidence: "medium",
-      severity: "medium",
-    };
+    return { combined: false, detections, confidence: "medium", severity: "medium" };
   }
   return null;
 }
@@ -319,7 +320,6 @@ function detectPatterns($) {
 // CSRF / Form checks
 // ------------------------
 function checkFormForCSRFToken($form) {
-  // e.g. <input type="hidden" name="csrf" ...>
   const hiddenCsrf = $form.find(
     "input[type='hidden'][name*='csrf'], input[type='hidden'][name*='token']"
   ).length;
@@ -345,6 +345,42 @@ function isLikelyLoginForm($form, $) {
 // ------------------------
 let attemptsCount = 0;
 let rateLimitDetected = false;
+let accountLockoutDetected = false;
+let progressiveDelayDetected = false;
+const requestTimes = []; // for measuring progressive delay
+
+function detectCaptcha(resp) {
+  const html = (resp.data || "").toLowerCase();
+  const $ = cheerio.load(resp.data);
+
+  return (
+    $('[class*="captcha"]').length > 0 ||
+    $('[id*="captcha"]').length > 0 ||
+    $('img[src*="captcha"]').length > 0 ||
+    html.includes("captcha") ||
+    $('div[class*="g-recaptcha"]').length > 0
+  );
+}
+
+function detectAccountLockout(resp) {
+  const html = (resp.data || "").toLowerCase();
+  const status = resp.status;
+
+  if (status === 403) {
+    return true; // "Forbidden" might indicate a lockout
+  }
+
+  const accountLockedPatterns = [
+    /account.*locked/i,
+    /locked.*account/i,
+    /too many.*attempts/i,
+    /temporarily blocked/i,
+    /verrouill/i,
+    /bloqu/i,
+    /trop de tentatives/i,
+  ];
+  return accountLockedPatterns.some((pattern) => pattern.test(html));
+}
 
 function isPotentiallySuccessfulLogin(resp) {
   const html = (resp.data || "").toLowerCase();
@@ -382,9 +418,8 @@ function isPotentiallySuccessfulLogin(resp) {
   // Check for known login redirect
   const isRedirectToSafePage =
     headers["location"] &&
-    ["/dashboard", "/account", "/home"].some((p) => headers["location"].toLowerCase().includes(p));
+    ["/dashboard", "/account", "/home"].some((p) => headers["location"]?.toLowerCase()?.includes(p));
 
-  // Simple scoring
   let score = 0;
   if (status >= 200 && status < 300) score += 1;
   if (hasSuccessIndicators) score += 2;
@@ -392,6 +427,29 @@ function isPotentiallySuccessfulLogin(resp) {
   if (status === 302 && isRedirectToSafePage) score += 1;
 
   return !hasFailureIndicators && score >= 3;
+}
+
+function checkProgressiveDelay() {
+  if (requestTimes.length < 6) return; // Need enough data points
+
+  const half = Math.floor(requestTimes.length / 2);
+  const firstHalf = requestTimes.slice(0, half);
+  const secondHalf = requestTimes.slice(half);
+
+  const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const avgFirst = avg(firstHalf);
+  const avgSecond = avg(secondHalf);
+
+  // If second half is 1.5x the first half, we consider it progressive delay
+  if (avgSecond > avgFirst * 1.5 && !progressiveDelayDetected) {
+    progressiveDelayDetected = true;
+    noteFinding(
+      "progressive_delay_detected",
+      "N/A",
+      `Response time increased from ~${avgFirst.toFixed(2)}ms to ~${avgSecond.toFixed(2)}ms`,
+      { confidence: "high", severity: "medium" }
+    );
+  }
 }
 
 async function bruteForceLogin(url, method, data, fields, requestFn) {
@@ -414,8 +472,16 @@ async function bruteForceLogin(url, method, data, fields, requestFn) {
       if (!payload[usernameField] || !payload[passwordField]) continue;
 
       attemptsCount++;
+
+      const startTime = Date.now();
       try {
         const resp = await requestFn(url, method, payload);
+        const endTime = Date.now();
+        const elapsed = endTime - startTime;
+        requestTimes.push(elapsed);
+        checkProgressiveDelay();
+
+        // 1) Rate limit detection
         if (resp.status === 429) {
           rateLimitDetected = true;
           noteFinding(
@@ -426,6 +492,31 @@ async function bruteForceLogin(url, method, data, fields, requestFn) {
           );
           break;
         }
+
+        // 2) Captcha detection
+        if (detectCaptcha(resp)) {
+          noteFinding(
+            "captcha_detected",
+            url,
+            "Possible captcha found after repeated login attempts",
+            { confidence: "high", severity: "medium" }
+          );
+          // Optionally break if needed
+        }
+
+        // 3) Account lockout detection
+        if (detectAccountLockout(resp) && !accountLockoutDetected) {
+          accountLockoutDetected = true;
+          noteFinding(
+            "account_lockout_detected",
+            url,
+            "Server indicates account lockout after repeated attempts",
+            { confidence: "high", severity: "medium" }
+          );
+          break;
+        }
+
+        // If potentially successful
         if (isPotentiallySuccessfulLogin(resp)) {
           noteFinding(
             "default_or_weak_creds",
@@ -439,11 +530,14 @@ async function bruteForceLogin(url, method, data, fields, requestFn) {
         console.error(`[BRUTE ERROR] ${user}:${pass} - ${err.message}`);
       }
     }
-    if (rateLimitDetected) break;
+    if (rateLimitDetected || accountLockoutDetected) break;
   }
 
-  // If we tried everything and never saw 429 or a lockout
-  if (!rateLimitDetected && attemptsCount > USER_LIST.length * PASSWORD_LIST.length) {
+  if (
+    !rateLimitDetected &&
+    !accountLockoutDetected &&
+    attemptsCount > USER_LIST.length * PASSWORD_LIST.length
+  ) {
     noteFinding(
       "no_rate_limit_detected",
       url,
@@ -505,7 +599,6 @@ async function submitFormWithPayloads(form, requestFn) {
 
       if (result) {
         if (result.detections) {
-          // Possibly multiple or single detections
           const detectionTypes = result.detections.map((d) => d.type);
           noteFinding(
             "possible_injection_response",
@@ -587,7 +680,6 @@ async function processForms($, url, requestFn, attemptRestrictedFn) {
       }
     }
   }
-
   return { sqlHits, bruteForceResults };
 }
 
@@ -610,7 +702,7 @@ async function requestFn(url, method, data) {
     }
   } catch (error) {
     if (error.response && [302, 429].includes(error.response.status)) {
-      return error.response; // return the redirect/rate-limit
+      return error.response; // handle redirect or rate-limit as success
     }
     throw error;
   }
@@ -621,7 +713,6 @@ async function requestFnWithJWT(url, tamperedToken) {
     maxRedirects: 0,
     validateStatus: (status) => status < 400 || status === 302,
     headers: {
-      // Using a cookie for the tampered JWT
       Cookie: `jwt=${tamperedToken}`,
     },
   };
@@ -661,7 +752,6 @@ async function startCrawler(startUrl) {
           visitedUrls.set(pageUrl, res.$);
           foundUrls.add(pageUrl);
 
-          // Enhanced: checkHTTPS is async, so we can await it
           await checkHTTPS(pageUrl);
           checkForPasswordReset(pageUrl);
           checkCredentialsInUrl(pageUrl);
