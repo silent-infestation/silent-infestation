@@ -20,7 +20,7 @@ import { GET } from "@/app/api/auth/status/route";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-describe.only("GET /api/auth/status", () => {
+describe("GET /api/auth/status", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
