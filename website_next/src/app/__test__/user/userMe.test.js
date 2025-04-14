@@ -25,7 +25,7 @@ import { GET, PUT, DELETE } from "@/app/api/user/me/route";
 import { prisma } from "@/lib/prisma";
 import { verify } from "jsonwebtoken";
 
-describe.only("User /me API", () => {
+describe("User /me API", () => {
   const user = {
     id: 1,
     email: "test@example.com",
