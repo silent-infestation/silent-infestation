@@ -22,7 +22,7 @@ jest.mock("@/lib/prisma", () => ({
 import { prisma } from "@/lib/prisma";
 import { handleGetUser, handleUpdateUser, handleDeleteUser } from "@/app/api/user/[id]/core";
 
-describe.only("User API by ID", () => {
+describe("User API by ID", () => {
   const mockParams = { id: "1" };
 
   beforeEach(() => {

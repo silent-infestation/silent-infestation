@@ -21,7 +21,7 @@ jest.mock("@/app/api/bruteforce/core", () => ({
 import { POST } from "@/app/api/bruteforce/route";
 import { startBruteforceTesting, generateSummaryReport } from "@/app/api/bruteforce/core";
 
-describe.only("POST /api/bruteforce", () => {
+describe("POST /api/bruteforce", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

@@ -20,7 +20,7 @@ jest.mock("@/app/api/test/core", () => ({
 import { POST } from "@/app/api/test/route";
 import { startCrawler, performXSSAttempt, performAdditionalCheck } from "@/app/api/test/core";
 
-describe.only("POST /api/securityscan", () => {
+describe("POST /api/securityscan", () => {
   const mockRequest = (body) => ({
     json: () => Promise.resolve(body),
   });

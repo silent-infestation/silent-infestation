@@ -12,7 +12,7 @@ jest.mock("next/server", () => ({
   },
 }));
 
-describe.only("GET /api/scan/status", () => {
+describe("GET /api/scan/status", () => {
   const userId = 999;
 
   const mockRequest = (cookie) => ({
