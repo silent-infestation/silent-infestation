@@ -21,12 +21,10 @@ jest.mock("@/app/api/mailer/core", () => ({
   createContactEmailContent: jest.fn(() => "<p>contact HTML</p>"),
 }));
 
-// ⛔️ Pas de `import { POST } ...` ici ! 👇
-describe.only("POST /api/mailer", () => {
+describe("POST /api/mailer", () => {
   let POST;
 
   beforeAll(() => {
-    // ✅ importer dynamiquement APRÈS les mocks
     POST = require("@/app/api/mailer/handler").POST;
   });
 
