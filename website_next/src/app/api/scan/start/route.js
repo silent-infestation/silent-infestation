@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
 
-import { runAudit } from "@/lib/security_checks/run_audit.js"; // <-- The big function from above
+import { runAudit } from "@/scripts/audit/index.js"; // <-- The big function from above
 
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 

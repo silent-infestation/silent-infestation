@@ -1,0 +1,106 @@
+import Crawler from "crawler";
+import { URL } from "url";
+
+import { initializeGlobals, updatePartialData, createPartialData } from "./utils/globals";
+import { normalizeUrl, isSameDomain } from "./utils/url";
+import {
+  noteFindingFactory,
+  findingToRecommendation,
+  securityResources,
+  generateSummaryReport,
+} from "./utils/findings";
+import { checkHTTPS, checkCredentialsInUrl, checkForPasswordReset } from "./modules/authChecks";
+import { processForms } from "./modules/formChecks";
+
+const scanResultsMap = initializeGlobals();
+
+/**
+ * Main exported audit runner function
+ * @param {string} startUrl
+ * @param {string} userId
+ * @returns {Promise<object>} final scan results
+ */
+export async function runAudit(startUrl, userId) {
+  // Initialize data holders
+  const partialData = createPartialData();
+  const visitedUrls = new Map();
+  const recordedFindings = new Set();
+
+  const noteFinding = noteFindingFactory(recordedFindings, userId, partialData);
+  scanResultsMap.set(userId, partialData);
+
+  // Main crawler logic
+  async function startCrawler(startUrl) {
+    return new Promise((resolve) => {
+      const foundUrls = new Set();
+      const domain = new URL(startUrl).hostname;
+
+      const crawler = new Crawler({
+        maxConnections: 10,
+        retries: 3,
+        callback: async (err, res, done) => {
+          const pageUrl = res.options?.url;
+
+          if (!err && res.$ && pageUrl && !visitedUrls.has(pageUrl)) {
+            visitedUrls.set(pageUrl, res.$);
+            foundUrls.add(pageUrl);
+            partialData.crawledUrls.push(pageUrl);
+            updatePartialData(userId, partialData);
+
+            await checkHTTPS(pageUrl, noteFinding);
+            checkForPasswordReset(pageUrl, noteFinding);
+            checkCredentialsInUrl(pageUrl, noteFinding);
+
+            for (const link of extractLinks(res.$, domain, pageUrl)) {
+              if (!visitedUrls.has(link)) crawler.queue(link);
+            }
+          } else if (err) {
+            console.error(`[Crawler Error] ${pageUrl}: ${err.message}`);
+          }
+          done();
+        },
+      });
+
+      crawler.queue(startUrl);
+      crawler.on("drain", () => resolve([...foundUrls]));
+    });
+  }
+
+  function extractLinks($, domain, baseUrl) {
+    const links = new Set();
+    $("a").each((_, el) => {
+      const href = $(el).attr("href");
+      const fullUrl = normalizeUrl(href, baseUrl);
+      if (
+        fullUrl &&
+        isSameDomain(fullUrl, domain) &&
+        !fullUrl.match(/\.(jpg|png|svg|yml|yaml)$/i)
+      ) {
+        links.add(fullUrl);
+      }
+    });
+    return [...links];
+  }
+
+  try {
+    const crawledUrls = await startCrawler(startUrl);
+
+    for (const url of crawledUrls) {
+      const $ = visitedUrls.get(url);
+      if (!$) continue;
+
+      await processForms($, url, noteFinding);
+    }
+
+    partialData.recommendationReport = generateSummaryReport(
+      partialData.securityFindings,
+      findingToRecommendation,
+      securityResources
+    );
+
+    return partialData;
+  } catch (err) {
+    console.error("[runAudit] Unexpected error:", err);
+    throw err;
+  }
+}
