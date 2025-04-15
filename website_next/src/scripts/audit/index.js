@@ -16,12 +16,12 @@ const scanResultsMap = initializeGlobals();
 
 /**
  * Main exported audit runner function
- * @param {string} startUrl
- * @param {string} userId
- * @returns {Promise<object>} final scan results
+ *
+ * @param {string} startUrl - Initial page to begin crawling from
+ * @param {string} userId - Unique user identifier for tracking scan results
+ * @returns {Promise<object>} final scan results including findings and recommendations
  */
 export async function runAudit(startUrl, userId) {
-  // Initialize data holders
   const partialData = createPartialData();
   const visitedUrls = new Map();
   const recordedFindings = new Set();
@@ -29,7 +29,13 @@ export async function runAudit(startUrl, userId) {
   const noteFinding = noteFindingFactory(recordedFindings, userId, partialData);
   scanResultsMap.set(userId, partialData);
 
-  // Main crawler logic
+  /**
+   * Starts the crawler using the initial URL.
+   * Tracks and stores visited URLs and discovered links.
+   *
+   * @param {string} startUrl - The starting URL for crawling
+   * @returns {Promise<string[]>} - Array of successfully crawled URLs
+   */
   async function startCrawler(startUrl) {
     return new Promise((resolve) => {
       const foundUrls = new Set();
@@ -66,6 +72,14 @@ export async function runAudit(startUrl, userId) {
     });
   }
 
+  /**
+   * Extracts valid crawlable links from anchor tags on the page.
+   *
+   * @param {cheerio.Root} $ - The cheerio DOM object for the page
+   * @param {string} domain - The root domain for comparison
+   * @param {string} baseUrl - Base URL for resolving relative paths
+   * @returns {string[]} - List of valid URLs to crawl
+   */
   function extractLinks($, domain, baseUrl) {
     const links = new Set();
     $("a").each((_, el) => {
@@ -88,7 +102,6 @@ export async function runAudit(startUrl, userId) {
     for (const url of crawledUrls) {
       const $ = visitedUrls.get(url);
       if (!$) continue;
-
       await processForms($, url, noteFinding);
     }
 

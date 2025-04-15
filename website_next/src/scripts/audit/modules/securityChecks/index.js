@@ -12,6 +12,12 @@ const PARAM_TAMPERING_PAYLOADS = ["9999", "1 OR 1=1", "<script>alert('x')</scrip
 const USER_LIST = ["root", "admin"];
 const PASSWORD_LIST = ["123456", "password", "12345678"];
 
+/**
+ * Detects SQL injection or reflected marker patterns in response body.
+ *
+ * @param {cheerio.Root} $ - cheerio-parsed HTML document
+ * @returns {object|null} structured detection result or null
+ */
 export function detectPatterns($) {
   const detections = [detectSQLInjectionResponses, detectTestingStringResponses]
     .map((fn) => fn($))
@@ -31,9 +37,13 @@ export function detectPatterns($) {
 }
 
 /**
- * Builds a new formData object:
- * - The "injectionField" will receive the "injectionPayload".
- * - All other fields get a default mock value based on their input type.
+ * Builds mock form data for all fields, injecting a payload into the specified field.
+ *
+ * @param {object} originalFormData - Original form values
+ * @param {object} formInputs - Field types mapping
+ * @param {string} injectionField - Name of the field to inject
+ * @param {string} payload - Injection payload
+ * @returns {object} modified form data
  */
 function buildMockFormData(originalFormData, formInputs, injectionField, payload) {
   const mockData = { ...originalFormData };
@@ -50,7 +60,10 @@ function buildMockFormData(originalFormData, formInputs, injectionField, payload
 }
 
 /**
- * Mock data for each field type. Extend as needed.
+ * Returns a default mock value based on input field type.
+ *
+ * @param {string} type - Field input type
+ * @returns {string} dummy value
  */
 function getDefaultValueByType(type) {
   const defaultValues = {
@@ -82,56 +95,51 @@ function getDefaultValueByType(type) {
   return defaultValues[type.toLowerCase()] || "dummyValue";
 }
 
+/**
+ * Sends form submissions with various payloads to detect vulnerability response patterns.
+ *
+ * @param {object} form - Parsed form metadata
+ * @param {Function} noteFinding - Finding logger
+ */
 export async function submitFormWithPayloads(form, noteFinding) {
   const { actionUrl, method, formData, formInputs } = form;
   const allPayloads = [...SQLI_PAYLOADS, ...PARAM_TAMPERING_PAYLOADS];
 
   for (const field of Object.keys(formData)) {
     for (const payload of allPayloads) {
-      // Build a new form-data object with mock values + injection
-      const modifiedData = buildMockFormData(
-        formData,
-        formInputs,
-        field, // the field to inject
-        payload // the injection payload
-      );
+      const modifiedData = buildMockFormData(formData, formInputs, field, payload);
       try {
         const resp = await sendRequest(actionUrl, method, modifiedData);
         const $ = cheerio.load(resp.data);
         const result = detectPatterns($);
 
         if (result) {
-          if (result.detections) {
-            const detectionTypes = result.detections.map((d) => d.type);
-            noteFinding(
-              "possible_injection_response",
-              actionUrl,
-              `Payload "${payload}" triggered patterns: ${detectionTypes.join(", ")}`,
-              {
-                confidence: result.confidence || "medium",
-                severity: result.severity || "medium",
-              }
-            );
-          } else {
-            noteFinding(
-              "possible_injection_response",
-              actionUrl,
-              `Payload "${payload}" triggered injection-like pattern`,
-              {
-                confidence: "medium",
-                severity: "medium",
-              }
-            );
-          }
+          const typeList = result.detections?.map((d) => d.type) || [];
+          noteFinding(
+            "possible_injection_response",
+            actionUrl,
+            `Payload "${payload}" triggered patterns: ${typeList.join(", ")}`,
+            {
+              confidence: result.confidence || "medium",
+              severity: result.severity || "medium",
+            }
+          );
         }
       } catch (err) {
-        console.log(`[Payload Error] payload "${payload}" for field "${field}"`, err.message);
         console.error(`[Payload Error] ${actionUrl} field '${field}'`, err.message);
       }
     }
   }
 }
 
+/**
+ * Attempts brute-force login with common credentials.
+ * Detects successful logins and potential rate limit / lockout mechanisms.
+ *
+ * @param {object} form - Form structure metadata
+ * @param {Function} noteFinding - Finding logger
+ * @returns {Promise<Array>} successful attempts
+ */
 export async function bruteForceLogin(form, noteFinding) {
   const { actionUrl, method, formData, formInputs } = form;
   const usernameField = Object.keys(formInputs).find(
@@ -213,6 +221,13 @@ export async function bruteForceLogin(form, noteFinding) {
   return successful;
 }
 
+/**
+ * Determines whether a login attempt likely succeeded, based on response patterns.
+ *
+ * @param {import("axios").AxiosResponse} resp - The response object
+ * @param {Function} noteFinding - Logger for cookie issues
+ * @returns {boolean} success heuristic
+ */
 function isPotentiallySuccessfulLogin(resp, noteFinding) {
   const html = (resp.data || "").toLowerCase();
   const headers = resp.headers || {};
@@ -246,7 +261,9 @@ function isPotentiallySuccessfulLogin(resp, noteFinding) {
 
   const isRedirectToSafePage =
     headers["location"] &&
-    ["/dashboard", "/account", "/home"].some((p) => headers["location"].toLowerCase().includes(p));
+    ["/dashboard", "/account", "/home"].some((p) =>
+      headers["location"].toLowerCase().includes(p)
+    );
 
   let score = 0;
   if (status >= 200 && status < 300) score += 1;
@@ -257,6 +274,12 @@ function isPotentiallySuccessfulLogin(resp, noteFinding) {
   return !hasFailureIndicators && score >= 3;
 }
 
+/**
+ * Checks for progressively slower response times to infer rate limiting.
+ *
+ * @param {Function} noteFinding - Logger
+ * @param {number[]} requestTimes - Array of response durations in ms
+ */
 function detectProgressiveDelay(noteFinding, requestTimes = []) {
   let progressiveDelayDetected = false;
 
@@ -277,6 +300,12 @@ function detectProgressiveDelay(noteFinding, requestTimes = []) {
   }
 }
 
+/**
+ * Detects visual or keyword-based indicators of CAPTCHA in the HTML.
+ *
+ * @param {import("axios").AxiosResponse} resp - Axios response
+ * @returns {boolean} true if captcha detected
+ */
 function detectCaptcha(resp) {
   const $ = cheerio.load(resp.data);
   return (
@@ -287,6 +316,12 @@ function detectCaptcha(resp) {
   );
 }
 
+/**
+ * Scans HTML for common lockout phrases or status code indicating account lock.
+ *
+ * @param {import("axios").AxiosResponse} resp - Axios response
+ * @returns {boolean} true if account lockout detected
+ */
 function detectAccountLockout(resp) {
   const html = (resp.data || "").toLowerCase();
   const status = resp.status;
@@ -303,6 +338,14 @@ function detectAccountLockout(resp) {
   return lockoutPatterns.some((re) => re.test(html));
 }
 
+/**
+ * Sends a GET or POST request with appropriate headers.
+ *
+ * @param {string} url - Endpoint to call
+ * @param {string} method - HTTP method (GET or POST)
+ * @param {object} data - Query or form body
+ * @returns {Promise<import("axios").AxiosResponse>} Response object
+ */
 export async function sendRequest(url, method, data) {
   const config = {
     maxRedirects: 0,

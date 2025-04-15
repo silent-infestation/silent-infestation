@@ -1,5 +1,3 @@
-// File: utils/findings.js
-
 import { updatePartialData } from "./globals";
 
 /**

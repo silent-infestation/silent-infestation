@@ -1,3 +1,10 @@
+/**
+ * Detects reflected SQL marker string in raw response HTML where the marker is present
+ * but not accompanied by a known SQL injection pattern.
+ *
+ * @param {cheerio.Root} $ - cheerio-parsed HTML document
+ * @returns {object|null} detection result with echoed marker info or null
+ */
 export function detectTestingStringResponses($) {
   const marker = "57ddbd5f-a702-4b94-8c1f-0741741a34fb_testing".toLowerCase();
 
@@ -15,7 +22,6 @@ export function detectTestingStringResponses($) {
     p.trim().toLowerCase().replace(/\s+/g, " ")
   );
 
-  const unionSelectRegex = /union\s+select/i;
   const markerLikeRegex = new RegExp(
     `['"]?\\s*or\\s+['"]?${marker}['"]?\\s*=\\s*['"]?${marker}['"]?`,
     "i"
@@ -52,6 +58,12 @@ export function detectTestingStringResponses($) {
   return null;
 }
 
+/**
+ * Detects SQL injection response patterns based on marker presence and table-like formatting.
+ *
+ * @param {cheerio.Root} $ - cheerio-parsed HTML document
+ * @returns {object|null} detection result with matching output lines or null
+ */
 export function detectSQLInjectionResponses($) {
   const marker = "57ddbd5f-a702-4b94-8c1f-0741741a34fb_testing".toLowerCase();
   const results = [];
@@ -67,7 +79,7 @@ export function detectSQLInjectionResponses($) {
     const text = $(el).text().trim();
     const lower = text.toLowerCase();
 
-    if (!lower.includes(marker)) return; // skip if marker not present
+    if (!lower.includes(marker)) return;
 
     for (const regex of indicators) {
       if (regex.test(text)) {

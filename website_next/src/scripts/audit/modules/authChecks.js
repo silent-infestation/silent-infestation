@@ -1,8 +1,13 @@
-// File: modules/authChecks.js
-
 import axios from "axios";
 import * as jwt from "jsonwebtoken";
 
+/**
+ * Checks if the given page uses HTTPS or redirects to it.
+ *
+ * @param {string} pageUrl - The page URL to verify
+ * @param {Function} noteFinding - Logger function for findings
+ * @returns {Promise<void>}
+ */
 export async function checkHTTPS(pageUrl, noteFinding) {
   if (pageUrl.toLowerCase().startsWith("https://")) return;
   try {
@@ -23,6 +28,12 @@ export async function checkHTTPS(pageUrl, noteFinding) {
   }
 }
 
+/**
+ * Scans the query parameters of the URL to detect exposed credentials.
+ *
+ * @param {string} pageUrl - URL to inspect
+ * @param {Function} noteFinding - Logger function for findings
+ */
 export function checkCredentialsInUrl(pageUrl, noteFinding) {
   try {
     const parsed = new URL(pageUrl);
@@ -44,6 +55,12 @@ export function checkCredentialsInUrl(pageUrl, noteFinding) {
   } catch {}
 }
 
+/**
+ * Detects URL patterns typically associated with password reset features.
+ *
+ * @param {string} pageUrl - URL string
+ * @param {Function} noteFinding - Logger function for findings
+ */
 export function checkForPasswordReset(pageUrl, noteFinding) {
   const lowerUrl = pageUrl.toLowerCase();
   if (lowerUrl.includes("forgot") || lowerUrl.includes("reset")) {
@@ -56,6 +73,13 @@ export function checkForPasswordReset(pageUrl, noteFinding) {
   }
 }
 
+/**
+ * Validates cookies for security flags like Secure and HttpOnly.
+ *
+ * @param {string[]|string} setCookieHeader - Raw Set-Cookie header(s)
+ * @param {string} pageUrl - Originating URL of the response
+ * @param {Function} noteFinding - Logger function for findings
+ */
 export function checkCookiesForSecurityFlags(setCookieHeader, pageUrl, noteFinding) {
   if (!setCookieHeader) return;
   const domain = new URL(pageUrl).hostname;
@@ -84,6 +108,12 @@ export function checkCookiesForSecurityFlags(setCookieHeader, pageUrl, noteFindi
   });
 }
 
+/**
+ * Extracts JWT token from cookies if present.
+ *
+ * @param {string[]|string} setCookieHeader - The Set-Cookie header value(s)
+ * @returns {string|null} extracted JWT token or null if not found
+ */
 export function parseJWTFromCookie(setCookieHeader) {
   if (!setCookieHeader) return null;
   const cookieArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
@@ -94,6 +124,15 @@ export function parseJWTFromCookie(setCookieHeader) {
   return null;
 }
 
+/**
+ * Attempts to bypass JWT validation using "alg: none" tampering.
+ *
+ * @param {string} originalToken - The original JWT token from cookies
+ * @param {string} pageUrl - Page where the token was acquired
+ * @param {Function} requestRestrictedFn - Function that makes a request with the tampered JWT
+ * @param {Function} noteFinding - Logger function for findings
+ * @returns {Promise<void>}
+ */
 export async function attemptJWTExploitation(
   originalToken,
   pageUrl,

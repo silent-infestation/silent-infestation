@@ -1,6 +1,14 @@
+import axios from "axios";
 import { attemptJWTExploitation, parseJWTFromCookie } from "./authChecks";
 import { submitFormWithPayloads, bruteForceLogin, sendRequest } from "./securityChecks";
 
+/**
+ * Extracts all forms on a given page and returns metadata for each.
+ *
+ * @param {cheerio.Root} $ - The cheerio object representing the DOM
+ * @param {string} pageUrl - The base URL for resolving form actions
+ * @returns {Array<object>} List of parsed form objects
+ */
 export function extractForms($, pageUrl) {
   return $("form")
     .map((_, form) => {
@@ -30,11 +38,17 @@ export function extractForms($, pageUrl) {
     .get();
 }
 
+/**
+ * Processes each form on the page to test for CSRF, injection, brute-force and JWT vulnerabilities.
+ *
+ * @param {cheerio.Root} $ - The cheerio DOM object
+ * @param {string} url - The URL of the page
+ * @param {Function} noteFinding - Function to record any security findings
+ */
 export async function processForms($, url, noteFinding) {
   const forms = extractForms($, url);
 
   for (const form of forms) {
-    // If it looks like a login form but no hidden CSRF token
     if (form.isLogin && !form.hasCSRFToken) {
       noteFinding(
         "csrf_token_missing",
@@ -44,57 +58,21 @@ export async function processForms($, url, noteFinding) {
       );
     }
 
-    // Try SQLi / param tampering
     await submitFormWithPayloads(form, noteFinding);
 
-    // Attempt brute-forcing if it’s a login form
     if (form.isLogin) {
       const bfAttempts = await bruteForceLogin(form, noteFinding);
 
-      // If we have successful logins, check for JWT tampering
       for (const success of bfAttempts) {
-        console.log("[Brute Force Success]", success);
         try {
-          console.log(
-            "[Brute Force Success] Attempting to exploit JWT:",
-            success.url,
-            success.method,
-            success.payload
-          );
-          const loginResp = await sendRequest(success.url, success.method, success.payload);
-          console.log(
-            "[Login Response]",
-            loginResp.status,
-            loginResp.data,
-            success.url,
-            success.method,
-            success.payload
-          );
+          const loginResp = await sendRequest(success.url, form.method, success.payload);
           const setCookie = loginResp.headers?.["set-cookie"];
-          console.log(
-            "[Set-Cookie]",
-            setCookie,
-            loginResp.headers,
-            success.url,
-            success.method,
-            success.payload
-          );
           const foundJwt = parseJWTFromCookie(setCookie);
-          console.log(
-            "[JWT Found]",
-            foundJwt,
-            loginResp.headers,
-            success.url,
-            success.method,
-            success.payload
-          );
 
           if (foundJwt) {
-            console.log("[JWT Found] Attempting to exploit JWT:", foundJwt);
-            console.log("success.url", success.url, "url", url);
             await attemptJWTExploitation(foundJwt, url, async (tamperedToken) => {
               return sendRequestWithJWT(success.url, tamperedToken);
-            });
+            }, noteFinding);
           }
         } catch (jwtErr) {
           console.error("[JWT Handling Error]", jwtErr.message);
@@ -104,12 +82,25 @@ export async function processForms($, url, noteFinding) {
   }
 }
 
+/**
+ * Checks if a form has CSRF protection input fields.
+ *
+ * @param {cheerio.Cheerio} $form - Form element
+ * @returns {boolean} true if CSRF token is present
+ */
 function checkFormForCSRFToken($form) {
   return (
     $form.find("input[type='hidden'][name*='csrf'], input[type='hidden'][name*='token']").length > 0
   );
 }
 
+/**
+ * Heuristically determines if a form is likely to be a login form.
+ *
+ * @param {cheerio.Cheerio} $form - Form element
+ * @param {cheerio.Root} $ - Cheerio root object
+ * @returns {boolean} true if the form appears to be a login form
+ */
 function isLikelyLoginForm($form, $) {
   let hasPassword = false;
   let hasUserField = false;
@@ -124,6 +115,13 @@ function isLikelyLoginForm($form, $) {
   return hasPassword && hasUserField;
 }
 
+/**
+ * Makes a GET request using a tampered JWT token via the Cookie header.
+ *
+ * @param {string} url - Target URL
+ * @param {string} tamperedToken - JWT token with altered signature
+ * @returns {Promise<import("axios").AxiosResponse>} Response object
+ */
 async function sendRequestWithJWT(url, tamperedToken) {
   const config = {
     maxRedirects: 0,
