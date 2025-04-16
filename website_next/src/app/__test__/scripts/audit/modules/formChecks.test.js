@@ -97,9 +97,12 @@ describe("formChecks", () => {
       const url = "https://example.com";
       await formChecks.sendRequestWithJWT(url, token);
 
-      expect(mockGet).toHaveBeenCalledWith(url, expect.objectContaining({
-        headers: expect.objectContaining({ Cookie: `jwt=${token}` })
-      }));
+      expect(mockGet).toHaveBeenCalledWith(
+        url,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Cookie: `jwt=${token}` }),
+        })
+      );
     });
   });
 

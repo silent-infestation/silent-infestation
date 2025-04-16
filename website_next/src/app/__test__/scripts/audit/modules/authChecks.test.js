@@ -100,12 +100,20 @@ describe("authChecks", () => {
     });
 
     it("should handle non-session cookies gracefully", () => {
-      authChecks.checkCookiesForSecurityFlags(["analytics=true"], "http://site.com", mockNoteFinding);
+      authChecks.checkCookiesForSecurityFlags(
+        ["analytics=true"],
+        "http://site.com",
+        mockNoteFinding
+      );
       expect(mockNoteFinding).not.toHaveBeenCalled();
     });
 
     it("should ignore invalid cookie formats", () => {
-      authChecks.checkCookiesForSecurityFlags(["invalid_cookie_format"], "http://site.com", mockNoteFinding);
+      authChecks.checkCookiesForSecurityFlags(
+        ["invalid_cookie_format"],
+        "http://site.com",
+        mockNoteFinding
+      );
       expect(mockNoteFinding).not.toHaveBeenCalled();
     });
   });
@@ -131,7 +139,12 @@ describe("authChecks", () => {
       const mockResp = { status: 200, headers: {} };
       const requestFn = jest.fn().mockResolvedValue(mockResp);
 
-      await authChecks.attemptJWTExploitation(jwtToken, "http://target.com", requestFn, mockNoteFinding);
+      await authChecks.attemptJWTExploitation(
+        jwtToken,
+        "http://target.com",
+        requestFn,
+        mockNoteFinding
+      );
 
       expect(mockNoteFinding).toHaveBeenCalledWith(
         "improper_jwt_handling",
@@ -148,7 +161,12 @@ describe("authChecks", () => {
         headers: { location: "/admin" },
       });
 
-      await authChecks.attemptJWTExploitation("token", "http://target.com", requestFn, mockNoteFinding);
+      await authChecks.attemptJWTExploitation(
+        "token",
+        "http://target.com",
+        requestFn,
+        mockNoteFinding
+      );
 
       expect(mockNoteFinding).toHaveBeenCalledWith(
         "improper_jwt_handling",
@@ -162,7 +180,12 @@ describe("authChecks", () => {
       jwt.decode.mockReturnValue(null);
       const requestFn = jest.fn();
 
-      await authChecks.attemptJWTExploitation("badtoken", "http://x.com", requestFn, mockNoteFinding);
+      await authChecks.attemptJWTExploitation(
+        "badtoken",
+        "http://x.com",
+        requestFn,
+        mockNoteFinding
+      );
       expect(mockNoteFinding).not.toHaveBeenCalled();
     });
   });

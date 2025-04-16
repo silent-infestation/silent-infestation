@@ -73,7 +73,7 @@ describe("securityChecks", () => {
         status: 302,
         headers: {
           location: "/account",
-          "set-cookie": ["jwt=xyz"]
+          "set-cookie": ["jwt=xyz"],
         },
         config: { url: "http://example.com" },
       };
@@ -86,7 +86,7 @@ describe("securityChecks", () => {
         data: "You are signed in",
         status: 302,
         headers: {
-          location: "/home"
+          location: "/home",
         },
         config: { url: "http://example.com" },
       };
@@ -197,9 +197,11 @@ describe("securityChecks", () => {
         formInputs: { username: "text", password: "password" },
       };
       axios.post.mockResolvedValue({ data: "<div></div>", status: 200 });
-      require("../../../../../../scripts/audit/modules/securityChecks/sqlInjections").detectSQLInjectionResponses.mockReturnValue({
-        type: "sql_injection_response",
-      });
+      require("../../../../../../scripts/audit/modules/securityChecks/sqlInjections").detectSQLInjectionResponses.mockReturnValue(
+        {
+          type: "sql_injection_response",
+        }
+      );
 
       await submitFormWithPayloads(mockForm, mockNoteFinding);
       expect(mockNoteFinding).toHaveBeenCalled();

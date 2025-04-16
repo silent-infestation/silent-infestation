@@ -73,7 +73,7 @@ describe("securityChecks", () => {
         status: 302,
         headers: {
           location: "/account",
-          "set-cookie": ["jwt=xyz"]
+          "set-cookie": ["jwt=xyz"],
         },
         config: { url: "http://example.com" },
       };
@@ -86,7 +86,7 @@ describe("securityChecks", () => {
         data: "You are signed in",
         status: 302,
         headers: {
-          location: "/home"
+          location: "/home",
         },
         config: { url: "http://example.com" },
       };
@@ -197,9 +197,11 @@ describe("securityChecks", () => {
         formInputs: { username: "text", password: "password" },
       };
       axios.post.mockResolvedValue({ data: "<div></div>", status: 200 });
-      require("../../../../../../scripts/audit/modules/securityChecks/sqlInjections").detectSQLInjectionResponses.mockReturnValue({
-        type: "sql_injection_response",
-      });
+      require("../../../../../../scripts/audit/modules/securityChecks/sqlInjections").detectSQLInjectionResponses.mockReturnValue(
+        {
+          type: "sql_injection_response",
+        }
+      );
 
       await submitFormWithPayloads(mockForm, mockNoteFinding);
       expect(mockNoteFinding).toHaveBeenCalled();
@@ -231,7 +233,10 @@ describe("securityChecks", () => {
   });
 
   describe("SQL Injection Detection", () => {
-    const { detectTestingStringResponses, detectSQLInjectionResponses } = require("../../../../../../scripts/audit/modules/securityChecks/sqlInjections");
+    const {
+      detectTestingStringResponses,
+      detectSQLInjectionResponses,
+    } = require("../../../../../../scripts/audit/modules/securityChecks/sqlInjections");
 
     it("should detect reflected SQL marker without payload", () => {
       const html = `
@@ -240,7 +245,9 @@ describe("securityChecks", () => {
         </body></html>`;
       const $ = cheerio.load(html);
       detectTestingStringResponses.mockRestore();
-      const real = jest.requireActual("../../../../../../scripts/audit/modules/securityChecks/sqlInjections");
+      const real = jest.requireActual(
+        "../../../../../../scripts/audit/modules/securityChecks/sqlInjections"
+      );
       const result = real.detectTestingStringResponses($);
       expect(result?.type).toBe("testing_string_response");
       expect(["div", "body", "span", "code", "p"].includes(result?.data?.[0]?.element)).toBe(true);
@@ -251,7 +258,9 @@ describe("securityChecks", () => {
         <html><body><pre>ID: 1\nName: test\n57ddbd5f-a702-4b94-8c1f-0741741a34fb_testing</pre></body></html>`;
       const $ = cheerio.load(html);
       detectSQLInjectionResponses.mockRestore();
-      const real = jest.requireActual("../../../../../../scripts/audit/modules/securityChecks/sqlInjections");
+      const real = jest.requireActual(
+        "../../../../../../scripts/audit/modules/securityChecks/sqlInjections"
+      );
       const result = real.detectSQLInjectionResponses($);
       expect(result?.type).toBe("sql_injection_response");
       expect(result?.data.length).toBeGreaterThan(0);

@@ -70,9 +70,14 @@ export async function processForms($, url, noteFinding) {
           const foundJwt = parseJWTFromCookie(setCookie);
 
           if (foundJwt) {
-            await attemptJWTExploitation(foundJwt, url, async (tamperedToken) => {
-              return sendRequestWithJWT(success.url, tamperedToken);
-            }, noteFinding);
+            await attemptJWTExploitation(
+              foundJwt,
+              url,
+              async (tamperedToken) => {
+                return sendRequestWithJWT(success.url, tamperedToken);
+              },
+              noteFinding
+            );
           }
         } catch (jwtErr) {
           console.error("[JWT Handling Error]", jwtErr.message);
