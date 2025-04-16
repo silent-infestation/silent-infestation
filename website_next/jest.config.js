@@ -7,7 +7,7 @@ module.exports = {
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
-  transformIgnorePatterns: ["<rootDir>/node_modules/(?!gsap|gsap/.*)"],
+  transformIgnorePatterns: ["<rootDir>/node_modules/(?!gsap|gsap/.*|cheerio)"],
   transform: {
     "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
   },

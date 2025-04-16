@@ -88,7 +88,7 @@ export async function processForms($, url, noteFinding) {
  * @param {cheerio.Cheerio} $form - Form element
  * @returns {boolean} true if CSRF token is present
  */
-function checkFormForCSRFToken($form) {
+export function checkFormForCSRFToken($form) {
   return (
     $form.find("input[type='hidden'][name*='csrf'], input[type='hidden'][name*='token']").length > 0
   );
@@ -101,7 +101,7 @@ function checkFormForCSRFToken($form) {
  * @param {cheerio.Root} $ - Cheerio root object
  * @returns {boolean} true if the form appears to be a login form
  */
-function isLikelyLoginForm($form, $) {
+export function isLikelyLoginForm($form, $) {
   let hasPassword = false;
   let hasUserField = false;
   $form.find("input").each((_, el) => {
@@ -122,7 +122,7 @@ function isLikelyLoginForm($form, $) {
  * @param {string} tamperedToken - JWT token with altered signature
  * @returns {Promise<import("axios").AxiosResponse>} Response object
  */
-async function sendRequestWithJWT(url, tamperedToken) {
+export async function sendRequestWithJWT(url, tamperedToken) {
   const config = {
     maxRedirects: 0,
     validateStatus: (status) => status < 400 || status === 302,

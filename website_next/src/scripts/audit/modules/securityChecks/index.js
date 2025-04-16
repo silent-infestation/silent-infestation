@@ -45,7 +45,7 @@ export function detectPatterns($) {
  * @param {string} payload - Injection payload
  * @returns {object} modified form data
  */
-function buildMockFormData(originalFormData, formInputs, injectionField, payload) {
+export function buildMockFormData(originalFormData, formInputs, injectionField, payload) {
   const mockData = { ...originalFormData };
 
   for (const fieldName in mockData) {
@@ -65,7 +65,7 @@ function buildMockFormData(originalFormData, formInputs, injectionField, payload
  * @param {string} type - Field input type
  * @returns {string} dummy value
  */
-function getDefaultValueByType(type) {
+export function getDefaultValueByType(type) {
   const defaultValues = {
     text: "ExampleText",
     password: "P@ssw0rd!",
@@ -228,7 +228,7 @@ export async function bruteForceLogin(form, noteFinding) {
  * @param {Function} noteFinding - Logger for cookie issues
  * @returns {boolean} success heuristic
  */
-function isPotentiallySuccessfulLogin(resp, noteFinding) {
+export function isPotentiallySuccessfulLogin(resp, noteFinding) {
   const html = (resp.data || "").toLowerCase();
   const headers = resp.headers || {};
   const status = resp.status;
@@ -261,9 +261,7 @@ function isPotentiallySuccessfulLogin(resp, noteFinding) {
 
   const isRedirectToSafePage =
     headers["location"] &&
-    ["/dashboard", "/account", "/home"].some((p) =>
-      headers["location"].toLowerCase().includes(p)
-    );
+    ["/dashboard", "/account", "/home"].some((p) => headers["location"].toLowerCase().includes(p));
 
   let score = 0;
   if (status >= 200 && status < 300) score += 1;
@@ -280,7 +278,7 @@ function isPotentiallySuccessfulLogin(resp, noteFinding) {
  * @param {Function} noteFinding - Logger
  * @param {number[]} requestTimes - Array of response durations in ms
  */
-function detectProgressiveDelay(noteFinding, requestTimes = []) {
+export function detectProgressiveDelay(noteFinding, requestTimes = []) {
   let progressiveDelayDetected = false;
 
   if (requestTimes.length < 6) return;
@@ -306,7 +304,7 @@ function detectProgressiveDelay(noteFinding, requestTimes = []) {
  * @param {import("axios").AxiosResponse} resp - Axios response
  * @returns {boolean} true if captcha detected
  */
-function detectCaptcha(resp) {
+export function detectCaptcha(resp) {
   const $ = cheerio.load(resp.data);
   return (
     $('[class*="captcha"]').length > 0 ||
@@ -322,7 +320,7 @@ function detectCaptcha(resp) {
  * @param {import("axios").AxiosResponse} resp - Axios response
  * @returns {boolean} true if account lockout detected
  */
-function detectAccountLockout(resp) {
+export function detectAccountLockout(resp) {
   const html = (resp.data || "").toLowerCase();
   const status = resp.status;
   if (status === 403) return true;
