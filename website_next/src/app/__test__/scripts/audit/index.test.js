@@ -3,7 +3,7 @@ jest.mock("../../../../scripts/audit/modules/authChecks");
 jest.mock("../../../../scripts/audit/modules/formChecks");
 jest.mock("@prisma/client", () => {
   const scan = {
-    findFirst: jest.fn().mockResolvedValue({ id: 1, userId: "test-user" }), // 🌸 Added this!
+    findFirst: jest.fn().mockResolvedValue({ id: 1, userId: "test-user" }),
     update: jest.fn(),
   };
   const scanResult = {

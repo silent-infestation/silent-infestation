@@ -24,7 +24,6 @@ export async function GET(req) {
     const userId = decoded.id;
     if (!userId) throw new Error("Invalid token (no userId).");
 
-    // Get latest scan with result and findings
     const scan = await prisma.scan.findFirst({
       where: { userId },
       orderBy: { scannedAt: "desc" },
