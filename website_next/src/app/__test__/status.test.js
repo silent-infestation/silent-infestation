@@ -12,7 +12,7 @@ jest.mock("next/server", () => ({
   },
 }));
 
-describe("GET /api/scan/status", () => {
+describe("GET /api/scan (status)", () => {
   const userId = 999;
 
   const mockRequest = (cookie) => ({
@@ -24,20 +24,21 @@ describe("GET /api/scan/status", () => {
   beforeEach(() => {
     jest.resetModules();
     global.scanStatusMap = new Map();
+    global.scanResultsMap = new Map();
     jest.clearAllMocks();
   });
 
-  it("renvoie une erreur 401 si le token est manquant", async () => {
+  it("returns 401 if JWT token is missing", async () => {
     const { GET } = await import("@/app/api/scan/status/route");
 
     const response = await GET(mockRequest(""));
     const data = await response.json();
 
     expect(response.status).toBe(401);
-    expect(data.error).toBe("Token manquant");
+    expect(data.error).toMatch(/missing jwt/i);
   });
 
-  it("renvoie une erreur 401 si le token est invalide", async () => {
+  it("returns 401 if JWT token is invalid", async () => {
     const { verify } = require("jsonwebtoken");
     verify.mockImplementation(() => {
       throw new Error("invalid token");
@@ -45,14 +46,14 @@ describe("GET /api/scan/status", () => {
 
     const { GET } = await import("@/app/api/scan/status/route");
 
-    const response = await GET(mockRequest("token=invalid.token"));
+    const response = await GET(mockRequest("token=bad.token"));
     const data = await response.json();
 
     expect(response.status).toBe(401);
-    expect(data.error).toBe("Token invalide ou expiré");
+    expect(data.error).toMatch(/invalid/i);
   });
 
-  it("renvoie le statut not_started si aucun statut n’est présent", async () => {
+  it("returns not_started and null result if no previous scan data", async () => {
     const { verify } = require("jsonwebtoken");
     verify.mockReturnValue({ id: userId });
 
@@ -65,18 +66,21 @@ describe("GET /api/scan/status", () => {
     expect(data).toEqual({
       isRunning: false,
       status: "not_started",
-      result: null,
+      scanResults: {},
     });
   });
 
-  it("renvoie le statut réel si présent", async () => {
+  it("returns current scan status and results if available", async () => {
     const { verify } = require("jsonwebtoken");
     verify.mockReturnValue({ id: userId });
 
     global.scanStatusMap.set(userId, {
       isRunning: true,
       status: "running",
-      result: { audit: "en cours" },
+    });
+
+    global.scanResultsMap.set(userId, {
+      findings: ["xss", "csrf"],
     });
 
     const { GET } = await import("@/app/api/scan/status/route");
@@ -88,7 +92,9 @@ describe("GET /api/scan/status", () => {
     expect(data).toEqual({
       isRunning: true,
       status: "running",
-      result: { audit: "en cours" },
+      scanResults: {
+        findings: ["xss", "csrf"],
+      },
     });
   });
 });
