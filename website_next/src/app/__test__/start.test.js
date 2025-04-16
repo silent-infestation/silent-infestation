@@ -1,3 +1,5 @@
+import { jest } from "@jest/globals";
+
 jest.mock("jsonwebtoken", () => ({
   verify: jest.fn(),
 }));
@@ -28,15 +30,21 @@ const mockRequest = (cookie, jsonBody = { startUrl: "http://example.com" }) => (
   json: jest.fn().mockResolvedValue(jsonBody),
 });
 
-beforeEach(() => {
-  jest.clearAllMocks();
+beforeAll(() => {
+  // Declare before route import
   global.scanStatusMap = new Map();
   global.scanResultsMap = new Map();
 });
 
-describe("POST /api/launch-scan", () => {
+beforeEach(() => {
+  global.scanStatusMap.clear();
+  global.scanResultsMap.clear();
+  jest.clearAllMocks();
+});
+
+describe("POST /api/scan", () => {
   it("should return 401 if JWT token is missing", async () => {
-    const { POST } = await import("@/app/api/launch-scan/route");
+    const { POST } = await import("@/app/api/scan/start/route");
     const res = await POST(mockRequest(""));
     const json = await res.json();
     expect(res.status).toBe(401);
@@ -48,7 +56,7 @@ describe("POST /api/launch-scan", () => {
       throw new Error("invalid token");
     });
 
-    const { POST } = await import("@/app/api/launch-scan/route");
+    const { POST } = await import("@/app/api/scan/start/route");
     const res = await POST(mockRequest("token=bad.token"));
     const json = await res.json();
     expect(res.status).toBe(401);
@@ -57,19 +65,18 @@ describe("POST /api/launch-scan", () => {
 
   it("should return 400 if startUrl is invalid", async () => {
     verify.mockReturnValue({ id: userId });
-
-    const { POST } = await import("@/app/api/launch-scan/route");
-    const res = await POST(mockRequest("token=valid.token", { startUrl: "ftp://evil" }));
+    const { POST } = await import("@/app/api/scan/start/route");
+    const res = await POST(mockRequest("token=valid.token", { startUrl: "ftp://invalid" }));
     const json = await res.json();
     expect(res.status).toBe(400);
     expect(json.error).toMatch(/must be a valid/i);
   });
 
   it("should return 400 if scan is already running", async () => {
-    verify.mockReturnValue({ id: userId });
     global.scanStatusMap.set(userId, { isRunning: true, status: "running" });
+    verify.mockReturnValue({ id: userId });
 
-    const { POST } = await import("@/app/api/launch-scan/route");
+    const { POST } = await import("@/app/api/scan/start/route");
     const res = await POST(mockRequest("token=valid.token"));
     const json = await res.json();
     expect(res.status).toBe(400);
@@ -79,7 +86,7 @@ describe("POST /api/launch-scan", () => {
   it("should start a scan and return 200", async () => {
     verify.mockReturnValue({ id: userId });
 
-    const { POST } = await import("@/app/api/launch-scan/route");
+    const { POST } = await import("@/app/api/scan/start/route");
     const res = await POST(mockRequest("token=valid.token"));
     const json = await res.json();
 
@@ -90,7 +97,7 @@ describe("POST /api/launch-scan", () => {
       status: "running",
     });
 
-    // Wait for background runAudit call to finish
+    // Let the async scan complete
     await new Promise((r) => setTimeout(r, 10));
 
     expect(runAudit).toHaveBeenCalledWith("http://example.com", userId);

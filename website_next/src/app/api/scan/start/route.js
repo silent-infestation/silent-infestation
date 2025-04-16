@@ -8,11 +8,11 @@ import { runAudit } from "@/scripts/audit/index.js"; // <-- The big function fro
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 
 // Globally store user-specific scan status and results
-const scanStatusMap = global.scanStatusMap || new Map();
-global.scanStatusMap = scanStatusMap;
+if (!global.scanStatusMap) global.scanStatusMap = new Map();
+const scanStatusMap = global.scanStatusMap;
 
-const scanResultsMap = global.scanResultsMap || new Map();
-global.scanResultsMap = scanResultsMap;
+if (!global.scanResultsMap) global.scanResultsMap = new Map();
+const scanResultsMap = global.scanResultsMap;
 
 export async function POST(req) {
   // 1) Verify token from cookies

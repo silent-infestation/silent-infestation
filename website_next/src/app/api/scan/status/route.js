@@ -1,4 +1,3 @@
-// app/api/scan-status/route.js (or pages/api/scan-status.js)
 import { NextResponse } from "next/server";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";

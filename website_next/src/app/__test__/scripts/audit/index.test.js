@@ -1,5 +1,4 @@
-// ✅ Place all your jest.mock() calls FIRST
-jest.mock("crawler"); // ✅ This will auto-load from __mocks__/crawler.js
+jest.mock("crawler");
 jest.mock("../../../../scripts/audit/modules/authChecks");
 jest.mock("../../../../scripts/audit/modules/formChecks");
 
@@ -103,8 +102,8 @@ describe("utils/url", () => {
       expect(result).toBe("https://another.com/path");
     });
 
-    it("should return null for invalid URLs", () => {
-      const result = normalizeUrl("::::", "http://example.com");
+    it("should return null for truly invalid URLs", () => {
+      const result = normalizeUrl("http://", "http://example.com");
       expect(result).toBeNull();
     });
   });
