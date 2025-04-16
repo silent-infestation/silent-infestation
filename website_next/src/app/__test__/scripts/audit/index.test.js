@@ -1,6 +1,31 @@
 jest.mock("crawler");
 jest.mock("../../../../scripts/audit/modules/authChecks");
 jest.mock("../../../../scripts/audit/modules/formChecks");
+jest.mock("@prisma/client", () => {
+  const scan = {
+    findFirst: jest.fn().mockResolvedValue({ id: 1, userId: "test-user" }), // 🌸 Added this!
+    update: jest.fn(),
+  };
+  const scanResult = {
+    create: jest.fn().mockResolvedValue({ id: 999 }),
+    update: jest.fn(),
+  };
+  const crawledUrl = {
+    createMany: jest.fn(),
+  };
+  const securityFinding = {
+    create: jest.fn(),
+  };
+
+  return {
+    PrismaClient: jest.fn(() => ({
+      scan,
+      scanResult,
+      crawledUrl,
+      securityFinding,
+    })),
+  };
+});
 
 import { runAudit } from "../../../../scripts/audit";
 import * as authChecks from "../../../../scripts/audit/modules/authChecks";
@@ -49,9 +74,7 @@ describe("runAudit", () => {
       });
 
       const { runAudit: failingAudit } = await import("../../../../scripts/audit");
-      await expect(failingAudit("http://fail.com", "failUser")).resolves.toHaveProperty(
-        "crawledUrls"
-      );
+      await expect(failingAudit("http://fail.com", "failUser")).resolves.toBeUndefined();
     };
 
     await run();
@@ -79,10 +102,8 @@ describe("runAudit", () => {
       });
     });
 
-    const result = await runAudit("http://localhost", "test-user");
-    expect(result.securityFindings.length).toBeGreaterThan(0);
-    expect(result.recommendationReport.recommendations).toBeDefined();
-    expect(result.recommendationReport.resources).toBeDefined();
+    await runAudit("http://localhost", "test-user");
+    expect(formChecks.processForms).toHaveBeenCalled();
   });
 });
 

@@ -12,7 +12,31 @@ jest.mock("next/server", () => ({
   },
 }));
 
-describe("GET /api/scan (status)", () => {
+// Mock prisma client
+jest.mock("@prisma/client", () => {
+  const mockFindFirst = jest.fn();
+  return {
+    PrismaClient: jest.fn(() => ({
+      scan: {
+        findFirst: mockFindFirst,
+      },
+    })),
+  };
+});
+
+jest.mock("@/scripts/audit/utils/findings", () => {
+  const original = jest.requireActual("@/scripts/audit/utils/findings");
+  return {
+    ...original,
+    generateSummaryReport: jest.fn(() => ({
+      recommendations: [{ id: "generalSecurity", text: "Fix stuff", priority: "high" }],
+      resources: { generalSecurity: [] },
+      totalFindings: 2,
+    })),
+  };
+});
+
+describe("GET /api/scan/status", () => {
   const userId = 999;
 
   const mockRequest = (cookie) => ({
@@ -23,8 +47,6 @@ describe("GET /api/scan (status)", () => {
 
   beforeEach(() => {
     jest.resetModules();
-    global.scanStatusMap = new Map();
-    global.scanResultsMap = new Map();
     jest.clearAllMocks();
   });
 
@@ -53,9 +75,12 @@ describe("GET /api/scan (status)", () => {
     expect(data.error).toMatch(/invalid/i);
   });
 
-  it("returns not_started and null result if no previous scan data", async () => {
+  it("returns not_started if no scan found", async () => {
     const { verify } = require("jsonwebtoken");
     verify.mockReturnValue({ id: userId });
+
+    const { PrismaClient } = require("@prisma/client");
+    PrismaClient().scan.findFirst.mockResolvedValue(null);
 
     const { GET } = await import("@/app/api/scan/status/route");
 
@@ -70,17 +95,33 @@ describe("GET /api/scan (status)", () => {
     });
   });
 
-  it("returns current scan status and results if available", async () => {
+  it("returns current scan status and generates a report if scanResult exists", async () => {
     const { verify } = require("jsonwebtoken");
     verify.mockReturnValue({ id: userId });
 
-    global.scanStatusMap.set(userId, {
-      isRunning: true,
-      status: "running",
-    });
-
-    global.scanResultsMap.set(userId, {
-      findings: ["xss", "csrf"],
+    const { PrismaClient } = require("@prisma/client");
+    PrismaClient().scan.findFirst.mockResolvedValue({
+      status: "success",
+      isRunning: false,
+      scanResult: {
+        crawledUrls: [{ url: "https://example.com" }],
+        findings: [
+          {
+            type: "csrf_token_missing",
+            url: "https://example.com/login",
+            detail: "Missing CSRF token",
+            confidence: "medium",
+            severity: "high",
+          },
+          {
+            type: "insecure_cookie",
+            url: "https://example.com/auth",
+            detail: "Cookie missing Secure flag",
+            confidence: "high",
+            severity: "medium",
+          },
+        ],
+      },
     });
 
     const { GET } = await import("@/app/api/scan/status/route");
@@ -89,12 +130,11 @@ describe("GET /api/scan (status)", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({
-      isRunning: true,
-      status: "running",
-      scanResults: {
-        findings: ["xss", "csrf"],
-      },
-    });
+    expect(data.status).toBe("success");
+    expect(data.isRunning).toBe(false);
+    expect(data.scanResults.crawledUrls).toEqual([{ url: "https://example.com" }]);
+    expect(data.scanResults.securityFindings).toHaveLength(2);
+    expect(data.scanResults.recommendationReport.totalFindings).toBe(2);
+    expect(data.scanResults.recommendationReport.recommendations.length).toBeGreaterThan(0);
   });
 });

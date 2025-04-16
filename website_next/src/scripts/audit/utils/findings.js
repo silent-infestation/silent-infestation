@@ -1,32 +1,39 @@
-import { updatePartialData } from "./globals";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 /**
- * Creates a `noteFinding` function scoped to a user session.
- * This factory binds the userId, partialData, and recordedFindings together,
- * so the returned function can safely log security findings without duplicating.
+ * Creates a `noteFinding` function scoped to a scan result.
+ * This logs findings directly into the database using Prisma.
  *
  * @param {Set} recordedFindings - Used to deduplicate findings
- * @param {string} userId - Current user's unique ID
- * @param {object} partialData - Mutable object holding scan progress
+ * @param {number} scanResultId - The ID of the current ScanResult record
  * @returns {Function} noteFinding(type, url, detail, options)
  */
-export function noteFindingFactory(recordedFindings, userId, partialData) {
-  return function noteFinding(type, url, detail, options = {}) {
+export function noteFindingFactory(recordedFindings, scanResultId) {
+  return async function noteFinding(type, url, detail, options = {}) {
     let domain;
     try {
       domain = new URL(url).hostname;
     } catch {
-      domain = url; // fallback if URL parsing fails
+      domain = url;
     }
 
     const signature = `${type}::${domain}::${detail}`;
-    if (recordedFindings.has(signature)) return; // skip duplicates
+    if (recordedFindings.has(signature)) return;
     recordedFindings.add(signature);
 
     const { confidence = "medium", severity = "medium" } = options;
-    partialData.securityFindings.push({ type, url, detail, confidence, severity });
 
-    updatePartialData(userId, partialData); // push update to global map
+    await prisma.securityFinding.create({
+      data: {
+        scanResultId,
+        type,
+        url,
+        detail,
+        confidence,
+        severity,
+      },
+    });
   };
 }
 
