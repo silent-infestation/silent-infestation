@@ -29,6 +29,8 @@ const HelpModal = ({ imageSrc, title, text }) => {
   useEffect(() => {
     if (!activePage) return;
 
+    setIsOpen(false);
+
     const { disabled, nextDelay } = getModalState(activePage);
 
     if (disabled) return;

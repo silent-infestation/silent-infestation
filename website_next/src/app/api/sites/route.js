@@ -1,9 +1,6 @@
 // src/app/api/sites/route.js (Next.js App Router compatible)
 
-import { PrismaClient } from "@prisma/client";
-import { getAuthUser } from "@/lib/auth";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 function generateSecurityKey() {
   return Math.random().toString(36).substring(2, 15);

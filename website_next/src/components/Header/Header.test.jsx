@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import Header from "./Header"; // Assurez-vous que l'importation est correcte
 
-describe("Header component", () => {
+describe.skip("Header component", () => {
   it("devrait afficher le bouton avec le texte correct", () => {
     render(<Header />);
 

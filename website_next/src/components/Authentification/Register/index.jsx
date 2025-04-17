@@ -68,8 +68,7 @@ const Register = () => {
         alertTitle={alert.alertTitle}
         onClose={() => setAlert({ ...alert, isShowingAlert: false })}
       />
-      <div className="flex h-screen flex-col items-center justify-center text-[#00202B]">
-        <h1 className="mb-6 text-2xl font-bold">Inscription</h1>
+      <div className="flex flex-col items-center justify-center text-[#00202B]">
         <form onSubmit={handleSubmit} className="flex w-80 flex-col space-y-4">
           <input
             type="text"
@@ -78,7 +77,7 @@ const Register = () => {
             value={formData.name}
             onChange={handleChange}
             required
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
           />
           <input
             type="text"
@@ -87,7 +86,7 @@ const Register = () => {
             value={formData.surname}
             onChange={handleChange}
             required
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
           />
           <input
             type="number"
@@ -96,7 +95,7 @@ const Register = () => {
             value={formData.age}
             onChange={handleChange}
             required
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
           />
           <input
             type="text"
@@ -105,7 +104,7 @@ const Register = () => {
             value={formData.society}
             onChange={handleChange}
             required
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
           />
           <input
             type="email"
@@ -114,7 +113,7 @@ const Register = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
           />
           <input
             type="password"
@@ -123,14 +122,14 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="rounded border border-gray-300 bg-[#f8f2e2] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
+            className="rounded border border-gray-300 bg-[#ffff] p-3 text-[#00202B] placeholder-[#00202B] shadow-xl"
           />
           <div className="my-4 flex items-center justify-center">
             <span className="text-2xl">↓</span>
           </div>
           <button
             type="submit"
-            className="rounded bg-[#00202B] p-3 text-[#f8f2e2] shadow-xl transition hover:bg-[#003345]"
+            className="rounded bg-[#00202B] p-3 text-[#ffff] shadow-xl transition hover:bg-[#003345]"
           >
             S&apos;inscrire
           </button>

@@ -9,19 +9,20 @@ import api from "@/lib/api";
 export default function Profile() {
   const { logout } = useAppContext();
   const { user: authUser, loading } = useAuth();
+  const { refreshUser } = useAuth();
+  const [editedUser, setEditedUser] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+  });
+
   const [alert, setAlert] = useState({
     isShowingAlert: false,
     isAlertErrorMessage: false,
     alertTitle: "",
   });
 
-  const [user, setUser] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-  });
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState(user);
   const [trustedUrls, setTrustedUrls] = useState([]);
   const [trustedSites, setTrustedSites] = useState([]);
   const [newUrl, setNewUrl] = useState("");
@@ -68,22 +69,37 @@ export default function Profile() {
   // Hydrater le profil de l'utilisateur
   useEffect(() => {
     if (authUser) {
-      const hydratedUser = {
-        firstName: authUser.name || "",
-        lastName: authUser.surname || "",
-        email: authUser.email || "",
-      };
-      setUser(hydratedUser);
-      setEditedUser(hydratedUser);
+      setEditedUser({
+        firstName: authUser.name,
+        lastName: authUser.surname,
+        email: authUser.email,
+      });
     }
   }, [authUser]);
+
+  // useEffect(() => {
+  // Charger les URLs fiables depuis l'API (si disponible)
+  // fetch("/api/trusted-urls")
+  //   .then(async (res) => {
+  //     if (!res.ok) {
+  //       const text = await res.text();
+  //       throw new Error(`Erreur API trusted-urls: ${text}`);
+  //     }
+  //     return res.json();
+  //   })
+  //   .then((data) => {
+  //     setTrustedUrls(data.urls || []);
+  //   })
+  //   .catch((err) => {
+  //     console.error("Erreur lors du chargement des URLs fiables :", err);
+  //   });
+  // }, []);
 
   const handleEditChange = (e) => {
     setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
   };
 
   const handleSave = async () => {
-    setUser(editedUser);
     setIsEditing(false);
 
     await api
@@ -92,7 +108,7 @@ export default function Profile() {
         surname: editedUser.lastName,
         email: editedUser.email,
       })
-      .then((res) => {
+      .then(async (res) => {
         if (res.status === 200) {
           console.log("Profil mis à jour avec succès");
           setAlert({
@@ -100,6 +116,8 @@ export default function Profile() {
             isAlertErrorMessage: false,
             alertTitle: "Profil mis à jour avec succès !",
           });
+          // Mettre à jour le contexte utilisateur
+          await refreshUser();
         } else {
           console.log("Erreur lors de la mise à jour du profil");
           setAlert({

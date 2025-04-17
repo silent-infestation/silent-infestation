@@ -5,6 +5,10 @@ import api from "@/lib/api";
 
 const AppContext = createContext();
 
+const PUBLIC_PAGES = ["home", "authentification"];
+const DEFAULT_PUBLIC_PAGE = "home";
+const DEFAULT_PRIVATE_PAGE = "profile";
+
 export const AppProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [activePage, setActivePage] = useState(null);
@@ -12,26 +16,32 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const savedPage = sessionStorage.getItem("activePage");
+
       try {
         const res = await api.get("/auth/status");
 
         if (res.ok && res.data.authenticated) {
           setIsAuthenticated(true);
 
-          const savedPage = sessionStorage.getItem("activePage");
-          if (savedPage) {
-            changeActivePage(savedPage === "home" ? "profile" : savedPage);
-          } else {
-            changeActivePage("profile");
-          }
+          const targetPage = savedPage || DEFAULT_PRIVATE_PAGE;
+          changeActivePage(targetPage);
         } else {
           setIsAuthenticated(false);
-          changeActivePage("home");
+
+          const targetPage =
+            savedPage && PUBLIC_PAGES.includes(savedPage) ? savedPage : DEFAULT_PUBLIC_PAGE;
+
+          changeActivePage(targetPage);
         }
       } catch (error) {
         console.error("Erreur de vérification d'auth:", error);
         setIsAuthenticated(false);
-        changeActivePage("home");
+
+        const targetPage =
+          savedPage && PUBLIC_PAGES.includes(savedPage) ? savedPage : DEFAULT_PUBLIC_PAGE;
+
+        changeActivePage(targetPage);
       } finally {
         setLoading(false);
       }
@@ -48,7 +58,7 @@ export const AppProvider = ({ children }) => {
 
   const login = () => {
     setIsAuthenticated(true);
-    changeActivePage("profile");
+    changeActivePage(DEFAULT_PRIVATE_PAGE);
   };
 
   const logout = async () => {
@@ -57,7 +67,7 @@ export const AppProvider = ({ children }) => {
       credentials: "include",
     });
     setIsAuthenticated(false);
-    changeActivePage("home");
+    changeActivePage(DEFAULT_PUBLIC_PAGE);
   };
 
   const changeActivePage = (page) => {
@@ -70,7 +80,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider
       value={{ isAuthenticated, activePage, changeActivePage, login, logout, loading }}
     >
-      {!loading && children} {/* Empêcher le rendu tant que l'auth n'est pas vérifiée */}
+      {!loading && children}
     </AppContext.Provider>
   );
 };
