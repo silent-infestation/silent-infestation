@@ -1,21 +1,13 @@
-// app/api/launch-scan/route.js (or pages/api/launch-scan.js)
 import { NextResponse } from "next/server";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
+import { runAudit } from "@/scripts/audit/index.js";
 
-import { runAudit } from "@/scripts/audit/index.js"; // <-- The big function from above
-
+const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 
-// Globally store user-specific scan status and results
-if (!global.scanStatusMap) global.scanStatusMap = new Map();
-const scanStatusMap = global.scanStatusMap;
-
-if (!global.scanResultsMap) global.scanResultsMap = new Map();
-const scanResultsMap = global.scanResultsMap;
-
 export async function POST(req) {
-  // 1) Verify token from cookies
   const cookieHeader = req.headers.get("cookie") || "";
   const cookies = parse(cookieHeader);
   const token = cookies.token;
@@ -28,71 +20,49 @@ export async function POST(req) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     userId = decoded.id;
-    if (!userId) {
-      throw new Error("Invalid token (no userId).");
-    }
+    if (!userId) throw new Error("No user ID in token");
   } catch (err) {
-    console.error("JWT verification error:", err);
+    console.error("JWT error:", err);
     return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
   }
 
-  // 2) Parse the body to get the `startUrl`
-  let body;
-  try {
-    body = await req.json();
-  } catch {
-    body = {};
-  }
-  const { startUrl } = body;
-
+  const { startUrl } = await req.json();
   if (!startUrl || !startUrl.startsWith("http")) {
-    return NextResponse.json(
-      { error: "startUrl must be a valid 'http://' or 'https://' URL." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid start URL." }, { status: 400 });
   }
 
-  // 3) Check if user is already scanning
-  const userStatus = scanStatusMap.get(userId) || {
-    isRunning: false,
-    status: "not_started",
-  };
-  if (userStatus.isRunning) {
-    return NextResponse.json(
-      { message: "A scan is already running for this user." },
-      { status: 400 }
-    );
+  // Check for running scan
+  const existingRunning = await prisma.scan.findFirst({
+    where: { userId, isRunning: true },
+  });
+
+  if (existingRunning) {
+    return NextResponse.json({ message: "Scan already running." }, { status: 400 });
   }
 
-  // 4) Clear any old results for this user, so the new scan is fresh
-  scanResultsMap.delete(userId);
+  // Create a new scan entry
+  const newScan = await prisma.scan.create({
+    data: {
+      userId,
+      url: startUrl,
+      status: "running",
+      isRunning: true,
+    },
+  });
 
-  // 5) Mark user’s scan status as running
-  userStatus.isRunning = true;
-  userStatus.status = "running";
-  scanStatusMap.set(userId, userStatus);
-
-  // 6) Kick off async scan
+  // Kick off async scan (runAudit handles all DB inserts)
   setTimeout(async () => {
     try {
-      // Pass the userId for partial updates:
-      const result = await runAudit(startUrl, userId);
-
-      // Store the final result
-      scanResultsMap.set(userId, result);
-
-      // Mark success
-      userStatus.isRunning = false;
-      userStatus.status = "success";
-      scanStatusMap.set(userId, userStatus);
-    } catch (error) {
-      console.error("Error in background scan:", error);
-      userStatus.isRunning = false;
-      userStatus.status = "error";
-      scanStatusMap.set(userId, userStatus);
+      await runAudit(startUrl, userId);
+    } catch (err) {
+      console.error("[scan/start] Scan failed:", err);
+      // Fallback in case runAudit did not mark it
+      await prisma.scan.update({
+        where: { id: newScan.id },
+        data: { isRunning: false, status: "error" },
+      });
     }
   }, 0);
 
-  // 7) Return immediately
   return NextResponse.json({ message: "Scan started." });
 }

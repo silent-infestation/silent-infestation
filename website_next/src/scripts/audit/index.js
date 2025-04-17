@@ -1,36 +1,57 @@
 import Crawler from "crawler";
 import { URL } from "url";
+import { PrismaClient } from "@prisma/client";
 
-import { initializeGlobals, updatePartialData, createPartialData } from "./utils/globals";
 import { normalizeUrl, isSameDomain } from "./utils/url";
-import {
-  noteFindingFactory,
-  findingToRecommendation,
-  securityResources,
-  generateSummaryReport,
-} from "./utils/findings";
+import { noteFindingFactory } from "./utils/findings";
 import { checkHTTPS, checkCredentialsInUrl, checkForPasswordReset } from "./modules/authChecks";
 import { processForms } from "./modules/formChecks";
 
-const scanResultsMap = initializeGlobals();
+const prisma = new PrismaClient();
 
 /**
  * Main exported audit runner function
  *
  * @param {string} startUrl - Initial page to begin crawling from
  * @param {string} userId - Unique user identifier for tracking scan results
- * @returns {Promise<object>} final scan results including findings and recommendations
+ * @returns {Promise<void>} Final result stored in DB
  */
 export async function runAudit(startUrl, userId) {
-  const partialData = createPartialData();
   const visitedUrls = new Map();
   const recordedFindings = new Set();
 
-  const noteFinding = noteFindingFactory(recordedFindings, userId, partialData);
-  scanResultsMap.set(userId, partialData);
+  // Get the latest running Scan
+  const scan = await prisma.scan.findFirst({
+    where: { userId },
+    orderBy: { scannedAt: "desc" },
+  });
+
+  if (!scan) {
+    throw new Error("No scan record found for user.");
+  }
+
+  // Create initial ScanResult entry
+  const scanResult = await prisma.scanResult.create({
+    data: {
+      scanId: scan.id,
+      totalFindings: 0,
+    },
+  });
+
+  const scanResultId = scanResult.id;
+  const noteFinding = noteFindingFactory(recordedFindings, scanResultId);
 
   try {
-    const crawledUrls = await startCrawler(startUrl, visitedUrls, userId, partialData, noteFinding);
+    const crawledUrls = await startCrawler(startUrl, visitedUrls, noteFinding);
+
+    // Store crawled URLs in the database
+    await prisma.crawledUrl.createMany({
+      data: crawledUrls.map((url) => ({
+        scanResultId,
+        url,
+      })),
+      skipDuplicates: true,
+    });
 
     for (const url of crawledUrls) {
       const $ = visitedUrls.get(url);
@@ -38,15 +59,30 @@ export async function runAudit(startUrl, userId) {
       await processForms($, url, noteFinding);
     }
 
-    partialData.recommendationReport = generateSummaryReport(
-      partialData.securityFindings,
-      findingToRecommendation,
-      securityResources
-    );
+    // Update findings count
+    await prisma.scanResult.update({
+      where: { id: scanResultId },
+      data: { totalFindings: recordedFindings.size },
+    });
 
-    return partialData;
+    await prisma.scan.update({
+      where: { id: scan.id },
+      data: {
+        isRunning: false,
+        status: "success",
+      },
+    });
   } catch (err) {
     console.error("[runAudit] Unexpected error:", err);
+
+    await prisma.scan.update({
+      where: { id: scan.id },
+      data: {
+        isRunning: false,
+        status: "error",
+      },
+    });
+
     throw err;
   }
 }
@@ -56,15 +92,11 @@ export async function runAudit(startUrl, userId) {
  * Tracks and stores visited URLs and discovered links.
  *
  * @param {string} startUrl - The starting URL for crawling
+ * @param {Map<string, cheerio.Root>} visitedUrls - Cache of visited pages
+ * @param {Function} noteFinding - Finding logger function
  * @returns {Promise<string[]>} - Array of successfully crawled URLs
  */
-async function startCrawler(
-  startUrl,
-  visitedUrls = new Map(),
-  userId,
-  partialData,
-  noteFinding = () => {}
-) {
+async function startCrawler(startUrl, visitedUrls = new Map(), noteFinding = () => {}) {
   return new Promise((resolve) => {
     const foundUrls = new Set();
     const domain = new URL(startUrl).hostname;
@@ -78,8 +110,6 @@ async function startCrawler(
         if (!err && res.$ && pageUrl && !visitedUrls.has(pageUrl)) {
           visitedUrls.set(pageUrl, res.$);
           foundUrls.add(pageUrl);
-          partialData.crawledUrls.push(pageUrl);
-          updatePartialData(userId, partialData);
 
           await checkHTTPS(pageUrl, noteFinding);
           checkForPasswordReset(pageUrl, noteFinding);
