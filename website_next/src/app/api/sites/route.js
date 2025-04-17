@@ -1,49 +1,139 @@
-// pages/api/sites.js
+// src/app/api/sites/route.js (Next.js App Router compatible)
 
 import { PrismaClient } from "@prisma/client";
+import { getAuthUser } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
-export default async function handler(req, res) {
-  if (req.method === "POST") {
-    const { url_site, auth_email } = req.body;
-
-    if (!url_site || !auth_email) {
-      return res.status(400).json({ message: "URL et email d'authentification sont requis." });
-    }
-
-    try {
-      // Générer un auth_key et auth_url (par exemple en utilisant une bibliothèque ou une logique spécifique)
-      const auth_key = generateAuthKey(); // Implémentez la logique de génération de auth_key
-      const auth_url = generateAuthUrl(); // Implémentez la logique de génération de auth_url
-
-      // Ajouter l'URL à la base de données
-      const newSite = await prisma.site.create({
-        data: {
-          url_site,
-          auth_key,
-          auth_url,
-          auth_email,
-          id_user: 1, // Remplacez par l'ID utilisateur actuel, par exemple à partir d'un token JWT
-        },
-      });
-
-      return res.status(201).json(newSite);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Erreur lors de l'ajout du site." });
-    }
-  } else {
-    res.status(405).json({ message: "Méthode non autorisée" });
-  }
-}
-
-// Fonction pour générer un auth_key (exemple simple, remplacez par une méthode plus robuste)
-function generateAuthKey() {
+function generateSecurityKey() {
   return Math.random().toString(36).substring(2, 15);
 }
 
-// Fonction pour générer un auth_url (exemple simple, remplacez par une méthode plus robuste)
 function generateAuthUrl() {
   return `https://example.com/auth/${Math.random().toString(36).substring(2, 15)}`;
 }
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    const cookies = request.headers.get("cookie") || "";
+    const tokenCookie = cookies.split("; ").find(c => c.startsWith("token="));
+    const token = tokenCookie ? tokenCookie.split("=")[1] : null;
+
+    const authUser = await getAuthUser(token);
+
+    console.log("[GET] Token reçu :");
+    console.log(authUser);
+
+    if (!authUser) return new Response(JSON.stringify({ message: "Utilisateur non authentifié" }), { status: 401 });
+
+    if (id) {
+      const site = await prisma.site.findFirst({
+        where: {
+          id: parseInt(id),
+          userId: authUser.id,
+        },
+      });
+      if (!site) {
+        return new Response(JSON.stringify({ message: "Site non trouvé." }), { status: 404 });
+      }
+      return Response.json(site);
+    } else {
+      const sites = await prisma.site.findMany({
+        where: { userId: authUser.id },
+      });
+      return Response.json(sites);
+    }
+  } catch (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ message: "Erreur lors de la récupération des sites." }), { status: 500 });
+  }
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { url_site, userId } = body;
+
+    if (!url_site || !userId) {
+      return new Response(JSON.stringify({ message: "données manquantes" }), { status: 400 });
+    }
+
+    const newSite = await prisma.site.create({
+      data: {
+        url_site,
+        userId: parseInt(userId),
+        state: "pending",
+      },
+    });
+
+    return new Response(JSON.stringify(newSite), { status: 201 });
+  } catch (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ message: "Erreur lors de l'ajout du site." }), { status: 500 });
+  }
+}
+
+export async function PUT(request) {
+  try {
+    const body = await request.json();
+    const { id, url_site, state } = body;
+
+    if (!id) return new Response(JSON.stringify({ message: "ID requis." }), { status: 400 });
+
+    const token = request.headers.get("authorization")?.split(" ")[1];
+    const user = await getAuthUser(token);
+    if (!user) return new Response(JSON.stringify({ message: "Utilisateur non authentifié" }), { status: 401 });
+
+    const existingSite = await prisma.site.findFirst({
+      where: { id: parseInt(id), userId: user.id },
+    });
+
+    if (!existingSite) {
+      return new Response(JSON.stringify({ message: "Site non trouvé." }), { status: 404 });
+    }
+
+    const updatedSite = await prisma.site.update({
+      where: { id: parseInt(id) },
+      data: {
+        url_site: url_site || existingSite.url_site,
+        state: state || existingSite.state,
+      },
+    });
+
+    return Response.json(updatedSite);
+  } catch (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ message: "Erreur lors de la mise à jour." }), { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const siteId = searchParams.get("siteId");
+    console.log("siteId reçu :", siteId);
+    if (!siteId) {
+      return new Response(JSON.stringify({ message: "ID requis." }), { status: 400 });
+    }
+
+    const existingSite = await prisma.site.findFirst({
+      where: { id: parseInt(siteId), id: parseInt(siteId) },
+    });
+
+    if (!existingSite) {
+      return new Response(JSON.stringify({ message: "Site non trouvé." }), { status: 404 });
+    }
+
+    await prisma.site.delete({
+      where: { id: parseInt(siteId) },
+    });
+
+    return new Response(JSON.stringify({ message: "Site supprimé." }), { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ message: "Erreur lors de la suppression." }), { status: 500 });
+  }
+}
+

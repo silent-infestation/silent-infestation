@@ -23,25 +23,49 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
   const [trustedUrls, setTrustedUrls] = useState([]);
+  const [trustedSites, setTrustedSites] = useState([]);
   const [newUrl, setNewUrl] = useState("");
 
   useEffect(() => {
-    // Charger les infos de l'utilisateur depuis l'API
-    fetch("/api/user")
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data);
-        setEditedUser(data);
-      });
+    if (!authUser) return;
 
-    // Charger les URLs fiables depuis l'API (si disponible)
-    fetch("/api/trusted-urls")
+    // Charger les sites depuis l'API /api/sites
+    fetch("/api/sites", {
+      headers: {
+        Authorization: `Bearer ${authUser?.token}`,
+      },
+    })
       .then((res) => res.json())
-      .then((data) => {
-        setTrustedUrls(data);
-      });
-  }, []);
+      .then(async (data) => {
+        setTrustedSites(data);
 
+        // Relancer la vérification pour les sites non vérifiés
+        for (const site of data) {
+          if (site.state === "unverified") {
+            try {
+              const res = await api.post(
+                "/sites/verify",
+                { siteId: site.id },
+                { headers: { Authorization: `Bearer ${authUser.token}` } }
+              );
+              console.log(`Relance vérification pour ${site.url_site}`);
+            } catch (err) {
+              console.error("Erreur de relance vérification :", err);
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Erreur lors de la récupération des sites :", err);
+        setAlert({
+          isShowingAlert: true,
+          isAlertErrorMessage: true,
+          alertTitle: "Erreur lors de la récupération des URLs fiables.",
+        });
+      });
+  }, [authUser]);
+
+  // Hydrater le profil de l'utilisateur
   useEffect(() => {
     if (authUser) {
       const hydratedUser = {
@@ -129,24 +153,71 @@ export default function Profile() {
     }
   };
 
+  // Fonction de validation de l'URL
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const handleAddUrl = async () => {
-    if (!newUrl.trim()) return;
+    if (!newUrl.trim()) {
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle: "Veuillez saisir une URL valide. Par exemple : http://www.exemple.com",
+      });
+      return;
+    }
+    if (!isValidUrl(newUrl)) {
+      setAlert({
+        isShowingAlert: true,
+        isAlertErrorMessage: true,
+        alertTitle:
+          "L'URL saisie est invalide, exemple : https://www.exemple.com",
+      });
+      return;
+    }
 
     try {
-      const res = await api.post("/trusted-urls", { url: newUrl });
-      if (res.status === 200 || res.ok) {
-        setTrustedUrls((prev) => [...prev, newUrl]);
-        setNewUrl("");
-        setAlert({
-          isShowingAlert: true,
-          isAlertErrorMessage: false,
-          alertTitle: "URL ajoutée avec succès.",
-        });
+      const siteRes = await api.post(
+        "/sites",
+        { url_site: newUrl, userId: authUser.id },
+        { headers: { Authorization: `Bearer ${authUser.token}` } }
+      );
+
+      if (siteRes.status === 200 || siteRes.ok) {
+        const site = siteRes.data;
+        setTrustedSites((prev) => [...prev, site]);
+
+        const res = await api.post(
+          "/mailer",
+          {
+            type: "security",
+            url: newUrl,
+            destinataire: authUser.email,
+            siteId: site.id,
+          },
+          {
+            headers: { Authorization: `Bearer ${authUser.token}` },
+          }
+        );
+
+        if (!(res.status === 200 || res.ok)) {
+          setAlert({
+            isShowingAlert: true,
+            isAlertErrorMessage: true,
+            alertTitle: res.message || "Erreur lors de l'envoi du mail.",
+          });
+        }
       } else {
         setAlert({
           isShowingAlert: true,
           isAlertErrorMessage: true,
-          alertTitle: res.message || "Erreur lors de l'ajout de l'URL.",
+          alertTitle: siteRes.message || "Erreur lors de l'ajout de l'URL.",
         });
       }
     } catch (err) {
@@ -160,8 +231,9 @@ export default function Profile() {
   };
 
   const handleDeleteUrl = async (urlToDelete) => {
+    console.log("Suppression de l'URL :", urlToDelete);
     try {
-      const res = await api.delete("/trusted-urls", { data: { url: urlToDelete } });
+      const res = await api.del(`/sites?siteId=${urlToDelete}`);
       if (res.status === 200 || res.ok) {
         setTrustedUrls((prev) => prev.filter((url) => url !== urlToDelete));
         setAlert({
@@ -185,6 +257,8 @@ export default function Profile() {
       });
     }
   };
+
+
 
   if (loading) return <p className="mt-10 text-center">Chargement du profil...</p>;
   if (!authUser) return <p className="mt-10 text-center">Utilisateur non connecté.</p>;
@@ -277,7 +351,8 @@ export default function Profile() {
               type="url"
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
-              placeholder="Ajouter une URL fiable"
+              placeholder="Ajouter une URL fiable (ex: https://www.exemple.com)"
+              required
               className="flex-1 rounded-md border p-3 focus:border-[#05829E] focus:ring-[#05829E]"
             />
             <button
@@ -288,26 +363,44 @@ export default function Profile() {
             </button>
           </div>
 
-          {trustedUrls.length === 0 ? (
-            <p className="italic text-gray-500">Aucune URL ajoutée pour le moment.</p>
-          ) : (
-            <div className="space-y-3">
-              {trustedUrls.map((url) => (
-                <div
-                  key={url}
-                  className="flex items-center justify-between rounded-md border bg-gray-50 px-4 py-2"
-                >
-                  <span className="break-all text-sm text-[#00202B]">{url}</span>
-                  <button
-                    onClick={() => handleDeleteUrl(url)}
-                    className="hover:text-red-700 text-sm text-red-500"
+          {trustedSites.map((site) => (
+            <div
+              key={site.id}
+              className="flex items-center justify-between rounded-md border bg-gray-50 px-4 py-2"
+            >
+              <div className="flex items-center gap-2">
+                {site.state === "unverified" && (
+                  <svg
+                    className="h-4 w-4 animate-spin text-gray-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
                   >
-                    Supprimer
-                  </button>
-                </div>
-              ))}
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    ></path>
+                  </svg>
+                )}
+                <span className="break-all text-sm text-[#00202B]">{site.url_site}</span>
+              </div>
+              <button
+                onClick={() => handleDeleteUrl(site.id)}
+                className="hover:text-red-700 text-sm text-red-500"
+              >
+                Supprimer
+              </button>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </>
