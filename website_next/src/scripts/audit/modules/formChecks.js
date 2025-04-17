@@ -1,5 +1,6 @@
 import axios from "axios";
 import { attemptJWTExploitation, parseJWTFromCookie } from "./authChecks";
+import { testUploadForms } from "./uploadForm"; // 💌 Path depends on your structure
 import { submitFormWithPayloads, bruteForceLogin, sendRequest } from "./securityChecks";
 
 /**
@@ -37,7 +38,6 @@ export function extractForms($, pageUrl) {
     })
     .get();
 }
-
 /**
  * Processes each form on the page to test for CSRF, injection, brute-force and JWT vulnerabilities.
  *
@@ -47,6 +47,8 @@ export function extractForms($, pageUrl) {
  */
 export async function processForms($, url, noteFinding) {
   const forms = extractForms($, url);
+
+  await testUploadForms(forms, url, noteFinding);
 
   for (const form of forms) {
     if (form.isLogin && !form.hasCSRFToken) {

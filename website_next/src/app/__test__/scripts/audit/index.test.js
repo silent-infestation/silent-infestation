@@ -27,10 +27,18 @@ jest.mock("@prisma/client", () => {
   };
 });
 
+import { PrismaClient } from "@prisma/client";
 import { runAudit } from "../../../../scripts/audit";
 import * as authChecks from "../../../../scripts/audit/modules/authChecks";
 import * as formChecks from "../../../../scripts/audit/modules/formChecks";
 import { normalizeUrl, isSameDomain } from "../../../../scripts/audit/utils/url";
+import {
+  noteFindingFactory,
+  generateSummaryReport,
+  findingToRecommendation,
+  securityResources,
+} from "../../../../scripts/audit/utils/findings";
+
 const cheerio = require("cheerio");
 
 const mockCheerio = cheerio.load(
@@ -143,6 +151,130 @@ describe("utils/url", () => {
     it("should return false for invalid URLs", () => {
       const result = isSameDomain("not-a-url", "example.com");
       expect(result).toBe(false);
+    });
+  });
+});
+
+describe("noteFindingFactory", () => {
+  let recordedFindings;
+  let noteFinding;
+  let prisma;
+  const scanResultId = 999;
+
+  beforeEach(() => {
+    recordedFindings = new Set();
+    prisma = new PrismaClient();
+    noteFinding = noteFindingFactory(recordedFindings, scanResultId);
+    prisma.securityFinding.create.mockClear();
+  });
+
+  it("should create a new finding if not already recorded", async () => {
+    await noteFinding("csrf_token_missing", "https://example.com", "No CSRF token", {
+      confidence: "high",
+      severity: "high",
+    });
+
+    expect(prisma.securityFinding.create).toHaveBeenCalledWith({
+      data: {
+        scanResultId,
+        type: "csrf_token_missing",
+        url: "https://example.com",
+        detail: "No CSRF token",
+        confidence: "high",
+        severity: "high",
+      },
+    });
+  });
+
+  it("should not add duplicate findings", async () => {
+    recordedFindings.add("csrf_token_missing::example.com::No CSRF token");
+
+    await noteFinding("csrf_token_missing", "https://example.com", "No CSRF token");
+
+    expect(prisma.securityFinding.create).not.toHaveBeenCalled();
+  });
+
+  it("should gracefully handle non-URL inputs", async () => {
+    await noteFinding("csrf_token_missing", "not-a-url", "Something weird");
+
+    expect(recordedFindings.has("csrf_token_missing::not-a-url::Something weird")).toBe(true);
+    expect(prisma.securityFinding.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "csrf_token_missing",
+        url: "not-a-url",
+        detail: "Something weird",
+      }),
+    });
+  });
+
+  it("should use default confidence and severity if omitted", async () => {
+    await noteFinding("sql_injection_response", "http://site.com", "Boom 💥");
+
+    expect(prisma.securityFinding.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        confidence: "medium",
+        severity: "medium",
+      }),
+    });
+  });
+
+  it("should allow multiple different findings", async () => {
+    await noteFinding("type1", "https://domain.com", "detail one");
+    await noteFinding("type2", "https://domain.com", "detail two");
+
+    expect(prisma.securityFinding.create).toHaveBeenCalledTimes(2);
+  });
+
+  it("should differentiate findings by domain", async () => {
+    await noteFinding("type1", "https://a.com", "same detail");
+    await noteFinding("type1", "https://b.com", "same detail");
+
+    expect(prisma.securityFinding.create).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("generateSummaryReport", () => {
+  it("should collect unique recommendations and resources", () => {
+    const findings = [
+      { type: "csrf_token_missing", detail: "1" },
+      { type: "no_rate_limit_detected", detail: "2" },
+      { type: "progressive_delay_detected", detail: "3" },
+    ];
+
+    const result = generateSummaryReport(findings, findingToRecommendation, securityResources);
+    const ids = result.recommendations.map((r) => r.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("should return empty report if findings list is empty", () => {
+    const result = generateSummaryReport([], findingToRecommendation, securityResources);
+    expect(result).toEqual({
+      recommendations: [],
+      resources: {},
+      totalFindings: 0,
+    });
+  });
+
+  it("should ignore unknown types gracefully", () => {
+    const findings = [{ type: "unknown_type", detail: "wat" }];
+    const result = generateSummaryReport(findings, findingToRecommendation, securityResources);
+    expect(result.recommendations).toEqual([]);
+    expect(result.resources).toEqual({});
+    expect(result.totalFindings).toBe(1);
+  });
+
+  it("should include all known recommendation types", () => {
+    const findings = Object.keys(findingToRecommendation).map((type) => ({
+      type,
+      detail: `Test ${type}`,
+    }));
+
+    const result = generateSummaryReport(findings, findingToRecommendation, securityResources);
+    const includedIds = result.recommendations.map((r) => r.id);
+    const expectedIds = [...new Set(Object.values(findingToRecommendation).map((r) => r.id))];
+
+    expectedIds.forEach((id) => {
+      expect(includedIds).toContain(id);
     });
   });
 });
