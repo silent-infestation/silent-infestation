@@ -1,6 +1,7 @@
 // src/app/api/sites/route.js (Next.js App Router compatible)
 
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 
 function generateSecurityKey() {
   return Math.random().toString(36).substring(2, 15);
@@ -17,6 +18,8 @@ export async function GET(request) {
     const cookies = request.headers.get("cookie") || "";
     const tokenCookie = cookies.split("; ").find(c => c.startsWith("token="));
     const token = tokenCookie ? tokenCookie.split("=")[1] : null;
+
+    console.log("Token reçu :", token);
 
     const authUser = await getAuthUser(token);
 
@@ -56,16 +59,20 @@ export async function POST(request) {
     if (!url_site || !userId) {
       return new Response(JSON.stringify({ message: "données manquantes" }), { status: 400 });
     }
+    console.log("[POST] Ajout d'un site");
+    console.log("URL du site :", url_site);
+    console.log("ID de l'utilisateur :", userId);
 
     const newSite = await prisma.site.create({
       data: {
-        url_site,
+        url: url_site,
         userId: parseInt(userId),
-        state: "pending",
+        state: "pending"
       },
     });
 
     return new Response(JSON.stringify(newSite), { status: 201 });
+
   } catch (error) {
     console.error(error);
     return new Response(JSON.stringify({ message: "Erreur lors de l'ajout du site." }), { status: 500 });
