@@ -5,19 +5,75 @@ import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/app/context/AppContext";
+import api from "@/lib/api";
 
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);
+  const [scanId, setScanId] = useState(null);
   const [popupStep, setPopupStep] = useState(null);
   const [selectedUrl, setSelectedUrl] = useState(null);
   const [showDownload, setShowDownload] = useState(false);
   const router = useRouter();
   const { changeActivePage } = useAppContext();
 
-  // Simule les données utilisateur
   const user = {
     isAuthenticated: true,
-    trustedUrls: ["https://monsite.com", "https://exemple.fr"], // peut être []
+    trustedUrls: ["https://pentest-ground.com:4280"],
+  };
+
+  const [progress, setProgress] = useState(0);
+  const pollingInterval = 3000;
+
+  const startScan = async () => {
+    if (!selectedUrl) return;
+
+    try {
+      const response = await api.post("/scan/start", { startUrl: selectedUrl });
+      const newScanId = response.data.scanId;
+      if (!newScanId) {
+        throw new Error("Scan ID manquant dans la réponse !");
+      }
+      setScanId(newScanId);
+      setPopupStep("loading");
+      setProgress(0);
+      simulateProgress();
+      pollScanStatus();
+    } catch (error) {
+      console.error("Erreur au démarrage du scan", error);
+    }
+  };
+
+  // Simule la progression du scan
+  const simulateProgress = () => {
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 2 + Math.random() * 3;
+      if (current >= 90) {
+        clearInterval(interval);
+        return;
+      }
+      setProgress(current);
+    }, 500);
+  };
+
+  // Vérifie le statut du scan
+  const pollScanStatus = () => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await api.get("/scan/status");
+        if (response.data.status === "success") {
+          clearInterval(interval);
+          setProgress(100);
+
+          setTimeout(() => {
+            setShowDownload(true);
+            setPopupStep("done");
+          }, 2500);
+        }
+      } catch (error) {
+        console.error("Erreur polling:", error);
+      }
+    }, 3000);
   };
 
   const handleScanClick = () => {
@@ -33,18 +89,6 @@ export default function Header() {
     }
 
     setShowPopup(true);
-  };
-
-  const startScan = () => {
-    if (!selectedUrl) return;
-
-    setPopupStep("loading");
-    setShowDownload(false);
-
-    setTimeout(() => {
-      setPopupStep("done");
-      setShowDownload(true);
-    }, 3000);
   };
 
   const handleGoToProfile = () => {
@@ -192,11 +236,11 @@ export default function Header() {
                 <div className="h-2 w-full overflow-hidden rounded bg-gray-200">
                   <motion.div
                     className="h-full bg-[#05829E]"
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 3 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: pollingInterval / 1000 }}
                   />
                 </div>
+                <p className="mt-2 text-sm text-gray-500">{progress.toFixed(2)}%</p>
               </>
             )}
 
@@ -207,7 +251,25 @@ export default function Header() {
                   Analyse terminée pour : <strong>{selectedUrl}</strong>
                 </p>
                 <button
-                  onClick={() => alert("Téléchargement du rapport...")}
+                  onClick={async () => {
+                    try {
+                      const blob = await api.get(`/downloadReport/${scanId}`, {
+                        responseType: "blob",
+                      });
+                      const url = URL.createObjectURL(blob);
+
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.setAttribute("download", `security-rapport-${scanId}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                      console.error("Erreur téléchargement rapport :", err);
+                      alert("Impossible de télécharger le rapport.");
+                    }
+                  }}
                   className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                 >
                   Télécharger le rapport
