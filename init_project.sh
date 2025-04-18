@@ -98,7 +98,7 @@ echo "\e[32m[SUCCÈS] Fichier $ENV_FILE créé avec succès !\e[0m"
 # echo -e "\e[34m[INFO] Lancement des migrations Prisma...\e[0m"
 
 echo "Waiting for PostgreSQL to be ready..."
-sleep 5
+sleep 10
 
 docker exec -it website_silen2festation sh -c "npx prisma migrate dev --name init"
 # exit
