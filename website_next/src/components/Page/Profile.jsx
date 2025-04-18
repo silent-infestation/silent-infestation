@@ -38,10 +38,13 @@ export default function Profile() {
     })
       .then((res) => res.json())
       .then(async (data) => {
-        setTrustedSites(data);
+        const sites = Array.isArray(data) ? data : [];
+        setTrustedSites(sites);
 
-        // Relancer la vérification pour les sites non vérifiés
-        for (const site of data) {
+        console.log("Sites récupérés :", sites);
+
+        // Utiliser `sites` ici
+        for (const site of sites) {
           if (site.state === "unverified") {
             try {
               const res = await api.post(
@@ -154,6 +157,7 @@ export default function Profile() {
           isAlertErrorMessage: false,
           alertTitle: "Compte supprimé avec succès.",
         });
+
       } else {
         setAlert({
           isShowingAlert: true,
@@ -248,12 +252,16 @@ export default function Profile() {
     }
   };
 
-  const handleDeleteUrl = async (urlToDelete) => {
-    console.log("Suppression de l'URL :", urlToDelete);
+
+  const handleDeleteUrl = async (siteIdToDelete) => {
+    console.log("Suppression du site avec ID :", siteIdToDelete);
     try {
-      const res = await api.del(`/sites?siteId=${urlToDelete}`);
+      const res = await api.del(`/sites?siteId=${siteIdToDelete}`);
       if (res.status === 200 || res.ok) {
-        setTrustedUrls((prev) => prev.filter((url) => url !== urlToDelete));
+        // Mise à jour du state pour supprimer le site localement
+        setTrustedSites((prev) =>
+          prev.filter((site) => site.id !== siteIdToDelete)
+        );
         setAlert({
           isShowingAlert: true,
           isAlertErrorMessage: false,
@@ -381,7 +389,7 @@ export default function Profile() {
             </button>
           </div>
 
-          {trustedSites.map((site) => (
+          {trustedSites?.map((site) => (
             <div
               key={site.id}
               className="flex items-center justify-between rounded-md border bg-gray-50 px-4 py-2"
@@ -409,7 +417,7 @@ export default function Profile() {
                     ></path>
                   </svg>
                 )}
-                <span className="break-all text-sm text-[#00202B]">{site.url_site}</span>
+                <span className="break-all text-sm text-[#00202B]">{site.url}</span>
               </div>
               <button
                 onClick={() => handleDeleteUrl(site.id)}
