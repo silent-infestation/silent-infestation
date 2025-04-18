@@ -21,14 +21,15 @@ const getLogoBase64 = () => {
   return imageBuffer.toString("base64");
 };
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
+  const { id } = await context.params;
   const cookieHeader = req.headers.get("cookie") || "";
   const cookies = parse(cookieHeader);
   const token = cookies.token;
 
   if (!token) return NextResponse.json({ error: "Missing JWT token" }, { status: 401 });
 
-  const scanId = parseInt(params.id);
+  const scanId = parseInt(id);
   if (isNaN(scanId)) return NextResponse.json({ error: "Invalid scan ID" }, { status: 400 });
 
   try {
