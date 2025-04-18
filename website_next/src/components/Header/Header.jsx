@@ -5,6 +5,8 @@ import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/app/context/AppContext";
+import { useEffect } from "react";
+import { useAuth } from "@/app/context/AuthProvider";
 
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);
@@ -13,12 +15,36 @@ export default function Header() {
   const [showDownload, setShowDownload] = useState(false);
   const router = useRouter();
   const { changeActivePage } = useAppContext();
+  const [trustedSites, setTrustedSites] = useState([]);
+  const { user: authUser, loading } = useAuth();
 
   // Simule les données utilisateur
   const user = {
     isAuthenticated: true,
     trustedUrls: ["https://monsite.com", "https://exemple.fr"], // peut être []
   };
+  console.log("Utilisateur authentifié :", authUser);
+
+
+  useEffect(() => {
+
+    // Charger les sites depuis l'API /api/sites
+    fetch("/api/sites", {
+      headers: {
+        Authorization: `Bearer ${authUser?.token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then(async (data) => {
+        const sites = Array.isArray(data) ? data : [];
+        setTrustedSites(sites);
+
+        console.log("Sites récupérés :", sites);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération des sites :", error);
+      });
+  }, []);
 
   const handleScanClick = () => {
     if (!user.isAuthenticated) {
@@ -157,28 +183,28 @@ export default function Header() {
               <>
                 <p className="mb-4 font-medium text-gray-700">Sélectionnez une URL à scanner :</p>
                 <div className="mb-4 flex flex-col items-start space-y-2">
-                  {user.trustedUrls.map((url) => (
-                    <button
-                      key={url}
-                      onClick={() => setSelectedUrl(url)}
-                      className={`w-full rounded px-4 py-2 text-left transition ${
-                        selectedUrl === url
+                  {trustedSites?.map((url) => (
+                    url.state === "verified" && (
+                      <button
+                        key={url.id}
+                        onClick={() => setSelectedUrl(url.url)}
+                        className={`w-full rounded px-4 py-2 text-left transition ${selectedUrl === url
                           ? "bg-[#05829E] text-white"
                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      {url}
-                    </button>
+                          }`}
+                      >
+                        {url.url}
+                      </button>
+                    )
                   ))}
                 </div>
                 <button
                   disabled={!selectedUrl}
                   onClick={startScan}
-                  className={`mt-2 rounded px-4 py-2 text-white ${
-                    selectedUrl
-                      ? "bg-[#05829E] hover:bg-[#046e87]"
-                      : "cursor-not-allowed bg-gray-400"
-                  }`}
+                  className={`mt-2 rounded px-4 py-2 text-white ${selectedUrl
+                    ? "bg-[#05829E] hover:bg-[#046e87]"
+                    : "cursor-not-allowed bg-gray-400"
+                    }`}
                 >
                   Lancer le scan
                 </button>

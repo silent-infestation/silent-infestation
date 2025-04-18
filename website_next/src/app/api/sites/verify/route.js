@@ -6,10 +6,13 @@ import fetch from "node-fetch";
 const prisma = new PrismaClient();
 
 async function verifySite(site) {
-    const fullUrl = `${site.url_site.replace(/\/$/, "")}/${site.urlPath}`;
+    const fullUrl = `${site.url.replace(/\/$/, "")}/${site.urlPath}`;
+    console.log("[VERIFY] URL complète :", fullUrl);
     try {
         const response = await fetch(fullUrl);
-        if (!response.ok) return false;
+        console.log("[VERIFY] Vérification de l'URL :", fullUrl);
+        console.log("[VERIFY] Status de la réponse :", response);
+        if (!response   .ok) return false;
 
         const content = await response.text();
         return content.includes(site.securityKey);
@@ -21,11 +24,14 @@ async function verifySite(site) {
 
 export async function POST(request) {
     try {
+        const { siteId } = await request.json();
+        console.log("[POST] Vérification des sites");
+        console.log(siteId)
+
         const sites = await prisma.site.findMany({
             where: {
-                id: request.siteId,
+                id: siteId,
                 state: "unverified",
-                NOT: [{ securityKey: null }, { urlPath: null }]
             }
         });
 
