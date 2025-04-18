@@ -16,7 +16,6 @@ export default function Rgpd() {
 
   const handleGoToContact = () => {
     changeActivePage("contact");
-    setShowPopup(false);
   };
 
   return (
