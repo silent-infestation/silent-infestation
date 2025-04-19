@@ -196,7 +196,7 @@ export default function Profile() {
         { url: newUrl, userId: authUser.id },
         { headers: { Authorization: `Bearer ${authUser.token}` } }
       );
-
+      
       if (siteRes.status === 200 || siteRes.ok) {
         const site = siteRes.data;
         setTrustedSites((prev) => [...prev, site]);

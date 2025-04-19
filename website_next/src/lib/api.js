@@ -49,11 +49,5 @@ class Api {
   }
 }
 
-<<<<<<< HEAD
-// Création d'une instance unique de l'API
-const api = new Api("http://localhost:23000/api");
-
-=======
 const api = new Api("http://localhost:3000/api");
->>>>>>> 2273706f261d0e2c77a6bbe8b08a1d6b86bdcba2
 export default api;
