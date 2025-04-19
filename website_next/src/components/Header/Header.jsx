@@ -5,12 +5,7 @@ import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/app/context/AppContext";
-<<<<<<< HEAD
-import { useEffect } from "react";
-import { useAuth } from "@/app/context/AuthProvider";
-=======
 import api from "@/lib/api";
->>>>>>> 2273706f261d0e2c77a6bbe8b08a1d6b86bdcba2
 
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);

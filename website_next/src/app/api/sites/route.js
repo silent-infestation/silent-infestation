@@ -15,9 +15,6 @@ export async function GET(request) {
 
     const authUser = await getAuthUser(token);
 
-<<<<<<< HEAD
-    if (!authUser) return new Response(JSON.stringify({ message: "Utilisateur non authentifié" }), { status: 401 });
-=======
     console.log("[GET] Token reçu :");
     console.log(authUser);
 
@@ -25,7 +22,6 @@ export async function GET(request) {
       return new Response(JSON.stringify({ message: "Utilisateur non authentifié" }), {
         status: 401,
       });
->>>>>>> 2273706f261d0e2c77a6bbe8b08a1d6b86bdcba2
 
     if (id) {
       const site = await prisma.site.findFirst({
@@ -66,18 +62,6 @@ export async function POST(request) {
 
     const newSite = await prisma.site.create({
       data: {
-<<<<<<< HEAD
-        url: url,
-        securityKey: null,
-        urlPath: null,
-        userId: userId,
-        state: "pending"
-      }
-    });
-
-    return new Response(JSON.stringify(newSite), { status: 200 });
-
-=======
         url: url_site,
         userId: parseInt(userId),
         state: "pending",
@@ -85,7 +69,6 @@ export async function POST(request) {
     });
 
     return new Response(JSON.stringify(newSite), { status: 201 });
->>>>>>> 2273706f261d0e2c77a6bbe8b08a1d6b86bdcba2
   } catch (error) {
     console.error(error);
     return new Response(JSON.stringify({ message: "Erreur lors de l'ajout du site." }), {

@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Site" ALTER COLUMN "securityKey" DROP NOT NULL,
-ALTER COLUMN "urlPath" DROP NOT NULL;

@@ -5,20 +5,10 @@ import fetch from "node-fetch";
 const prisma = new PrismaClient();
 
 async function verifySite(site) {
-<<<<<<< HEAD
-    const fullUrl = `${site.url.replace(/\/$/, "")}/${site.urlPath}`;
-    console.log("[VERIFY] URL complète :", fullUrl);
-    try {
-        const response = await fetch(fullUrl);
-        console.log("[VERIFY] Vérification de l'URL :", fullUrl);
-        console.log("[VERIFY] Status de la réponse :", response);
-        if (!response   .ok) return false;
-=======
   const fullUrl = `${site.url_site.replace(/\/$/, "")}/${site.urlPath}`;
   try {
     const response = await fetch(fullUrl);
     if (!response.ok) return false;
->>>>>>> 2273706f261d0e2c77a6bbe8b08a1d6b86bdcba2
 
     const content = await response.text();
     return content.includes(site.securityKey);
@@ -29,18 +19,6 @@ async function verifySite(site) {
 }
 
 export async function POST(request) {
-<<<<<<< HEAD
-    try {
-        const { siteId } = await request.json();
-        console.log("[POST] Vérification des sites");
-        console.log(siteId)
-
-        const sites = await prisma.site.findMany({
-            where: {
-                id: siteId,
-                state: "unverified",
-            }
-=======
   try {
     const sites = await prisma.site.findMany({
       where: {
@@ -57,7 +35,6 @@ export async function POST(request) {
         await prisma.site.update({
           where: { id: site.id },
           data: { state: "verified" },
->>>>>>> 2273706f261d0e2c77a6bbe8b08a1d6b86bdcba2
         });
       }
       results.push({ id: site.id, verified: isValid });
