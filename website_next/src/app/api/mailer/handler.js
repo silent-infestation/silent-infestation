@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import {
   transporter,
@@ -5,7 +6,6 @@ import {
   createSecurityEmailContent,
   createContactEmailContent,
 } from "./core";
-import { getAuthUser } from "@/lib/auth";
 
 export async function POST(request) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request) {
     console.log("Email :", email);
     console.log("Sujet :", sujet);
     console.log("Destinataire :", destinataire);
-    console.log(siteId)
+    console.log(siteId);
 
     if (!type || !sujet) {
       return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
@@ -26,9 +26,12 @@ export async function POST(request) {
 
     let mailOptions = {};
     let extraData = {};
+    const { securityKey, urlPath } = generateSecurityCredentials();
+    const message = createSecurityEmailContent(securityKey, urlPath, url);
+    console.log("message", message);
+    console.log("siteId", siteId);
 
     if (type === "contact") {
-
       if (!email) {
         return NextResponse.json(
           { error: "Email requis pour un message de contact." },
@@ -44,9 +47,7 @@ export async function POST(request) {
         text: `${message}\n\nEnvoyé par : ${email}`,
         html: createContactEmailContent(email, sujet, message),
       };
-
     } else if (type === "security") {
-
       if (!destinataire) {
         return NextResponse.json(
           { error: "Destinataire requis pour un mail de sécurité." },
@@ -54,18 +55,14 @@ export async function POST(request) {
         );
       }
 
-      const { securityKey, urlPath } = generateSecurityCredentials();
-      const message = createSecurityEmailContent(securityKey, urlPath, url);
-      console.log("message", message)
-      console.log("siteId", siteId)
       try {
         const updatedSite = await prisma.site.update({
           where: { id: siteId },
           data: {
             securityKey,
             urlPath,
-            state: "unverified"
-          }
+            state: "unverified",
+          },
         });
 
         mailOptions = {
@@ -82,10 +79,9 @@ export async function POST(request) {
             urlPath,
             destinataire,
             createdAt: new Date().toISOString(),
-            updatedSite // Retourne les infos du site mis à jour
+            updatedSite, // Retourne les infos du site mis à jour
           },
         };
-
       } catch (dbError) {
         console.error("[MAILER] Erreur DB:", dbError);
         return NextResponse.json(
