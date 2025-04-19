@@ -51,13 +51,13 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { url_site, userId } = body;
+    const { url, userId } = body;
 
-    if (!url_site || !userId) {
+    if (!url || !userId) {
       return new Response(JSON.stringify({ message: "données manquantes" }), { status: 400 });
     }
     console.log("[POST] Ajout d'un site");
-    console.log("URL du site :", url_site);
+    console.log("URL du site :", url);
     console.log("ID de l'utilisateur :", userId);
 
     const newSite = await prisma.site.create({
@@ -80,7 +80,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { id, url_site, state } = body;
+    const { id, url, state } = body;
 
     if (!id) return new Response(JSON.stringify({ message: "ID requis." }), { status: 400 });
 
@@ -102,7 +102,7 @@ export async function PUT(request) {
     const updatedSite = await prisma.site.update({
       where: { id: parseInt(id) },
       data: {
-        url_site: url_site || existingSite.url_site,
+        url: url || existingSite.url,
         state: state || existingSite.state,
       },
     });
