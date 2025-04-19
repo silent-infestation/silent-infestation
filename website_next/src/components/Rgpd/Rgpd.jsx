@@ -3,11 +3,20 @@
 import React, { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useAppContext } from "@/app/context/AppContext";
+
 
 export default function Rgpd() {
   useEffect(() => {
     AOS.init({ duration: 1000, once: true });
   }, []);
+
+  const { changeActivePage } = useAppContext();
+
+
+  const handleGoToContact = () => {
+    changeActivePage("contact");
+  };
 
   return (
     <section className="relative flex w-full flex-col items-center bg-[#DCF0FF] py-32">
@@ -48,8 +57,8 @@ export default function Rgpd() {
       {/* Call to Action (CTA) */}
       <div className="mt-12 text-center" data-aos="fade-up">
         <a
-          href="#contact"
-          className="rounded-full bg-[#05829E] px-8 py-4 text-xl font-semibold text-white transition-colors hover:bg-[#026A72]"
+          onClick={handleGoToContact}
+          className="rounded-full bg-[#05829E] px-8 py-4 text-xl font-semibold text-white transition-colors hover:bg-[#026A72] cursor-pointer"
         >
           Contactez-nous pour en savoir plus sur notre conformité RGPD
         </a>

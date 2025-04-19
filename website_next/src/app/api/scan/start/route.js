@@ -64,5 +64,8 @@ export async function POST(req) {
     }
   }, 0);
 
-  return NextResponse.json({ message: "Scan started." });
+  return NextResponse.json({
+    message: "Scan started.",
+    scanId: newScan.id,
+  });
 }
