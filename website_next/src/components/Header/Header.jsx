@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/app/context/AppContext";
 import api from "@/lib/api";
+import { useAuth } from "@/app/context/AuthProvider";
 
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);
@@ -79,9 +80,7 @@ export default function Header() {
   };
   console.log("Utilisateur authentifié :", authUser);
 
-
   useEffect(() => {
-
     // Charger les sites depuis l'API /api/sites
     fetch("/api/sites", {
       headers: {
@@ -225,28 +224,31 @@ export default function Header() {
               <>
                 <p className="mb-4 font-medium text-gray-700">Sélectionnez une URL à scanner :</p>
                 <div className="mb-4 flex flex-col items-start space-y-2">
-                  {trustedSites?.map((url) => (
-                    url.state === "verified" && (
-                      <button
-                        key={url.id}
-                        onClick={() => setSelectedUrl(url.url)}
-                        className={`w-full rounded px-4 py-2 text-left transition ${selectedUrl === url
-                          ? "bg-[#05829E] text-white"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  {trustedSites?.map(
+                    (url) =>
+                      url.state === "verified" && (
+                        <button
+                          key={url.id}
+                          onClick={() => setSelectedUrl(url.url)}
+                          className={`w-full rounded px-4 py-2 text-left transition ${
+                            selectedUrl === url
+                              ? "bg-[#05829E] text-white"
+                              : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                           }`}
-                      >
-                        {url.url}
-                      </button>
-                    )
-                  ))}
+                        >
+                          {url.url}
+                        </button>
+                      )
+                  )}
                 </div>
                 <button
                   disabled={!selectedUrl}
                   onClick={startScan}
-                  className={`mt-2 rounded px-4 py-2 text-white ${selectedUrl
-                    ? "bg-[#05829E] hover:bg-[#046e87]"
-                    : "cursor-not-allowed bg-gray-400"
-                    }`}
+                  className={`mt-2 rounded px-4 py-2 text-white ${
+                    selectedUrl
+                      ? "bg-[#05829E] hover:bg-[#046e87]"
+                      : "cursor-not-allowed bg-gray-400"
+                  }`}
                 >
                   Lancer le scan
                 </button>
