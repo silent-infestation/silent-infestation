@@ -8,6 +8,9 @@ import { useAppContext } from "@/app/context/AppContext";
 import api from "@/lib/api";
 import { useAuth } from "@/app/context/AuthProvider";
 
+let progressIntervalId = null;
+let statusIntervalId = null;
+
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);
   const [scanId, setScanId] = useState(null);
@@ -17,7 +20,7 @@ export default function Header() {
   const router = useRouter();
   const { changeActivePage } = useAppContext();
   const [trustedSites, setTrustedSites] = useState([]);
-  const { user: authUser, loading } = useAuth();
+  const { user: authUser, _loading } = useAuth();
 
   const user = {
     isAuthenticated: true,
@@ -29,63 +32,80 @@ export default function Header() {
 
   const startScan = async () => {
     if (!selectedUrl) return;
-
     try {
-      const response = await api.post("/scan/start", { startUrl: selectedUrl });
-      const newScanId = response.data.scanId;
-      if (!newScanId) {
-        throw new Error("Scan ID manquant dans la réponse !");
-      }
-      setScanId(newScanId);
+      const { data } = await api.post("/scan/start", { startUrl: selectedUrl });
+      if (!data.scanId) throw new Error("Scan ID manquant !");
+      setScanId(data.scanId);
       setPopupStep("loading");
       setProgress(0);
       simulateProgress();
       pollScanStatus();
-    } catch (error) {
-      console.error("Erreur au démarrage du scan", error);
+    } catch (err) {
+      console.error("Erreur démarrage scan ➜", err);
     }
+  };
+
+  const cancelScan = async () => {
+    if (statusIntervalId) {
+      clearInterval(statusIntervalId);
+      statusIntervalId = null;
+    }
+    if (progressIntervalId) {
+      clearInterval(progressIntervalId);
+      progressIntervalId = null;
+    }
+
+    try {
+      await api.post("/scan/terminate", { scanId });
+    } catch (err) {
+      console.error("Erreur terminaison scan ➜", err);
+    }
+
+    // Reset UI
+    setScanId(null);
+    setProgress(0);
+    handleClosePopup();
   };
 
   // Simule la progression du scan
   const simulateProgress = () => {
-    let current = 0;
-    const interval = setInterval(() => {
-      current += 2 + Math.random() * 3;
-      if (current >= 90) {
-        clearInterval(interval);
+    let cur = 0;
+    progressIntervalId = setInterval(() => {
+      cur += 2 + Math.random() * 3;
+      if (cur >= 90) {
+        clearInterval(progressIntervalId);
+        progressIntervalId = null;
         return;
       }
-      setProgress(current);
+      setProgress(cur);
     }, 500);
   };
-
   // Vérifie le statut du scan
   const pollScanStatus = () => {
-    const interval = setInterval(async () => {
+    statusIntervalId = setInterval(async () => {
       try {
-        const response = await api.get("/scan/status");
-        if (response.data.status === "success") {
-          clearInterval(interval);
+        const { data } = await api.get("/scan/status");
+        if (data.status === "success") {
+          clearInterval(statusIntervalId);
+          statusIntervalId = null;
           setProgress(100);
-
           setTimeout(() => {
             setShowDownload(true);
             setPopupStep("done");
           }, 2500);
         }
-      } catch (error) {
-        console.error("Erreur polling:", error);
+      } catch (err) {
+        console.error("Erreur polling ➜", err);
       }
-    }, 3000);
+    }, pollingInterval);
   };
+
   console.log("Utilisateur authentifié :", authUser);
 
   useEffect(() => {
     // Charger les sites depuis l'API /api/sites
     fetch("/api/sites", {
-      headers: {
-        Authorization: `Bearer ${authUser?.token}`,
-      },
+      headers: { Authorization: `Bearer ${authUser?.token}` },
     })
       .then((res) => res.json())
       .then(async (data) => {
@@ -267,6 +287,12 @@ export default function Header() {
                   />
                 </div>
                 <p className="mt-2 text-sm text-gray-500">{progress.toFixed(2)}%</p>
+                <button
+                  onClick={cancelScan}
+                  className="hover:bg-red-700 mt-4 w-full rounded bg-red-600 px-4 py-2 font-medium text-white"
+                >
+                  Annuler le scan
+                </button>
               </>
             )}
 
