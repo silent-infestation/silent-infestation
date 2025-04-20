@@ -52,7 +52,9 @@ export function checkCredentialsInUrl(pageUrl, noteFinding) {
         );
       }
     }
-  } catch {}
+  } catch (e) {
+    console.error("Error parsing URL:", e);
+  }
 }
 
 /**
