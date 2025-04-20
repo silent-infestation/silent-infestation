@@ -35,9 +35,6 @@ export function extractMatchingFilePath(body, filename) {
     }
   });
 
-  if (!foundPath) {
-  }
-
   return foundPath;
 }
 
@@ -203,7 +200,6 @@ export async function analyzeStructuredForm(form, pageUrl, noteFinding) {
         confidence: "medium",
         severity: "high",
       });
-    } else {
     }
   } catch (err) {
     console.error(`[x] Error submitting form to ${actionUrl}: ${err.message}`);
