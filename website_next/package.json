@@ -15,7 +15,8 @@
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "jest",
+    "swagger": "node src/swagger/swagger-server.js",
+    "test": "SUPPRESS_TEST_LOGS=true jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
@@ -30,10 +31,14 @@
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "crawler": "^2.0.2",
+    "emailjs-com": "^3.2.0",
+    "express": "^5.1.0",
     "framer-motion": "^12.4.10",
     "gsap": "^3.12.7",
     "gsap-trial": "^3.12.7",
+    "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.476.0",
     "next": "15.0.1",
     "next-connect": "^1.0.0",
@@ -43,7 +48,12 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.4.0",
-    "react-type-animation": "^3.2.0"
+    "react-type-animation": "^3.2.0",
+    "swagger-ui": "^5.21.0",
+    "swagger-ui-dist": "^5.21.0",
+    "swagger-ui-express": "^5.0.1",
+    "swagger-ui-react": "^5.21.0",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",

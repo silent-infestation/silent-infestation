@@ -1,10 +1,11 @@
 name: Deploy to Production
 
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  PROJECT_PATH: /home/grigou.fr/silent-infestation
+
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
   push:
     branches:
       - main
@@ -12,39 +13,105 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      deploy_required: ${{ steps.compare_digest.outputs.deploy_required }}
     steps:
       - name: 📥 Récupération du code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
+      - name: 🛠️ Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
+      - name: 🔧 Création du dossier de build temporaire
+        run: |
+          mkdir build-context
+          cp -r website_next/* build-context/
+          cp website_next/package-lock.json build-context/
+
+      - name: 🔐 Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🐳 Build and push de l'image Docker
+      - name: 🐳 Build de l'image Docker (sans push)
         uses: docker/build-push-action@v3
         with:
-          context: ./website_next
-          file: ./website_next/Dockerfile.prod
+          context: ./build-context
+          file: ./build-context/Dockerfile.prod
+          push: false
+          tags: ${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest
+          no-cache: true
+          provenance: false
+          pull: true
+
+      - name: 🔍 Comparaison des digest
+        id: compare_digest
+        run: |
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest"
+          echo "Récupération du digest local..."
+          LOCAL_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE 2>/dev/null || echo "")
+          echo "Digest local: $LOCAL_DIGEST"
+          echo "Récupération du digest distant..."
+          REMOTE_DIGEST=$(docker manifest inspect $IMAGE 2>/dev/null | jq -r .config.digest || echo "")
+          echo "Digest distant: $REMOTE_DIGEST"
+          if [ -z "$REMOTE_DIGEST" ] || [ "$LOCAL_DIGEST" != "$REMOTE_DIGEST" ]; then
+            echo "Nouvelle image détectée ou image inexistante sur le registry."
+            echo "deploy_required=true" >> $GITHUB_OUTPUT
+          else
+            echo "L'image est identique, pas besoin de déployer."
+            echo "deploy_required=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🐳 Push de l'image Docker (si nécessaire)
+        if: steps.compare_digest.outputs.deploy_required == 'true'
+        uses: docker/build-push-action@v3
+        with:
+          context: ./build-context
+          file: ./build-context/Dockerfile.prod
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/silent-infestation:latest
           no-cache: true
+          provenance: false
+          pull: true
 
   deploy:
-    needs: build-and-push
+    needs:
+      - build-and-push
+    if: needs.build-and-push.outputs.deploy_required == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: 📡 Connexion SSH et exécution du script de déploiement
+      - name: Déploiement sur le serveur via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY_GHA }}
-          envs: PROJECT_PATH, DOCKER_USERNAME, DOCKER_PASSWORD
+          envs: DOCKER_USERNAME,PROJECT_PATH
           script: |
-            cd $PROJECT_PATH
-            ./deploy.sh
+            echo "📂 Accès au dossier $PROJECT_PATH..."
+            cd "$PROJECT_PATH"
+
+            echo "🐳 Pull de la nouvelle image depuis Docker Hub..."
+            docker pull $DOCKER_USERNAME/silent-infestation:latest
+
+            echo "🔍 Vérification de l'image actuelle utilisée par le conteneur..."
+            if docker inspect website_silen2festation &>/dev/null; then
+              IMAGE_ID=$(docker inspect --format='{{.Image}}' website_silen2festation)
+              CURRENT_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_ID" 2>/dev/null || echo "none")
+              echo "Digest actuel : $CURRENT_DIGEST"
+            else
+              echo "Conteneur inexistant, déploiement complet requis."
+              CURRENT_DIGEST="none"
+            fi
+
+            echo "📦 Récupération du digest de l'image distante..."
+            NEW_DIGEST=$(docker manifest inspect $DOCKER_USERNAME/silent-infestation:latest 2>/dev/null | jq -r .config.digest || echo "")
+            echo "Digest distant : $NEW_DIGEST"
+
+            if [ "$CURRENT_DIGEST" = "none" ] || [ "$CURRENT_DIGEST" != *"$NEW_DIGEST" ]; then
+              echo "🌀 Image différente ou conteneur absent, redeploiement en cours..."
+              docker-compose -f docker-compose.prod.yml up -d --no-deps --build website
+            else
+              echo "✅ L'image est identique, pas de redéploiement nécessaire."
+            fi

@@ -24,16 +24,14 @@ services:
       context: ./website_next
       dockerfile: Dockerfile.dev
     restart: always
-    env_file: ./website_next/.env.local
+    env_file: ./website_next/.env
     networks:
       - silen2festation
     ports:
       - "${PORT_FRONT}:3000"
     volumes:
       - ./website_next:/usr/src/app
-    command: >
-      sh -c "./wait-for-it.sh db_silen2festation:5432 -- npx prisma migrate dev && npx prisma db seed && npm run dev"
-
+      - /usr/src/app/node_modules
 networks:
   silen2festation:
 

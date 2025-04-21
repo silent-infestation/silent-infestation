@@ -1,28 +1,31 @@
-'use client';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import Rgpd from "./Rgpd";
 
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import Rgpd from './Rgpd';
-
-// Mocking AOS (Animate on Scroll) for testing
-jest.mock('aos', () => ({
+// Mock AOS
+jest.mock("aos", () => ({
   init: jest.fn(),
 }));
 
-describe('Rgpd Component', () => {
-  beforeEach(() => {
-    render(<Rgpd />);
-  });
+// Mock useAppContext
+jest.mock("@/app/context/AppContext", () => ({
+  useAppContext: () => ({
+    changeActivePage: jest.fn(),
+  }),
+}));
 
-  test('renders the description text', () => {
+describe("Rgpd Component", () => {
+  test("renders the description text", () => {
+    render(<Rgpd />);
     const description = screen.getByText(
       /Nous nous engageons à respecter la confidentialité et la sécurité des données/i
     );
     expect(description).toBeInTheDocument();
   });
 
-  test('AOS animations are initialized', () => {
-    const { init } = require('aos');
+  test("AOS animations are initialized", () => {
+    const { init } = require("aos");
+    render(<Rgpd />);
     expect(init).toHaveBeenCalled();
   });
 });

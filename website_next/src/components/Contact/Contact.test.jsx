@@ -1,59 +1,86 @@
-import React from 'react';
-import { render, screen, act } from '@testing-library/react';
-import Contact from '.';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import Contact from ".";
+import api from "@/lib/api";
 
-// Mock des composants externes
-jest.mock('../_ui/Forms/FormTemplate', () => {
-  return function MockFormTemplate({ onSubmit }) {
-    return (
-      <form
-        data-testid="form-template"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const formData = {
-            email: e.target.email.value,
-            subject: e.target.subject.value,
-            message: e.target.message.value,
-          };
-          onSubmit(formData);
-        }}
-      >
-        <input data-testid="email-input" name="email" />
-        <input data-testid="subject-input" name="subject" />
-        <textarea data-testid="message-input" name="message" />
-        <button type="submit">Submit</button>
-      </form>
-    );
-  };
-});
+jest.mock("@/lib/api");
 
-jest.mock('@/locales', () => ({
-  contact: {
-    title: 'Contact Title',
-    description: 'Contact Description',
-  },
-}));
-
-describe('Contact Component', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
+describe("Contact Component", () => {
   beforeEach(() => {
-    jest.clearAllTimers();
+    jest.clearAllMocks();
   });
 
-  it('renders the contact form with title and description', () => {
-    act(() => {
-      render(<Contact />);
+  it("affiche tous les champs du formulaire", () => {
+    render(<Contact />);
+
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Sujet/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Message/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Envoyer le message/i })).toBeInTheDocument();
+  });
+
+  it("envoie le formulaire avec succès et affiche un message de confirmation", async () => {
+    api.post.mockResolvedValue({ status: 200 });
+
+    render(<Contact />);
+
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Sujet/i), {
+      target: { value: "Sujet test" },
+    });
+    fireEvent.change(screen.getByLabelText(/Message/i), {
+      target: { value: "Ceci est un message de test." },
     });
 
-    expect(screen.getByText('Contact Title')).toBeInTheDocument();
-    expect(screen.getByText('Contact Description')).toBeInTheDocument();
-    expect(screen.getByTestId('form-template')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Envoyer le message/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Message envoyé avec succès/i)).toBeInTheDocument()
+    );
+  });
+
+  it("gère une erreur d'envoi et affiche un message d'erreur", async () => {
+    api.post.mockRejectedValue(new Error("Erreur réseau"));
+
+    render(<Contact />);
+
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Sujet/i), {
+      target: { value: "Erreur test" },
+    });
+    fireEvent.change(screen.getByLabelText(/Message/i), {
+      target: { value: "Message qui ne passe pas." },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Envoyer le message/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Erreur lors de l'envoi du message/i)).toBeInTheDocument()
+    );
+  });
+
+  it("réinitialise le formulaire après envoi", async () => {
+    api.post.mockResolvedValue({ status: 200 });
+
+    render(<Contact />);
+
+    const emailInput = screen.getByLabelText(/Email/i);
+    const subjectInput = screen.getByLabelText(/Sujet/i);
+    const messageInput = screen.getByLabelText(/Message/i);
+
+    fireEvent.change(emailInput, { target: { value: "reset@test.com" } });
+    fireEvent.change(subjectInput, { target: { value: "Sujet" } });
+    fireEvent.change(messageInput, { target: { value: "Contenu" } });
+
+    fireEvent.click(screen.getByRole("button", { name: /Envoyer le message/i }));
+
+    await waitFor(() => {
+      expect(emailInput.value).toBe("");
+      expect(subjectInput.value).toBe("");
+      expect(messageInput.value).toBe("");
+    });
   });
 });

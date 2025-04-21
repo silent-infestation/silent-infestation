@@ -1,10 +1,151 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { TypeAnimation } from 'react-type-animation';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from "react";
+import { TypeAnimation } from "react-type-animation";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useAppContext } from "@/app/context/AppContext";
+import api from "@/lib/api";
+import { useAuth } from "@/app/context/AuthProvider";
+
+let progressIntervalId = null;
+let statusIntervalId = null;
 
 export default function Header() {
+  const [showPopup, setShowPopup] = useState(false);
+  const [scanId, setScanId] = useState(null);
+  const [popupStep, setPopupStep] = useState(null);
+  const [selectedUrl, setSelectedUrl] = useState(null);
+  const [showDownload, setShowDownload] = useState(false);
+  const router = useRouter();
+  const { changeActivePage } = useAppContext();
+  const [trustedSites, setTrustedSites] = useState([]);
+  const { user: authUser, _loading } = useAuth();
+
+  const user = {
+    isAuthenticated: true,
+    trustedUrls: ["https://pentest-ground.com:4280"],
+  };
+
+  const [progress, setProgress] = useState(0);
+  const pollingInterval = 3000;
+
+  const startScan = async () => {
+    if (!selectedUrl) return;
+    try {
+      const { data } = await api.post("/scan/start", { startUrl: selectedUrl });
+      if (!data.scanId) throw new Error("Scan ID manquant !");
+      setScanId(data.scanId);
+      setPopupStep("loading");
+      setProgress(0);
+      simulateProgress();
+      pollScanStatus();
+    } catch (err) {
+      console.error("Erreur démarrage scan ➜", err);
+    }
+  };
+
+  const cancelScan = async () => {
+    if (statusIntervalId) {
+      clearInterval(statusIntervalId);
+      statusIntervalId = null;
+    }
+    if (progressIntervalId) {
+      clearInterval(progressIntervalId);
+      progressIntervalId = null;
+    }
+
+    try {
+      await api.post("/scan/terminate", { scanId });
+    } catch (err) {
+      console.error("Erreur terminaison scan ➜", err);
+    }
+
+    // Reset UI
+    setScanId(null);
+    setProgress(0);
+    handleClosePopup();
+  };
+
+  // Simule la progression du scan
+  const simulateProgress = () => {
+    let cur = 0;
+    progressIntervalId = setInterval(() => {
+      cur += 2 + Math.random() * 3;
+      if (cur >= 90) {
+        clearInterval(progressIntervalId);
+        progressIntervalId = null;
+        return;
+      }
+      setProgress(cur);
+    }, 500);
+  };
+  // Vérifie le statut du scan
+  const pollScanStatus = () => {
+    statusIntervalId = setInterval(async () => {
+      try {
+        const { data } = await api.get("/scan/status");
+        if (data.status === "success") {
+          clearInterval(statusIntervalId);
+          statusIntervalId = null;
+          setProgress(100);
+          setTimeout(() => {
+            setShowDownload(true);
+            setPopupStep("done");
+          }, 2500);
+        }
+      } catch (err) {
+        console.error("Erreur polling ➜", err);
+      }
+    }, pollingInterval);
+  };
+
+  console.log("Utilisateur authentifié :", authUser);
+
+  useEffect(() => {
+    // Charger les sites depuis l'API /api/sites
+    fetch("/api/sites", {
+      headers: { Authorization: `Bearer ${authUser?.token}` },
+    })
+      .then((res) => res.json())
+      .then(async (data) => {
+        const sites = Array.isArray(data) ? data : [];
+        setTrustedSites(sites);
+
+        console.log("Sites récupérés :", sites);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération des sites :", error);
+      });
+  }, []);
+
+  const handleScanClick = () => {
+    if (!user.isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (!user.trustedUrls || user.trustedUrls.length === 0) {
+      setPopupStep("no-url");
+    } else {
+      setPopupStep("select");
+    }
+
+    setShowPopup(true);
+  };
+
+  const handleGoToProfile = () => {
+    changeActivePage("profile");
+    setShowPopup(false);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    setPopupStep(undefined);
+    setSelectedUrl(null);
+    setShowDownload(false);
+  };
+
   return (
     <header className="relative flex h-screen items-center justify-center text-center text-[#05829E]">
       <div className="max-w-2xl p-10">
@@ -12,13 +153,13 @@ export default function Header() {
           <span className="block text-[#00202B]">Bienvenue sur</span>
           <TypeAnimation
             sequence={[
-              'notre plateforme sécurisée',
+              "notre plateforme sécurisée",
               2000,
-              'un espace innovant',
+              "un espace innovant",
               2000,
-              'votre outil de confiance',
+              "votre outil de confiance",
               2000,
-              'un service de qualité',
+              "un service de qualité",
               2000,
             ]}
             wrapper="span"
@@ -33,14 +174,13 @@ export default function Header() {
 
         {/* ESPACEMENT POUR LE BOUTON */}
         <div className="relative mt-32 flex items-center justify-center">
-          {/* Vagues animées */}
           {[...Array(3)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full border-2 border-[#05829E]"
               style={{
-                width: '120px',
-                height: '120px',
+                width: "120px",
+                height: "120px",
               }}
               initial={{ opacity: 0.5, scale: 1 }}
               animate={{ opacity: 0, scale: 2.8 }}
@@ -53,8 +193,9 @@ export default function Header() {
             />
           ))}
 
-          {/* Bouton principal avec pulsation du texte */}
+          {/* BOUTON */}
           <motion.button
+            onClick={handleScanClick}
             className="relative rounded-xl bg-[#05829E] px-10 py-4 text-2xl font-semibold text-white shadow-lg"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -62,15 +203,15 @@ export default function Header() {
             transition={{
               duration: 2.5,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: "easeInOut",
             }}
           >
             <motion.span
-              animate={{ opacity: [1, 0.7, 1], scale: [1, 1.05, 1] }} // Effet de pulsation du texte
+              animate={{ opacity: [1, 0.7, 1], scale: [1, 1.05, 1] }}
               transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: 'easeInOut',
+                ease: "easeInOut",
               }}
             >
               Scanner un site
@@ -78,6 +219,126 @@ export default function Header() {
           </motion.button>
         </div>
       </div>
+
+      {/* POPUP CENTRÉE */}
+      {showPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
+            {/* PAS D'URL */}
+            {popupStep === "no-url" && (
+              <>
+                <p className="mb-4 text-gray-800">
+                  Vous n&rsquo;avez pas encore d&rsquo;URL fiable enregistrée.
+                </p>
+                <button
+                  onClick={handleGoToProfile}
+                  className="rounded bg-[#05829E] px-4 py-2 text-white hover:bg-[#046e87]"
+                >
+                  Ajouter une URL dans mon profil
+                </button>
+              </>
+            )}
+
+            {/* SÉLECTION D’URL */}
+            {popupStep === "select" && (
+              <>
+                <p className="mb-4 font-medium text-gray-700">Sélectionnez une URL à scanner :</p>
+                <div className="mb-4 flex flex-col items-start space-y-2">
+                  {trustedSites?.map(
+                    (url) =>
+                      url.state === "verified" && (
+                        <button
+                          key={url.id}
+                          onClick={() => setSelectedUrl(url.url)}
+                          className={`w-full rounded px-4 py-2 text-left transition ${
+                            selectedUrl === url
+                              ? "bg-[#05829E] text-white"
+                              : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                          }`}
+                        >
+                          {url.url}
+                        </button>
+                      )
+                  )}
+                </div>
+                <button
+                  disabled={!selectedUrl}
+                  onClick={startScan}
+                  className={`mt-2 rounded px-4 py-2 text-white ${
+                    selectedUrl
+                      ? "bg-[#05829E] hover:bg-[#046e87]"
+                      : "cursor-not-allowed bg-gray-400"
+                  }`}
+                >
+                  Lancer le scan
+                </button>
+              </>
+            )}
+
+            {/* LOADING */}
+            {popupStep === "loading" && (
+              <>
+                <p className="mb-4 text-gray-800">Analyse de l&rsquo;URL en cours...</p>
+                <div className="h-2 w-full overflow-hidden rounded bg-gray-200">
+                  <motion.div
+                    className="h-full bg-[#05829E]"
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: pollingInterval / 1000 }}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-gray-500">{progress.toFixed(2)}%</p>
+                <button
+                  onClick={cancelScan}
+                  className="hover:bg-red-700 mt-4 w-full rounded bg-red-600 px-4 py-2 font-medium text-white"
+                >
+                  Annuler le scan
+                </button>
+              </>
+            )}
+
+            {/* FIN DU SCAN */}
+            {popupStep === "done" && showDownload && (
+              <>
+                <p className="mb-4 text-gray-800">
+                  Analyse terminée pour : <strong>{selectedUrl}</strong>
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const blob = await api.get(`/downloadReport/${scanId}`, {
+                        responseType: "blob",
+                      });
+                      const url = URL.createObjectURL(blob);
+
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.setAttribute("download", `security-rapport-${scanId}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                      console.error("Erreur téléchargement rapport :", err);
+                      alert("Impossible de télécharger le rapport.");
+                    }
+                  }}
+                  className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                >
+                  Télécharger le rapport
+                </button>
+              </>
+            )}
+
+            {/* Fermer */}
+            <button
+              onClick={handleClosePopup}
+              className="mt-4 block w-full text-sm text-gray-500 hover:underline"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

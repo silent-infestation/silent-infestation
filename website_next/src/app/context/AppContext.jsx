@@ -1,8 +1,13 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
+import api from "@/lib/api";
 
 const AppContext = createContext();
+
+const PUBLIC_PAGES = ["home", "authentification"];
+const DEFAULT_PUBLIC_PAGE = "home";
+const DEFAULT_PRIVATE_PAGE = "profile";
 
 export const AppProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -11,27 +16,32 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/auth/status', { credentials: 'include' });
-        const data = await res.json();
+      const savedPage = sessionStorage.getItem("activePage");
 
-        if (data.authenticated) {
+      try {
+        const res = await api.get("/auth/status");
+
+        if (res.ok && res.data.authenticated) {
           setIsAuthenticated(true);
 
-          const savedPage = sessionStorage.getItem('activePage');
-          if (savedPage) {
-            changeActivePage(savedPage);
-          } else {
-            changeActivePage('profile');
-          }
+          const targetPage = savedPage || DEFAULT_PRIVATE_PAGE;
+          changeActivePage(targetPage);
         } else {
           setIsAuthenticated(false);
-          changeActivePage('home');
+
+          const targetPage =
+            savedPage && PUBLIC_PAGES.includes(savedPage) ? savedPage : DEFAULT_PUBLIC_PAGE;
+
+          changeActivePage(targetPage);
         }
       } catch (error) {
         console.error("Erreur de vérification d'auth:", error);
         setIsAuthenticated(false);
-        changeActivePage('home');
+
+        const targetPage =
+          savedPage && PUBLIC_PAGES.includes(savedPage) ? savedPage : DEFAULT_PUBLIC_PAGE;
+
+        changeActivePage(targetPage);
       } finally {
         setLoading(false);
       }
@@ -42,27 +52,27 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     if (!loading && isAuthenticated !== null && activePage !== null) {
-      sessionStorage.setItem('activePage', activePage);
+      sessionStorage.setItem("activePage", activePage);
     }
   }, [activePage, isAuthenticated, loading]);
 
   const login = () => {
     setIsAuthenticated(true);
-    changeActivePage('profile'); // Rediriger après connexion
+    changeActivePage(DEFAULT_PRIVATE_PAGE);
   };
 
   const logout = async () => {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
     });
     setIsAuthenticated(false);
-    changeActivePage('home');
+    changeActivePage(DEFAULT_PUBLIC_PAGE);
   };
 
   const changeActivePage = (page) => {
     setActivePage(page);
-    sessionStorage.setItem('activePage', page);
+    sessionStorage.setItem("activePage", page);
     window.scrollTo(0, 0);
   };
 
@@ -70,7 +80,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider
       value={{ isAuthenticated, activePage, changeActivePage, login, logout, loading }}
     >
-      {!loading && children} {/* Empêcher le rendu tant que l'auth n'est pas vérifiée */}
+      {!loading && children}
     </AppContext.Provider>
   );
 };

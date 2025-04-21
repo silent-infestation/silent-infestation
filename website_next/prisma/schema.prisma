@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -14,6 +14,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ========================================
+//                 MODELS
+// ========================================
+
+// ----------- User -----------
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -23,16 +28,85 @@ model User {
   surname   String
   age       Int?
   society   String
-  scanID    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  sites    Site[]
+  scans    Scan[]
+  analyses Analyse[]
 }
 
+// ----------- Site -----------
 model Site {
-  id          Int     @id @default(autoincrement())
-  id_user     Int
-  url_site    String  @unique
-  auth_key    String  @unique
-  auth_url    String  @unique
-  auth_email  String
+  id          Int      @id @default(autoincrement())
+  url         String
+  userId      Int
+  securityKey String? 
+  urlPath     String?
+  state       String?  @default("unverified")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, url])
+}
+
+model Scan {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  url       String
+  scannedAt DateTime @default(now())
+  status    String
+  isRunning Boolean  @default(false)
+
+  user       User        @relation(fields: [userId], references: [id])
+  analyse    Analyse?
+  scanResult ScanResult?
+
+  @@index([userId])
+}
+
+model Analyse {
+  id           Int      @id @default(autoincrement())
+  scanId       Int      @unique
+  userId       Int
+  date_analyse DateTime @default(now())
+  resultats    String
+
+  scan Scan @relation(fields: [scanId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model ScanResult {
+  id            Int  @id @default(autoincrement())
+  scanId        Int  @unique
+  totalFindings Int
+  scan          Scan @relation(fields: [scanId], references: [id])
+
+  crawledUrls CrawledUrl[]
+  findings    SecurityFinding[]
+}
+
+model CrawledUrl {
+  id           Int    @id @default(autoincrement())
+  scanResultId Int
+  url          String
+
+  scanResult ScanResult @relation(fields: [scanResultId], references: [id])
+}
+
+model SecurityFinding {
+  id           Int    @id @default(autoincrement())
+  scanResultId Int
+  type         String
+  url          String
+  detail       String
+  confidence   String
+  severity     String
+
+  scanResult ScanResult @relation(fields: [scanResultId], references: [id])
 }

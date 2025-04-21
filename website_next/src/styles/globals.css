@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '@fontsource/poppins';
+@import "@fontsource/poppins";
 
 /* Custom styles */
 
@@ -13,7 +13,7 @@
   --box-shadow-hover: 0 4px 4px rgba(0, 0, 0, 0.5);
   --box-shadow-active: 0 2px 2px rgb(0, 0, 0, 0.5);
   --background-element: #f8f2e2;
-  --font-family-elements: 'Poppins', sans-serif;
+  --font-family-elements: "Poppins", sans-serif;
   --border-focus: 1px solid rgba(68, 68, 68, 0.5);
   --border-element: 1px solid #ccc;
   --font-geist-mono: monospace;
