@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { CheckCircle, AlertTriangle, XCircle, Search, Download } from "lucide-react";
-import jsPDF from "jspdf";
 import api from "@/lib/api";
 
 export default function Historique() {
@@ -50,42 +49,6 @@ export default function Historique() {
   const filteredScans = scans.filter((scan) =>
     scan.url.toLowerCase().includes(search.toLowerCase())
   );
-
-  const generatePDF = (scan) => {
-    const doc = new jsPDF();
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("Rapport de Sécurité", 20, 20);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(14);
-    doc.text(`Site analysé : ${scan.url}`, 20, 40);
-    doc.text(`Date du test : ${new Date(scan.scannedAt).toLocaleDateString("fr-FR")}`, 20, 50);
-
-    let statusText = "";
-    let statusColor = "";
-
-    switch (scan.status) {
-      case "safe":
-        statusText = "Aucune vulnérabilité détectée ✅";
-        statusColor = "green";
-        break;
-      case "warning":
-        statusText = "Quelques failles modérées ⚠️";
-        statusColor = "orange";
-        break;
-      case "danger":
-        statusText = "Failles critiques détectées ❌";
-        statusColor = "red";
-        break;
-    }
-
-    doc.setTextColor(statusColor);
-    doc.text(`Statut : ${statusText}`, 20, 60);
-    doc.setTextColor("black");
-
-    doc.save(`Rapport_${scan.url}.pdf`);
-  };
 
   const formatScanDate = (isoDate) => {
     const date = new Date(isoDate);

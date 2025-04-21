@@ -1,4 +1,3 @@
-import * as securityChecks from "../../../../../../scripts/audit/modules/securityChecks";
 import {
   isPotentiallySuccessfulLogin,
   detectCaptcha,

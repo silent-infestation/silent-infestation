@@ -7,9 +7,6 @@ jest.mock("axios");
 jest.mock("../../../../../scripts/audit/modules/securityChecks");
 jest.mock("../../../../../scripts/audit/modules/authChecks");
 
-// Utility to access private functions safely
-const getPrivate = (fn) => formChecks.__get__?.(fn);
-
 describe("formChecks", () => {
   const mockNoteFinding = jest.fn();
   const baseUrl = "http://example.com";
