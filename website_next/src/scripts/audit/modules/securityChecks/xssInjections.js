@@ -1,4 +1,14 @@
 import * as cheerio from 'cheerio';
+import fs from 'fs';
+import path from 'path';
+
+export function getPayloadsFromFile() {
+  //fix the path to the payloads file
+  const filePath = path.join(process.cwd(), 'website_next/src/scripts/audit/utils', 'xss-payloads-list.txt');
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  const payloads = fileContent.split('\n').filter((line) => line.trim() !== '');
+  return payloads;
+}
 
 /**
  * Detects reflected XSS payloads in raw response HTML where the payload is echoed back.
@@ -7,13 +17,15 @@ import * as cheerio from 'cheerio';
  * @returns {object|null} detection result with echoed payload info or null
  */
 export function detectReflectedXSSResponses($) {
-  const xssInjectionPayloads = [
-    '<script>alert("XSS")</script>',
-    '<img src="x" onerror="alert(1)">',
-    '<svg onload="alert(1)">',
-    '<iframe src="javascript:alert(1)"></iframe>',
-    '<a href="javascript:alert(1)">Click me</a>',
-  ];
+  console.info('Detecting reflected XSS payloads in response...');
+  const xssInjectionPayloads = getPayloadsFromFile();
+  // Uncomment the following lines to use hardcoded payloads instead of file-based ones
+  // const xssInjectionPayloads = [
+  //   '<script>alert("XSS")</script>',
+  //   '<img src="x" onerror="alert(1)">',
+  //   '<svg onload="alert(1)">',
+  //   '<iframe src="javascript:alert(1)"></iframe>',
+  //   '<a href="javascript:alert(1)">Click me</a>',
 
   const foundElements = [];
 
@@ -27,6 +39,7 @@ export function detectReflectedXSSResponses($) {
     );
 
     if (containsPayload) {
+      console.info(`Found reflected XSS payload in element: ${$(el).get(0).tagName}`);
       foundElements.push({
         element: $(el).get(0).tagName,
         text: rawText,
@@ -51,6 +64,7 @@ export function detectReflectedXSSResponses($) {
  * @returns {object|null} detection result with echoed payload info or null
  */
 export function detectStoredXSSResponses($) {
+  console.info('Detecting stored XSS payloads in response...');
   const storedPayload = '<script>alert("XSS")</script>';
 
   const foundElements = [];
@@ -61,6 +75,7 @@ export function detectStoredXSSResponses($) {
     if (!rawText) return;
 
     if (rawText.includes(storedPayload)) {
+      console.info(`Found stored XSS payload in element: ${$(el).get(0).tagName}`);
       foundElements.push({
         element: $(el).get(0).tagName,
         text: rawText,

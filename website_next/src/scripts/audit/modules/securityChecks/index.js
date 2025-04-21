@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { detectSQLInjectionResponses, detectTestingStringResponses } from "./sqlInjections";
-import { detectReflectedXSSResponses, detectStoredXSSResponses } from "./xssInjections"; // Import des fonctions XSS
+import { detectReflectedXSSResponses, detectStoredXSSResponses, getPayloadsFromFile } from "./xssInjections";
 import { checkCookiesForSecurityFlags } from "../authChecks";
 
 const INJECTION_MARKER = "57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING";
@@ -9,9 +9,7 @@ const SQLI_PAYLOADS = [
   `' UNION SELECT '${INJECTION_MARKER}', NULL -- `,
   `' OR '${INJECTION_MARKER}' = '${INJECTION_MARKER}' -- `,
 ];
-const XSS_PAYLOADS = [
-  '<script>alert("XSS")</script>',
-];
+const XSS_PAYLOADS = getPayloadsFromFile();
 const PARAM_TAMPERING_PAYLOADS = ["9999", "1 OR 1=1", "<script>alert('x')</script>"];
 const USER_LIST = ["root", "admin"];
 const PASSWORD_LIST = ["123456", "password", "12345678"];
