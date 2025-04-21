@@ -1,0 +1,230 @@
+openapi: 3.0.3
+info:
+  title: Web Security API
+  description: API pour la gestion des utilisateurs, authentification, scan de sites web, mail, etc.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Développement local
+
+paths:
+  /auth/login:
+    post:
+      summary: Connexion utilisateur
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Connexion réussie
+        '401':
+          description: Identifiants invalides
+
+  /auth/logout:
+    post:
+      summary: Déconnexion utilisateur
+      tags: [Auth]
+      responses:
+        '200':
+          description: Déconnexion réussie
+
+  /auth/register:
+    post:
+      summary: Inscription utilisateur
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Utilisateur créé
+        '400':
+          description: Erreur d'inscription
+
+  /auth/status:
+    get:
+      summary: Vérifie si l'utilisateur est connecté
+      tags: [Auth]
+      responses:
+        '200':
+          description: Utilisateur connecté
+        '401':
+          description: Non authentifié
+
+  /user/me:
+    get:
+      summary: Récupère les infos de l'utilisateur actuel
+      tags: [User]
+      responses:
+        '200':
+          description: Infos utilisateur
+
+    put:
+      summary: Met à jour les infos de l'utilisateur actuel
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Infos mises à jour
+
+
+  /user/{id}:
+    get:
+      summary: Récupère les infos d'un utilisateur spécifique
+      tags: [User]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Utilisateur trouvé
+
+  /scan:
+    post:
+      summary: Lance un scan
+      tags: [Scan]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                url:
+                  type: string
+      responses:
+        '200':
+          description: Scan lancé
+
+  /scan/start:
+    post:
+      summary: Démarre un scan manuellement
+      tags: [Scan]
+      responses:
+        '200':
+          description: Scan démarré
+
+  /scan/status:
+    get:
+      summary: Statut du scan
+      tags: [Scan]
+      responses:
+        '200':
+          description: Statut actuel du scan
+
+  /scan/terminate:
+    post:
+      summary: Termine un scan
+      tags: [Scan]
+      responses:
+        '200':
+          description: Scan terminé
+
+  /scan/{id}:
+    get:
+      summary: Résultat de scan spécifique
+      tags: [Scan]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultat du scan
+
+  /sites:
+    get:
+      summary: Liste les sites scannés
+      tags: [Sites]
+      responses:
+        '200':
+          description: Liste des sites
+
+  /sites/verify:
+    post:
+      summary: Vérifie qu'un site peut être scanné
+      tags: [Sites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                url:
+                  type: string
+      responses:
+        '200':
+          description: Site vérifié
+
+  /mailer:
+    post:
+      summary: Envoie un mail
+      tags: [Mailer]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                to:
+                  type: string
+                subject:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Mail envoyé
+
+  /downloadReport/{id}:
+    get:
+      summary: Télécharge un rapport de scan
+      tags: [Report]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Fichier téléchargé
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []

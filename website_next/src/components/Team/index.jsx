@@ -7,71 +7,70 @@ import "aos/dist/aos.css"; // Importer le style AOS
 import { FaStar } from "react-icons/fa"; // Import d'une icône pour le rôle
 
 const teamMembers = [
-    {
-      name: "Thibaut Jager",
-      role: "Développeur Back-End & Expert Docker",
-      image: "/images/team/tibau.webp",
-      description:
-        "Spécialiste back-end et Docker, Thibaut développe des scripts robustes et optimise les environnements d'exécution.",
-    },
-    {
-      name: "Antoine Beaudoux",
-      role: "Développeur Full-Stack",
-      image: "/images/team/antoine.webp",
-      description:
-        "Antoine intervient sur le front et le back avec une attention particulière aux enjeux de sécurité applicative.",
-    },
-    {
-      name: "Hugo Kerivel Larrivière",
-      role: "Développeur Back-End & Automation & Scripting",
-      image: "/images/team/hugo.webp",
-      description:
-        "Hugo conçoit des scripts performants côté serveur pour automatiser les audits et les tests de sécurité.",
-    },
-    {
-      name: "Lucas Laruelle",
-      role: "Développeur Back-End & Pentest Script",
-      image: "/images/team/lucas.webp",
-      description:
-        "Lucas développe des outils d’analyse de vulnérabilités et participe à l’automatisation des tests d’intrusion.",
-    },
-    {
-      name: "Nicolas Corlan",
-      role: "Développeur Back-End & Scripting Sécurité",
-      image: "/images/team/nico.webp",
-      description:
-        "Nicolas crée des scripts de détection et contribue au développement back-end des outils d’audit.",
-    },
-    {
-      name: "Edmond Loembe",
-      role: "Développeur Full-Stack",
-      image: "/images/team/edmond.webp",
-      description:
-        "Edmond gère le développement front et back, en assurant la fluidité et la sécurité des interfaces web.",
-    },
-    {
-      name: "Morgan FRARY",
-      role: "Chef de Projet Cybersécurité",
-      image: "/images/team/morgan.webp",
-      description:
-        "Morgan coordonne les projets d’audit de sécurité, de la planification à la livraison des rapports techniques.",
-    },
-    {
-      name: "Hajer Braham",
-      role: "Développeuse Back-End",
-      image: "/images/team/hajer.webp",
-      description:
-        "Hajer développe des modules back-end pour l’analyse de sécurité et participe à l’intégration des résultats d’audit.",
-    },
-    {
-      name: "Sarah Delahaye",
-      role: "Développeuse Back-End & Docker",
-      image: "/images/team/sarah.webp",
-      description:
-        "Sarah gère le back-end et les environnements Docker pour garantir des déploiements sécurisés et reproductibles.",
-    },
-  ];
-
+  {
+    name: "Thibaut Jager",
+    role: "Développeur Back-End & Expert Docker",
+    image: "/images/team/tibau.webp",
+    description:
+      "Spécialiste back-end et Docker, Thibaut développe des scripts robustes et optimise les environnements d'exécution.",
+  },
+  {
+    name: "Antoine Beaudoux",
+    role: "Développeur Full-Stack",
+    image: "/images/team/antoine.webp",
+    description:
+      "Antoine intervient sur le front et le back avec une attention particulière aux enjeux de sécurité applicative.",
+  },
+  {
+    name: "Hugo Kerivel Larrivière",
+    role: "Développeur Back-End & Automation & Scripting",
+    image: "/images/team/hugo.webp",
+    description:
+      "Hugo conçoit des scripts performants côté serveur pour automatiser les audits et les tests de sécurité.",
+  },
+  {
+    name: "Lucas Laruelle",
+    role: "Développeur Back-End & Pentest Script",
+    image: "/images/team/lucas.webp",
+    description:
+      "Lucas développe des outils d’analyse de vulnérabilités et participe à l’automatisation des tests d’intrusion.",
+  },
+  {
+    name: "Nicolas Corlan",
+    role: "Développeur Back-End & Scripting Sécurité",
+    image: "/images/team/nico.webp",
+    description:
+      "Nicolas crée des scripts de détection et contribue au développement back-end des outils d’audit.",
+  },
+  {
+    name: "Edmond Loembe",
+    role: "Développeur Full-Stack",
+    image: "/images/team/edmond.webp",
+    description:
+      "Edmond gère le développement front et back, en assurant la fluidité et la sécurité des interfaces web.",
+  },
+  {
+    name: "Morgan FRARY",
+    role: "Chef de Projet Cybersécurité",
+    image: "/images/team/morgan.webp",
+    description:
+      "Morgan coordonne les projets d’audit de sécurité, de la planification à la livraison des rapports techniques.",
+  },
+  {
+    name: "Hajer Braham",
+    role: "Développeuse Back-End",
+    image: "/images/team/hajer.webp",
+    description:
+      "Hajer développe des modules back-end pour l’analyse de sécurité et participe à l’intégration des résultats d’audit.",
+  },
+  {
+    name: "Sarah Delahaye",
+    role: "Développeuse Back-End & Docker",
+    image: "/images/team/sarah.webp",
+    description:
+      "Sarah gère le back-end et les environnements Docker pour garantir des déploiements sécurisés et reproductibles.",
+  },
+];
 
 export default function Team() {
   // Initi import Team from '../Team'alisation d'AOS après le premier rendu du composant

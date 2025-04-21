@@ -75,7 +75,7 @@ describe("findUploadedFile", () => {
 
   test("should return URL if file found during crawl", async () => {
     let callCount = 0;
-    axios.get.mockImplementation((url) => {
+    axios.get.mockImplementation((_url) => {
       callCount++;
       if (callCount === 1) return Promise.reject(new Error("fail"));
       return Promise.resolve({ status: 200, data: "malicious.php" });
