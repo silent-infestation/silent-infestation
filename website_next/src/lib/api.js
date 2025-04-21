@@ -3,20 +3,26 @@ class Api {
     this.baseURL = baseURL;
   }
 
-  async request(url, method, data) {
+  async request(url, method, data, customOptions = {}) {
     const options = {
       method,
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
+      ...customOptions,
     };
 
-    if (data) {
+    if (data && method !== "GET") {
       options.body = JSON.stringify(data);
     }
 
     const response = await fetch(`${this.baseURL}${url}`, options);
+
+    if (customOptions.responseType === "blob") {
+      return response.blob();
+    }
+
     const json = await response.json().catch(() => ({}));
 
     return {
@@ -26,8 +32,8 @@ class Api {
     };
   }
 
-  get(url) {
-    return this.request(url, "GET");
+  get(url, options = {}) {
+    return this.request(url, "GET", undefined, options);
   }
 
   post(url, data) {
@@ -43,7 +49,5 @@ class Api {
   }
 }
 
-// Création d'une instance unique de l'API
-const api = new Api("http://0.0.0.0:23000/api");
-
+const api = new Api("http://localhost:3000/api");
 export default api;

@@ -1,24 +1,123 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/app/context/AppContext";
+import api from "@/lib/api";
+import { useAuth } from "@/app/context/AuthProvider";
+
+let progressIntervalId = null;
+let statusIntervalId = null;
 
 export default function Header() {
   const [showPopup, setShowPopup] = useState(false);
+  const [scanId, setScanId] = useState(null);
   const [popupStep, setPopupStep] = useState(null);
   const [selectedUrl, setSelectedUrl] = useState(null);
   const [showDownload, setShowDownload] = useState(false);
   const router = useRouter();
   const { changeActivePage } = useAppContext();
+  const [trustedSites, setTrustedSites] = useState([]);
+  const { user: authUser, _loading } = useAuth();
 
-  // Simule les données utilisateur
   const user = {
     isAuthenticated: true,
-    trustedUrls: ["https://monsite.com", "https://exemple.fr"], // peut être []
+    trustedUrls: ["https://pentest-ground.com:4280"],
   };
+
+  const [progress, setProgress] = useState(0);
+  const pollingInterval = 3000;
+
+  const startScan = async () => {
+    if (!selectedUrl) return;
+    try {
+      const { data } = await api.post("/scan/start", { startUrl: selectedUrl });
+      if (!data.scanId) throw new Error("Scan ID manquant !");
+      setScanId(data.scanId);
+      setPopupStep("loading");
+      setProgress(0);
+      simulateProgress();
+      pollScanStatus();
+    } catch (err) {
+      console.error("Erreur démarrage scan ➜", err);
+    }
+  };
+
+  const cancelScan = async () => {
+    if (statusIntervalId) {
+      clearInterval(statusIntervalId);
+      statusIntervalId = null;
+    }
+    if (progressIntervalId) {
+      clearInterval(progressIntervalId);
+      progressIntervalId = null;
+    }
+
+    try {
+      await api.post("/scan/terminate", { scanId });
+    } catch (err) {
+      console.error("Erreur terminaison scan ➜", err);
+    }
+
+    // Reset UI
+    setScanId(null);
+    setProgress(0);
+    handleClosePopup();
+  };
+
+  // Simule la progression du scan
+  const simulateProgress = () => {
+    let cur = 0;
+    progressIntervalId = setInterval(() => {
+      cur += 2 + Math.random() * 3;
+      if (cur >= 90) {
+        clearInterval(progressIntervalId);
+        progressIntervalId = null;
+        return;
+      }
+      setProgress(cur);
+    }, 500);
+  };
+  // Vérifie le statut du scan
+  const pollScanStatus = () => {
+    statusIntervalId = setInterval(async () => {
+      try {
+        const { data } = await api.get("/scan/status");
+        if (data.status === "success") {
+          clearInterval(statusIntervalId);
+          statusIntervalId = null;
+          setProgress(100);
+          setTimeout(() => {
+            setShowDownload(true);
+            setPopupStep("done");
+          }, 2500);
+        }
+      } catch (err) {
+        console.error("Erreur polling ➜", err);
+      }
+    }, pollingInterval);
+  };
+
+  console.log("Utilisateur authentifié :", authUser);
+
+  useEffect(() => {
+    // Charger les sites depuis l'API /api/sites
+    fetch("/api/sites", {
+      headers: { Authorization: `Bearer ${authUser?.token}` },
+    })
+      .then((res) => res.json())
+      .then(async (data) => {
+        const sites = Array.isArray(data) ? data : [];
+        setTrustedSites(sites);
+
+        console.log("Sites récupérés :", sites);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération des sites :", error);
+      });
+  }, []);
 
   const handleScanClick = () => {
     if (!user.isAuthenticated) {
@@ -33,18 +132,6 @@ export default function Header() {
     }
 
     setShowPopup(true);
-  };
-
-  const startScan = () => {
-    if (!selectedUrl) return;
-
-    setPopupStep("loading");
-    setShowDownload(false);
-
-    setTimeout(() => {
-      setPopupStep("done");
-      setShowDownload(true);
-    }, 3000);
   };
 
   const handleGoToProfile = () => {
@@ -157,19 +244,22 @@ export default function Header() {
               <>
                 <p className="mb-4 font-medium text-gray-700">Sélectionnez une URL à scanner :</p>
                 <div className="mb-4 flex flex-col items-start space-y-2">
-                  {user.trustedUrls.map((url) => (
-                    <button
-                      key={url}
-                      onClick={() => setSelectedUrl(url)}
-                      className={`w-full rounded px-4 py-2 text-left transition ${
-                        selectedUrl === url
-                          ? "bg-[#05829E] text-white"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      {url}
-                    </button>
-                  ))}
+                  {trustedSites?.map(
+                    (url) =>
+                      url.state === "verified" && (
+                        <button
+                          key={url.id}
+                          onClick={() => setSelectedUrl(url.url)}
+                          className={`w-full rounded px-4 py-2 text-left transition ${
+                            selectedUrl === url
+                              ? "bg-[#05829E] text-white"
+                              : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                          }`}
+                        >
+                          {url.url}
+                        </button>
+                      )
+                  )}
                 </div>
                 <button
                   disabled={!selectedUrl}
@@ -192,11 +282,17 @@ export default function Header() {
                 <div className="h-2 w-full overflow-hidden rounded bg-gray-200">
                   <motion.div
                     className="h-full bg-[#05829E]"
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 3 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: pollingInterval / 1000 }}
                   />
                 </div>
+                <p className="mt-2 text-sm text-gray-500">{progress.toFixed(2)}%</p>
+                <button
+                  onClick={cancelScan}
+                  className="hover:bg-red-700 mt-4 w-full rounded bg-red-600 px-4 py-2 font-medium text-white"
+                >
+                  Annuler le scan
+                </button>
               </>
             )}
 
@@ -207,7 +303,25 @@ export default function Header() {
                   Analyse terminée pour : <strong>{selectedUrl}</strong>
                 </p>
                 <button
-                  onClick={() => alert("Téléchargement du rapport...")}
+                  onClick={async () => {
+                    try {
+                      const blob = await api.get(`/downloadReport/${scanId}`, {
+                        responseType: "blob",
+                      });
+                      const url = URL.createObjectURL(blob);
+
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.setAttribute("download", `security-rapport-${scanId}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                      console.error("Erreur téléchargement rapport :", err);
+                      alert("Impossible de télécharger le rapport.");
+                    }
+                  }}
                   className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                 >
                   Télécharger le rapport

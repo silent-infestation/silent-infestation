@@ -39,6 +39,7 @@ export default function Profile() {
       .then((res) => res.json())
       .then(async (data) => {
         setTrustedSites(data);
+        console.log("Sites récupérés :", data);
 
         // Relancer la vérification pour les sites non vérifiés
         for (const site of data) {
@@ -49,6 +50,13 @@ export default function Profile() {
                 { siteId: site.id },
                 { headers: { Authorization: `Bearer ${authUser.token}` } }
               );
+              if ((res.status === 200 || res.ok) && res.data.verified) {
+                setAlert({
+                  isShowingAlert: true,
+                  isAlertErrorMessage: false,
+                  alertTitle: `Vérification réussie pour ${site.url}`,
+                });
+              }
               console.log(`Relance vérification pour ${site.url_site}`);
             } catch (err) {
               console.error("Erreur de relance vérification :", err);
@@ -76,24 +84,6 @@ export default function Profile() {
       });
     }
   }, [authUser]);
-
-  // useEffect(() => {
-  // Charger les URLs fiables depuis l'API (si disponible)
-  // fetch("/api/trusted-urls")
-  //   .then(async (res) => {
-  //     if (!res.ok) {
-  //       const text = await res.text();
-  //       throw new Error(`Erreur API trusted-urls: ${text}`);
-  //     }
-  //     return res.json();
-  //   })
-  //   .then((data) => {
-  //     setTrustedUrls(data.urls || []);
-  //   })
-  //   .catch((err) => {
-  //     console.error("Erreur lors du chargement des URLs fiables :", err);
-  //   });
-  // }, []);
 
   const handleEditChange = (e) => {
     setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
@@ -154,6 +144,7 @@ export default function Profile() {
           isAlertErrorMessage: false,
           alertTitle: "Compte supprimé avec succès.",
         });
+
       } else {
         setAlert({
           isShowingAlert: true,
@@ -180,7 +171,6 @@ export default function Profile() {
       return false;
     }
   };
-
   const handleAddUrl = async () => {
     if (!newUrl.trim()) {
       setAlert({
@@ -203,14 +193,26 @@ export default function Profile() {
     try {
       const siteRes = await api.post(
         "/sites",
-        { url_site: newUrl, userId: authUser.id },
+        { url: newUrl, userId: authUser.id },
         { headers: { Authorization: `Bearer ${authUser.token}` } }
       );
-
+      
       if (siteRes.status === 200 || siteRes.ok) {
         const site = siteRes.data;
         setTrustedSites((prev) => [...prev, site]);
-
+        if (siteRes.status === 200) {
+          setAlert({
+            isShowingAlert: true,
+            isAlertErrorMessage: false,
+            alertTitle: "URL ajoutée avec succès.",
+          });
+        } else {
+          setAlert({
+            isShowingAlert: true,
+            isAlertErrorMessage: true,
+            alertTitle: siteRes.message || "Erreur lors de l'ajout de l'URL.",
+          });
+        }
         const res = await api.post(
           "/mailer",
           {
@@ -223,20 +225,23 @@ export default function Profile() {
             headers: { Authorization: `Bearer ${authUser.token}` },
           }
         );
-
-        if (!(res.status === 200 || res.ok)) {
+        setTimeout(() => {
+          if (res.status === 200 || res.ok) {
+            setAlert({
+              isShowingAlert: true,
+              isAlertErrorMessage: false,
+              alertTitle: res.message || "Email de sécurité envoyé.",
+            });
+          }
+        }, 500);
+      } else {
+        setTimeout(() => {
           setAlert({
             isShowingAlert: true,
             isAlertErrorMessage: true,
-            alertTitle: res.message || "Erreur lors de l'envoi du mail.",
+            alertTitle: siteRes.message || "Erreur lors de l'ajout de l'URL.",
           });
-        }
-      } else {
-        setAlert({
-          isShowingAlert: true,
-          isAlertErrorMessage: true,
-          alertTitle: siteRes.message || "Erreur lors de l'ajout de l'URL.",
-        });
+        }, 500);
       }
     } catch (err) {
       console.error("Erreur ajout URL :", err);
@@ -248,12 +253,16 @@ export default function Profile() {
     }
   };
 
-  const handleDeleteUrl = async (urlToDelete) => {
-    console.log("Suppression de l'URL :", urlToDelete);
+
+  const handleDeleteUrl = async (siteIdToDelete) => {
+    console.log("Suppression du site avec ID :", siteIdToDelete);
     try {
-      const res = await api.del(`/sites?siteId=${urlToDelete}`);
+      const res = await api.del(`/sites?siteId=${siteIdToDelete}`);
       if (res.status === 200 || res.ok) {
-        setTrustedUrls((prev) => prev.filter((url) => url !== urlToDelete));
+        // Mise à jour du state pour supprimer le site localement
+        setTrustedSites((prev) =>
+          prev.filter((site) => site.id !== siteIdToDelete)
+        );
         setAlert({
           isShowingAlert: true,
           isAlertErrorMessage: false,
@@ -381,13 +390,13 @@ export default function Profile() {
             </button>
           </div>
 
-          {trustedSites.map((site) => (
+          {trustedSites?.map((site) => (
             <div
               key={site.id}
               className="flex items-center justify-between rounded-md border bg-gray-50 px-4 py-2"
             >
               <div className="flex items-center gap-2">
-                {site.state === "unverified" && (
+                {site.state !== "verified" && (
                   <svg
                     className="h-4 w-4 animate-spin text-gray-500"
                     xmlns="http://www.w3.org/2000/svg"
@@ -409,7 +418,7 @@ export default function Profile() {
                     ></path>
                   </svg>
                 )}
-                <span className="break-all text-sm text-[#00202B]">{site.url_site}</span>
+                <span className="break-all text-sm text-[#00202B]">{site.url}</span>
               </div>
               <button
                 onClick={() => handleDeleteUrl(site.id)}

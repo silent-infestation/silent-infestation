@@ -22,7 +22,7 @@ export const transporter = nodemailer.createTransport({
  * @property {string} urlPath - Chemin URL unique de 24 caractères
  */
 export function generateSecurityCredentials() {
-  const securityKey = crypto.randomBytes(16).toString("hex"); // Génère 16 octets -> 32 caractères hex
+  const securityKey = crypto.randomBytes(128).toString("hex"); // Génère 16 octets -> 32 caractères hex
   const urlPath = crypto.randomBytes(12).toString("hex"); // Génère 12 octets -> 24 caractères hex
   return { securityKey, urlPath };
 }
@@ -34,7 +34,7 @@ export function generateSecurityCredentials() {
  * @param {string} urlPath - Chemin URL généré
  * @returns {string} Contenu HTML formaté de l'email
  */
-export function createSecurityEmailContent(securityKey, urlPath) {
+export function createSecurityEmailContent(securityKey, urlPath, url) {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       
@@ -42,7 +42,7 @@ export function createSecurityEmailContent(securityKey, urlPath) {
         <h3 style="color: #0066cc; margin-top: 0;">Instructions de sécurité</h3>
         <p>Afin d'assurer que vous êtes bien le propriétaire du site que vous voulez auditer, suivez ces étapes :</p>
         <ol>
-          <li>Créez cette page : <strong>http://votresite.com/${urlPath}</strong></li>
+          <li>Créez cette page : <strong>${url}/${urlPath}</strong></li>
           <li>Ajoutez-y cette clé de sécurité : <strong>${securityKey}</strong></li>
         </ol>
       </div>
