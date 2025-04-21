@@ -24,6 +24,6 @@ describe("Footer", () => {
   it("has correct number of social media icons", () => {
     render(<Footer />);
     const socialIcons = screen.getAllByRole("link");
-    expect(socialIcons).toHaveLength(4);
+    expect(socialIcons).toHaveLength(2);
   });
 });

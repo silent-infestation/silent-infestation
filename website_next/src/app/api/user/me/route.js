@@ -8,6 +8,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 export async function GET(req) {
   const token = parse(req.headers.get("cookie") || "").token;
 
+  if (!token) {
+    return NextResponse.json({ error: "No token provided" }, { status: 401 });
+  }
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
