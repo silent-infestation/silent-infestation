@@ -6,20 +6,10 @@ import { parse } from "cookie";
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 
 export async function GET(req) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const cookies = parse(cookieHeader);
-  const token = cookies.token;
-
-  if (!token) {
-    return NextResponse.json({ error: "No token provided" }, { status: 401 });
-  }
+  const token = parse(req.headers.get("cookie") || "").token;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-
-    if (!decoded.id) {
-      return NextResponse.json({ error: "Invalid token payload" }, { status: 401 });
-    }
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },

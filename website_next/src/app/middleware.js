@@ -1,11 +1,25 @@
-// middleware.js
 import { NextResponse } from "next/server";
 
+const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
+
 export function middleware(req) {
-  const token = req.cookies.get("token");
+  // Vérifie si le token JWT est présent dans les cookies
+  const cookieHeader = req.headers.get("cookie") || "";
+  const cookies = parse(cookieHeader);
+  const token = cookies.token;
 
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Vérifie si le token est valide
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!decoded.id) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
   return NextResponse.next();
@@ -14,10 +28,10 @@ export function middleware(req) {
 // Appliquer seulement aux routes API que tu veux sécuriser
 export const config = {
   matcher: [
-    "/api/download/:path*",
+    "/api/downloadReport/:path*",
     "/api/scan/:path*",
     "/api/sites/:path*",
     "/api/user/:path*",
-    "/api/uploadTest/:path*",
+    "/api/auth/status",
   ],
 };
