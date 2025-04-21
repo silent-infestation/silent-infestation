@@ -31,7 +31,7 @@ const tipsMap = {
   },
   profile: {
     title: "Votre profil",
-    text: "Mettez à jour vos informations personnelles ici.",
+    text: "Mettez à jour vos informations personnelles ici ainsi que vos sites à auditer.",
     imageSrc:
       "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnNiM2NhM3l4em5jOWFycGZqbWl0bXZ2bGh6N2t2Z2k4bzN4NXNxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3odxflN8NqzeSIRyvb/giphy.gif",
   },
