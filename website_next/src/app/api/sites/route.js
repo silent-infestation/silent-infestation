@@ -1,5 +1,3 @@
-// src/app/api/sites/route.js (Next.js App Router compatible)
-
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
@@ -62,7 +60,7 @@ export async function POST(request) {
 
     const newSite = await prisma.site.create({
       data: {
-        url: url_site,
+        url: url,
         userId: parseInt(userId),
         state: "pending",
       },
@@ -126,7 +124,7 @@ export async function DELETE(request) {
     }
 
     const existingSite = await prisma.site.findFirst({
-      where: { id: parseInt(siteId), id: parseInt(siteId) },
+      where: { id: parseInt(siteId) },
     });
 
     if (!existingSite) {

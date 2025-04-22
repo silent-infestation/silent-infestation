@@ -1,3 +1,6 @@
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+
 export async function GET(context) {
   const { id } = await context.params;
   const scanId = parseInt(id);
@@ -24,7 +27,7 @@ export async function GET(context) {
     }
 
     return NextResponse.json(scan);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to fetch scan" }, { status: 500 });
   }
 }

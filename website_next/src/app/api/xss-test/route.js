@@ -1,8 +1,18 @@
-import * as cheerio from 'cheerio';
-import axios from 'axios';
+// File: app/api/xss-test/route.js
+import { NextResponse } from 'next/server';
 import Crawler from 'crawler';
+import * as cheerio from 'cheerio';
+import https from 'https';
+import axios from 'axios';
 
-const xssInjectionPayloads = [
+// Axios instance accepting self-signed certificates
+const axiosInstance = axios.create({
+  httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+  timeout: 10000,
+});
+
+// XSS payloads to test
+const xssPayloads = [
   '<script>alert("XSS")</script>',
   '<img src="x" onerror="alert(1)">',
   '<svg onload="alert(1)">',
@@ -10,106 +20,111 @@ const xssInjectionPayloads = [
   '<a href="javascript:alert(1)">Click me</a>',
 ];
 
-// Fonction pour détecter les failles XSS
-async function detectXSS(url) {
+/**
+ * Test a single page for XSS by injecting payloads into a `name` parameter.
+ */
+async function detectXSS(pageUrl) {
+  const results = [];
   try {
-    console.info(`Testing XSS on ${url}`);
-    const problematicUrls = [];
-
-    for (const payload of xssInjectionPayloads) {
-      const testUrl = `${url}?name=${encodeURIComponent(payload)}`;
-      console.info(`Testing URL: ${testUrl}`);
-
-      const response = await axios.get(testUrl);
-      const $ = cheerio.load(response.data);
-
-      // Vérifier si le payload est présent dans la réponse HTML
-      if ($.html().includes(payload)) {
-        problematicUrls.push(testUrl);
+    for (const payload of xssPayloads) {
+      const separator = pageUrl.includes('?') ? '&' : '?';
+      const urlWithPayload = `${pageUrl}${separator}name=${encodeURIComponent(payload)}`;
+      console.info(`➡️ Testing XSS payload on: ${urlWithPayload}`);
+      const { data: html } = await axiosInstance.get(urlWithPayload);
+      if (html.includes(payload)) {
+        results.push(urlWithPayload);
+        console.warn(`🚨 XSS trouvé sur ${urlWithPayload}`);
       }
     }
-
-    return problematicUrls.length > 0
-      ? { url, xssDetected: true, problematicUrls }
-      : { url, xssDetected: false };
-  } catch (error) {
-    console.error(`Error testing XSS on ${url}: ${error.message}`);
-    return { url, error: error.message };
+    return results.length > 0
+      ? { url: pageUrl, xssDetected: true, problematicUrls: results }
+      : { url: pageUrl, xssDetected: false };
+  } catch (err) {
+    console.error(`❌ Error on ${pageUrl}: ${err.message}`);
+    return { url: pageUrl, error: err.message, xssDetected: false };
   }
 }
 
-// Fonction pour crawler le site et détecter les failles XSS
-async function crawlAndDetectXSS(startUrl) {
-  const visitedUrls = new Set();
-  const xssResults = [];
+/**
+ * Crawl a site starting from `startUrl` and run detectXSS on each internal page.
+ */
+function crawlAndDetectXSS(startUrl) {
+  const visited = new Set();
+  const queueSet = new Set();
+  const findings = [];
   const mainDomain = new URL(startUrl).hostname;
 
   const crawler = new Crawler({
-    maxConnections: 10,
-    retries: 3,
+    maxConnections: 5,
+    retries: 2,
+    strictSSL: false,
+    jQuery: false, // disable built-in jQuery, we'll use cheerio
     callback: async (error, res, done) => {
       if (error) {
-        console.error(`Error crawling ${res.options.uri}: ${error.message}`);
-      } else {
-        const $ = res.$;
-        const pageUrl = res.options.uri;
-        if ($ && pageUrl) {
-          console.info(`Crawling page: ${pageUrl}`);
-
-          visitedUrls.add(pageUrl);
-
-          // Test la page actuelle pour les failles XSS
-          const xssResult = await detectXSS(pageUrl);
-          if (xssResult.xssDetected) {
-            xssResults.push(xssResult);
-          }
-
-          // Extraire les liens internes
-          $('a[href]').each((_, element) => {
-            const href = $(element).attr('href');
-            if (href) {
-              const absoluteUrl = new URL(href, startUrl).href;
-              if (
-                absoluteUrl.startsWith(`http://${mainDomain}`) ||
-                absoluteUrl.startsWith(`https://${mainDomain}`)
-              ) {
-                if (!visitedUrls.has(absoluteUrl)) {
-                  visitedUrls.add(absoluteUrl);
-                  crawler.queue(absoluteUrl);
-                }
-              }
-            }
-          });
-        }
+        console.error(`Crawler error: ${error.message}`);
+        done();
+        return;
       }
+
+      // Get actual URL
+      const pageUrl = res.request?.uri?.href || res.options?.url;
+      if (!pageUrl || visited.has(pageUrl)) {
+        done();
+        return;
+      }
+      console.info(`🔍 Crawling: ${pageUrl}`);
+      visited.add(pageUrl);
+
+      // Load HTML with cheerio
+      const html = res.body;
+      if (typeof html !== 'string') {
+        done();
+        return;
+      }
+      const $ = cheerio.load(html);
+
+      // Detect XSS on this page
+      const result = await detectXSS(pageUrl);
+      if (result.xssDetected) findings.push(result);
+
+      // Enqueue internal links
+      $('a[href]').each((i, el) => {
+        const href = $(el).attr('href');
+        if (!href || href.startsWith('#') || href.startsWith('mailto:')) return;
+        try {
+          const absolute = new URL(href, pageUrl).href;
+          const domain = new URL(absolute).hostname;
+          if (domain === mainDomain && !visited.has(absolute) && !queueSet.has(absolute)) {
+            queueSet.add(absolute);
+            crawler.queue({ url: absolute });
+          }
+        } catch {
+          // Skip invalid URLs
+        }
+      });
+
       done();
     },
   });
 
   return new Promise((resolve) => {
-    crawler.queue(startUrl);
-    crawler.on('drain', () => {
-      console.info('Crawling finished.');
-      resolve(xssResults);
-    });
+    queueSet.add(startUrl);
+    crawler.queue({ url: startUrl });
+    crawler.on('drain', () => resolve(findings));
   });
 }
 
 export async function POST(req) {
-  const { startUrl } = await req.json();
-
-  if (!startUrl) {
-    return new Response(JSON.stringify({ error: 'startUrl is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  try {
+    const { startUrl } = await req.json();
+    if (!startUrl) {
+      return NextResponse.json({ error: 'startUrl is required' }, { status: 400 });
+    }
+    console.info(`🚀 Starting XSS crawl on: ${startUrl}`);
+    const results = await crawlAndDetectXSS(startUrl);
+    return NextResponse.json(results);
+  } catch (err) {
+    console.error(`Route error: ${err.message}`);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  console.info(`Starting XSS detection on ${startUrl}`);
-  const result = await crawlAndDetectXSS(startUrl);
-
-  return new Response(JSON.stringify(result), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
 }
