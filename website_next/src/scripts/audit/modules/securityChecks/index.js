@@ -10,6 +10,9 @@ const SQLI_PAYLOADS = [
   `' OR '${INJECTION_MARKER}' = '${INJECTION_MARKER}' -- `,
 ];
 const XSS_PAYLOADS = getPayloadsFromFile();
+// const XSS_PAYLOADS = [
+//   "<script>alert('XSS')</script>",
+// ]
 const PARAM_TAMPERING_PAYLOADS = ["9999", "1 OR 1=1", "<script>alert('x')</script>"];
 const USER_LIST = ["root", "admin"];
 const PASSWORD_LIST = ["123456", "password", "12345678"];

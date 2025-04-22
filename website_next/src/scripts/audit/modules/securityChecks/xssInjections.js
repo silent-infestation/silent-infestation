@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 
 export function getPayloadsFromFile() {
-  //fix the path to the payloads file
   const filePath = path.join(process.cwd(), 'website_next/src/scripts/audit/utils', 'xss-payloads-list.txt');
   const fileContent = fs.readFileSync(filePath, 'utf8');
   const payloads = fileContent.split('\n').filter((line) => line.trim() !== '');
@@ -16,16 +15,10 @@ export function getPayloadsFromFile() {
  * @param {cheerio.Root} $ - cheerio-parsed HTML document
  * @returns {object|null} detection result with echoed payload info or null
  */
+
 export function detectReflectedXSSResponses($) {
   console.info('Detecting reflected XSS payloads in response...');
   const xssInjectionPayloads = getPayloadsFromFile();
-  // Uncomment the following lines to use hardcoded payloads instead of file-based ones
-  // const xssInjectionPayloads = [
-  //   '<script>alert("XSS")</script>',
-  //   '<img src="x" onerror="alert(1)">',
-  //   '<svg onload="alert(1)">',
-  //   '<iframe src="javascript:alert(1)"></iframe>',
-  //   '<a href="javascript:alert(1)">Click me</a>',
 
   const foundElements = [];
 
@@ -56,6 +49,7 @@ export function detectReflectedXSSResponses($) {
 
   return null;
 }
+
 
 /**
  * Detects stored XSS payloads in raw response HTML where the payload is stored and reflected back.

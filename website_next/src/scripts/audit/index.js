@@ -1,6 +1,8 @@
 import Crawler from "crawler";
 import { URL } from "url";
 import { PrismaClient } from "@prisma/client";
+import axios from "axios";
+import * as cheerio from "cheerio";
 
 import { normalizeUrl, isSameDomain } from "./utils/url";
 import { noteFindingFactory } from "./utils/findings";
@@ -115,6 +117,44 @@ async function startCrawler(startUrl, visitedUrls = new Map(), noteFinding = () 
           checkForPasswordReset(pageUrl, noteFinding);
           checkCredentialsInUrl(pageUrl, noteFinding);
 
+          const reflectedXSS = detectReflectedXSSResponses(res.$);
+          if (reflectedXSS) {
+            noteFinding("xss_reflected", pageUrl, reflectedXSS);
+          }
+
+          const storedXSS = detectStoredXSSResponses(res.$);
+          if (storedXSS) {
+            noteFinding("xss_stored", pageUrl, storedXSS);
+          }
+
+          // Injection et test des charges utiles XSS
+          const xssPayloads = [
+            '<script>alert("XSS")</script>',
+            '<img src="x" onerror="alert(1)">',
+            '<svg onload="alert(1)">',
+            '<iframe src="javascript:alert(1)"></iframe>',
+            '<a href="javascript:alert(1)">Click me</a>',
+          ];
+
+          for (const payloadUrl of injectXSSPayloads(pageUrl, xssPayloads)) {
+            try {
+              const response = await axios.get(payloadUrl);
+              const $ = cheerio.load(response.data);
+
+              const reflectedXSS = detectReflectedXSSResponses($);
+              if (reflectedXSS) {
+                noteFinding("xss_reflected", payloadUrl, reflectedXSS);
+              }
+
+              const storedXSS = detectStoredXSSResponses($);
+              if (storedXSS) {
+                noteFinding("xss_stored", payloadUrl, storedXSS);
+              }
+            } catch (err) {
+              console.error(`Error testing XSS on ${payloadUrl}: ${err.message}`);
+            }
+          }
+
           for (const link of extractLinks(res.$, domain, pageUrl)) {
             if (!visitedUrls.has(link)) crawler.queue(link);
           }
@@ -148,4 +188,15 @@ function extractLinks($, domain, baseUrl) {
     }
   });
   return [...links];
+}
+
+/**
+ * Injects XSS payloads into the given URL.
+ *
+ * @param {string} url - The URL to inject payloads into
+ * @param {string[]} payloads - Array of XSS payloads
+ * @returns {string[]} - Array of URLs with injected payloads
+ */
+function injectXSSPayloads(url, payloads) {
+  return payloads.map((payload) => `${url}?test=${encodeURIComponent(payload)}`);
 }
