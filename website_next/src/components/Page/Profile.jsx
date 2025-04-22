@@ -23,7 +23,6 @@ export default function Profile() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [trustedUrls, setTrustedUrls] = useState([]);
   const [trustedSites, setTrustedSites] = useState([]);
   const [newUrl, setNewUrl] = useState("");
 
@@ -144,7 +143,6 @@ export default function Profile() {
           isAlertErrorMessage: false,
           alertTitle: "Compte supprimé avec succès.",
         });
-
       } else {
         setAlert({
           isShowingAlert: true,
@@ -167,7 +165,7 @@ export default function Profile() {
     try {
       new URL(url);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
@@ -184,8 +182,7 @@ export default function Profile() {
       setAlert({
         isShowingAlert: true,
         isAlertErrorMessage: true,
-        alertTitle:
-          "L'URL saisie est invalide, exemple : https://www.exemple.com",
+        alertTitle: "L'URL saisie est invalide, exemple : https://www.exemple.com",
       });
       return;
     }
@@ -196,7 +193,7 @@ export default function Profile() {
         { url: newUrl, userId: authUser.id },
         { headers: { Authorization: `Bearer ${authUser.token}` } }
       );
-      
+
       if (siteRes.status === 200 || siteRes.ok) {
         const site = siteRes.data;
         setTrustedSites((prev) => [...prev, site]);
@@ -253,16 +250,13 @@ export default function Profile() {
     }
   };
 
-
   const handleDeleteUrl = async (siteIdToDelete) => {
     console.log("Suppression du site avec ID :", siteIdToDelete);
     try {
       const res = await api.del(`/sites?siteId=${siteIdToDelete}`);
       if (res.status === 200 || res.ok) {
         // Mise à jour du state pour supprimer le site localement
-        setTrustedSites((prev) =>
-          prev.filter((site) => site.id !== siteIdToDelete)
-        );
+        setTrustedSites((prev) => prev.filter((site) => site.id !== siteIdToDelete));
         setAlert({
           isShowingAlert: true,
           isAlertErrorMessage: false,
@@ -284,8 +278,6 @@ export default function Profile() {
       });
     }
   };
-
-
 
   if (loading) return <p className="mt-10 text-center">Chargement du profil...</p>;
   if (!authUser) return <p className="mt-10 text-center">Utilisateur non connecté.</p>;

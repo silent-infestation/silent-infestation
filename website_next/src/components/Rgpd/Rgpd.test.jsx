@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import Rgpd from "./Rgpd";
 
 // Mock AOS
@@ -28,5 +28,4 @@ describe("Rgpd Component", () => {
     render(<Rgpd />);
     expect(init).toHaveBeenCalled();
   });
-
-  });
+});

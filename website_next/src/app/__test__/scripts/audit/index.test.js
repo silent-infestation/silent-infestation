@@ -39,14 +39,6 @@ import {
   securityResources,
 } from "../../../../scripts/audit/utils/findings";
 
-const cheerio = require("cheerio");
-
-const mockCheerio = cheerio.load(
-  `<html><body><a href='/link1'></a><a href='/image.jpg'></a></body></html>`
-);
-
-const mock$ = mockCheerio;
-
 describe("runAudit", () => {
   beforeEach(() => {
     jest.clearAllMocks();

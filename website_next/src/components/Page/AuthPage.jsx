@@ -12,6 +12,7 @@ export default function AuthPage() {
       <div className="relative mb-10 mt-32 w-full max-w-sm border-b border-gray-300">
         {/* Barre animée */}
         <span
+          data-testid="animated-bar"
           className="absolute bottom-0 h-[3px] bg-[#05829e] transition-all duration-300"
           style={{
             width: "50%",
