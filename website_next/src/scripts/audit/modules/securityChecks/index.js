@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { detectSQLInjectionResponses, detectTestingStringResponses } from "./sqlInjections";
+import { detectReflectedXSSResponses, detectStoredXSSResponses } from "./xssInjections";
 import { checkCookiesForSecurityFlags } from "../authChecks";
 
 const INJECTION_MARKER = "57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING";
@@ -11,6 +12,13 @@ const SQLI_PAYLOADS = [
 const PARAM_TAMPERING_PAYLOADS = ["9999", "1 OR 1=1", "<script>alert('x')</script>"];
 const USER_LIST = ["root", "admin"];
 const PASSWORD_LIST = ["123456", "password", "12345678"];
+const XSS_PAYLOADS = [
+  "<script>alert('XSS')</script>",
+  "<img src=x onerror=alert('XSS')>",
+  "<svg onload=alert('XSS')>",
+  "<iframe src='javascript:alert(1)'></iframe>",
+  "<a href='javascript:alert(1)'>Click me</a>",
+];
 
 /**
  * Detects SQL injection or reflected marker patterns in response body.
@@ -19,7 +27,10 @@ const PASSWORD_LIST = ["123456", "password", "12345678"];
  * @returns {object|null} structured detection result or null
  */
 export function detectPatterns($) {
-  const detections = [detectSQLInjectionResponses, detectTestingStringResponses]
+  const detections = [
+    detectSQLInjectionResponses, detectTestingStringResponses,
+    detectReflectedXSSResponses, detectStoredXSSResponses
+  ]
     .map((fn) => fn($))
     .filter(Boolean);
 
@@ -103,7 +114,7 @@ export function getDefaultValueByType(type) {
  */
 export async function submitFormWithPayloads(form, noteFinding) {
   const { actionUrl, method, formData, formInputs } = form;
-  const allPayloads = [...SQLI_PAYLOADS, ...PARAM_TAMPERING_PAYLOADS];
+  const allPayloads = [...SQLI_PAYLOADS,  ...PARAM_TAMPERING_PAYLOADS, ...XSS_PAYLOADS];
 
   for (const field of Object.keys(formData)) {
     for (const payload of allPayloads) {
