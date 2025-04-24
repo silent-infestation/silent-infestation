@@ -1,108 +1,112 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import { AppProvider, useAppContext } from "./AppContext";
 
-// Mock global fetch
-global.fetch = jest.fn();
-
-// Mock sessionStorage
-beforeEach(() => {
-  global.sessionStorage.setItem = jest.fn();
-  global.sessionStorage.getItem = jest.fn();
-  global.sessionStorage.removeItem = jest.fn();
-});
-
-// Composant de test pour simuler login et logout
+// Composant de test qui est toujours rendu
 const TestComponent = () => {
-  const { login, logout } = useAppContext();
+  const { login, logout, loading } = useAppContext();
+
   return (
-    <>
-      <button onClick={login}>Login</button>
-      <button onClick={logout}>Logout</button>
-    </>
+    <div>
+      {!loading && (
+        <>
+          <button onClick={login}>Login</button>
+          <button onClick={logout}>Logout</button>
+        </>
+      )}
+    </div>
   );
 };
 
-// Test d'authentification
-test("should check if user is authenticated and set activePage", async () => {
-  // Simuler une réponse de l'API pour un utilisateur authentifié
-  fetch.mockResolvedValueOnce({
-    ok: true,
-    json: () => Promise.resolve({ authenticated: true }),
+// Mock complet de sessionStorage
+const mockSessionStorage = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn((key) => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value;
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+  };
+})();
+
+beforeEach(() => {
+  Object.defineProperty(window, "sessionStorage", {
+    value: mockSessionStorage,
+    writable: true,
   });
 
-  render(
-    <AppProvider>
-      <TestComponent />
-    </AppProvider>
-  );
+  mockSessionStorage.getItem.mockClear();
+  mockSessionStorage.setItem.mockClear();
+  mockSessionStorage.removeItem.mockClear();
 
-  await waitFor(() => expect(screen.getByText("Login")).toBeInTheDocument());
-
-  // Vérifie que la page active est définie sur 'profile'
-  expect(sessionStorage.getItem("activePage")).toBe("profile");
+  global.fetch = jest.fn();
 });
 
-// Test de déconnexion
-test("should handle logout action and set activePage to home", async () => {
-  fetch.mockResolvedValueOnce({
-    ok: true,
-    json: () => Promise.resolve({ authenticated: false }),
+describe("AppContext", () => {
+  test("should check if user is authenticated and set activePage", async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ authenticated: true }),
+    });
+
+    render(
+      <AppProvider>
+        <TestComponent />
+      </AppProvider>
+    );
+
+    await waitFor(() =>
+      expect(sessionStorage.setItem).toHaveBeenCalledWith("activePage", "profile")
+    );
   });
 
-  render(
-    <AppProvider>
-      <TestComponent />
-    </AppProvider>
-  );
+  test("should handle logout action and set activePage to home", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
 
-  await waitFor(() => expect(screen.getByText("Login")).toBeInTheDocument());
+    render(
+      <AppProvider>
+        <TestComponent />
+      </AppProvider>
+    );
 
-  // Simuler la déconnexion
-  const logoutButton = screen.getByText("Logout");
-  fireEvent.click(logoutButton);
+    await waitFor(() => screen.getByText("Logout")); // assure que les boutons sont montés
+    fireEvent.click(screen.getByText("Logout"));
 
-  await waitFor(() => {
-    expect(sessionStorage.getItem("activePage")).toBe("home");
-  });
-});
-
-// Test de connexion
-test("should handle login action and set activePage to profile", async () => {
-  fetch.mockResolvedValueOnce({
-    ok: true,
-    json: () => Promise.resolve({ authenticated: true }),
+    await waitFor(() => expect(sessionStorage.setItem).toHaveBeenCalledWith("activePage", "home"));
   });
 
-  render(
-    <AppProvider>
-      <TestComponent />
-    </AppProvider>
-  );
+  test("should handle login action and set activePage to profile", async () => {
+    render(
+      <AppProvider>
+        <TestComponent />
+      </AppProvider>
+    );
 
-  await waitFor(() => expect(screen.getByText("Login")).toBeInTheDocument());
+    await waitFor(() => screen.getByText("Login"));
+    fireEvent.click(screen.getByText("Login"));
 
-  // Simuler la connexion
-  const loginButton = screen.getByText("Login");
-  fireEvent.click(loginButton);
-
-  await waitFor(() => {
-    expect(sessionStorage.getItem("activePage")).toBe("profile");
+    await waitFor(() =>
+      expect(sessionStorage.setItem).toHaveBeenCalledWith("activePage", "profile")
+    );
   });
-});
 
-// Test d'erreur API
-test("should handle API error correctly and set activePage to home", async () => {
-  // Simuler une erreur de l'API
-  fetch.mockRejectedValueOnce(new Error("API Error"));
+  test("should handle API error correctly and set activePage to home", async () => {
+    global.fetch.mockRejectedValueOnce(new Error("API error"));
 
-  render(
-    <AppProvider>
-      <TestComponent />
-    </AppProvider>
-  );
+    render(
+      <AppProvider>
+        <TestComponent />
+      </AppProvider>
+    );
 
-  await waitFor(() => {
-    expect(sessionStorage.getItem("activePage")).toBe("home");
+    await waitFor(() => expect(sessionStorage.setItem).toHaveBeenCalledWith("activePage", "home"));
   });
 });

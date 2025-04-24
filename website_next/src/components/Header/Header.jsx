@@ -5,7 +5,6 @@ import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/app/context/AppContext";
-import api from "@/lib/api";
 import { useAuth } from "@/app/context/AuthProvider";
 
 let progressIntervalId = null;
@@ -33,7 +32,17 @@ export default function Header() {
   const startScan = async () => {
     if (!selectedUrl) return;
     try {
-      const { data } = await api.post("/scan/start", { startUrl: selectedUrl });
+      const { data } = await fetch("/api/scan/start", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          startUrl: selectedUrl,
+        }),
+      }).then((res) => res.json());
+      if (!data) throw new Error("Aucune donnée reçue !");
       if (!data.scanId) throw new Error("Scan ID manquant !");
       setScanId(data.scanId);
       setPopupStep("loading");
@@ -56,7 +65,16 @@ export default function Header() {
     }
 
     try {
-      await api.post("/scan/terminate", { scanId });
+      await fetch("/api/scan/terminate", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          scanId,
+        }),
+      });
     } catch (err) {
       console.error("Erreur terminaison scan ➜", err);
     }
@@ -84,7 +102,16 @@ export default function Header() {
   const pollScanStatus = () => {
     statusIntervalId = setInterval(async () => {
       try {
-        const { data } = await api.get("/scan/status");
+        const { data } = await fetch("/api/scan/status", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            scanId,
+          }),
+        }).then((res) => res.json());
         if (data.status === "success") {
           clearInterval(statusIntervalId);
           statusIntervalId = null;
@@ -305,9 +332,12 @@ export default function Header() {
                 <button
                   onClick={async () => {
                     try {
-                      const blob = await api.get(`/downloadReport/${scanId}`, {
-                        responseType: "blob",
-                      });
+                      const blob = await fetch(`/api/downloadReport/${scanId}`, {
+                        method: "GET",
+                        headers: {
+                          "Content-Type": "application/pdf",
+                        },
+                      }).then((res) => res.blob());
                       const url = URL.createObjectURL(blob);
 
                       const link = document.createElement("a");
