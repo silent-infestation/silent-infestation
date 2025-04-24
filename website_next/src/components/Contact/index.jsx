@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Alert from "@/components/Alert/Alert";
 import { TypeAnimation } from "react-type-animation";
-import api from "@/lib/api";
 
 const Contact = () => {
   const [alert, setAlert] = useState({
@@ -33,24 +32,32 @@ const Contact = () => {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await api.post("/mailer", {
-        type: "contact",
-        email: data.email,
-        sujet: data.subject,
-        message: data.message,
+      const response = await fetch("/api/mailer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.name,
+          type: "contact",
+          email: data.email,
+          sujet: data.subject,
+          message: data.message,
+        }),
       });
 
-      if (response.status === 200) {
+      if (!response.ok) {
+        const errorData = await response.json();
         setAlert({
           isShowingAlert: true,
-          isAlertErrorMessage: false,
-          alertTitle: "Message envoyé avec succès !",
+          isAlertErrorMessage: true,
+          alertTitle: errorData || "Erreur lors de l'envoi du message.",
         });
       } else {
         setAlert({
           isShowingAlert: true,
-          isAlertErrorMessage: true,
-          alertTitle: response.error || "Erreur lors de l'envoi du message.",
+          isAlertErrorMessage: false,
+          alertTitle: "Message envoyé avec succès !",
         });
       }
     } catch (error) {

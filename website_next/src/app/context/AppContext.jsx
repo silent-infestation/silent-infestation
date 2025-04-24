@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import api from "@/lib/api";
 
 const AppContext = createContext();
 
@@ -19,9 +18,13 @@ export const AppProvider = ({ children }) => {
       const savedPage = sessionStorage.getItem("activePage");
 
       try {
-        const res = await api.get("/auth/status");
+        const res = await fetch("/api/auth/status", {
+          method: "GET",
+          credentials: "include",
+        });
 
-        if (res.ok && res.data.authenticated) {
+        const { authenticated } = await res.json();
+        if (res.ok && authenticated) {
           setIsAuthenticated(true);
 
           const targetPage = savedPage || DEFAULT_PRIVATE_PAGE;

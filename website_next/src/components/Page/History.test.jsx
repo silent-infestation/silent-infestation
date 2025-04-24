@@ -3,7 +3,6 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import Historique from "./History.jsx";
 import "@testing-library/jest-dom";
 
-// Mocks globaux
 const mockScans = [
   {
     id: "1",
@@ -25,15 +24,16 @@ const mockScans = [
   },
 ];
 
-// Mock API pour le téléchargement PDF
-jest.mock("@/lib/api", () => ({
-  get: jest.fn(() => new Blob(["dummy PDF content"], { type: "application/pdf" })),
-}));
-
 beforeEach(() => {
   global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
     json: () => Promise.resolve({ scans: mockScans, total: 3 }),
+    blob: () => Promise.resolve(new Blob(["dummy PDF content"], { type: "application/pdf" })),
   });
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
 });
 
 describe("Historique", () => {
