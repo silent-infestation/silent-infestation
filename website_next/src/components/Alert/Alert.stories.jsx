@@ -1,4 +1,3 @@
-// src/components/Alert/Alert.stories.jsx
 import { useState } from "react";
 import Alert from "./Alert";
 import { action } from "@storybook/addon-actions";
@@ -8,7 +7,7 @@ export default {
   component: Alert,
   tags: ["autodocs"],
   argTypes: {
-    onClose: { action: "closed" }, // journalise la fermeture
+    onClose: { action: "closed" }, 
     isShowingAlert: { control: "boolean" },
     isAlertErrorMessage: { control: "boolean" },
     alertTitle: { control: "text" },
@@ -18,10 +17,7 @@ export default {
   },
 };
 
-/**
- * Petit wrapper pour pouvoir montrer / masquer l'alerte
- * via les Controls sans déclencher le timeout interne.
- */
+
 function StatefulAlert(props) {
   const [open, setOpen] = useState(props.isShowingAlert);
 
@@ -31,7 +27,7 @@ function StatefulAlert(props) {
       isShowingAlert={open}
       onClose={() => {
         setOpen(false);
-        action("closed")(); // consigne dans l'onglet “Actions”
+        action("closed")();
       }}
     />
   );

@@ -1,7 +1,5 @@
-// stories/Contact.stories.jsx
-
 import React from "react";
-import Contact from "."; // Ajustez ce chemin selon votre structure
+import Contact from "."; 
 
 export default {
   title: "Composants/Formulaires/Contact",
@@ -31,9 +29,7 @@ Le composant **Contact** permet aux utilisateurs de prendre contact avec votre Ã
 
 const Template = (args) => <Contact {...args} />;
 
-/**
- * ðŸ§ª Cas de test principal : Formulaire avec animation et alertes
- */
+
 export const FormulaireDeContact = Template.bind({});
 FormulaireDeContact.storyName = "Formulaire de contact";
 FormulaireDeContact.args = {};

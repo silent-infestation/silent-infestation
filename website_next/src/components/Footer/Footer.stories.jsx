@@ -1,7 +1,5 @@
-// stories/Footer.stories.jsx
-
 import React from "react";
-import Footer from "."; // Adaptez ce chemin selon votre architecture
+import Footer from ".";
 
 export default {
   title: "Composants/Structure/Footer",
@@ -33,9 +31,6 @@ Le composant **Footer** constitue le pied de page global de l’application.
 
 const Template = (args) => <Footer {...args} />;
 
-/**
- * 🧪 Cas de test principal : Affichage du footer avec icônes et copyright
- */
 export const FooterStandard = Template.bind({});
 FooterStandard.storyName = "Pied de page standard";
 FooterStandard.args = {};

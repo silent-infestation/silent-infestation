@@ -1,7 +1,5 @@
-// stories/Team.stories.jsx
-
 import React from "react";
-import Team from "."; // Adaptez le chemin selon votre structure
+import Team from "."; 
 
 export default {
   title: "Composants/Présentation/Équipe",
@@ -32,9 +30,7 @@ Le composant **Team** présente les membres de l'équipe avec une mise en page d
 
 const Template = (args) => <Team {...args} />;
 
-/**
- * 🧪 Cas de test principal : Présentation standard de l’équipe
- */
+
 export const PrésentationÉquipe = Template.bind({});
 PrésentationÉquipe.storyName = "Présentation de l’équipe";
 PrésentationÉquipe.args = {};
