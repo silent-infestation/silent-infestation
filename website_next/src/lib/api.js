@@ -49,5 +49,9 @@ class Api {
   }
 }
 
-const api = new Api("http://localhost:3000/api");
+const urlApi = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+if (!urlApi) {
+  throw new Error("API URL is not defined. Please set NEXT_PUBLIC_API_URL or API_URL.");
+}
+const api = new Api(urlApi);
 export default api;
