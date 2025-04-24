@@ -1,7 +1,7 @@
 import About from "./About";
 
 export default {
-  title: "Components/About", 
+  title: "Components/About",
   component: About,
   tags: ["autodocs"],
   parameters: {

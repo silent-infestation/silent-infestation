@@ -194,10 +194,10 @@ export default function Profile() {
         { headers: { Authorization: `Bearer ${authUser.token}` } }
       );
 
-      if (siteRes.status === 200 || siteRes.ok) {
+      if (siteRes.status === 200 || siteRes.ok || siteRes.status === 201) {
         const site = siteRes.data;
         setTrustedSites((prev) => [...prev, site]);
-        if (siteRes.status === 200) {
+        if (siteRes.status === 200 || siteRes.ok || siteRes.status === 201) {
           setAlert({
             isShowingAlert: true,
             isAlertErrorMessage: false,
