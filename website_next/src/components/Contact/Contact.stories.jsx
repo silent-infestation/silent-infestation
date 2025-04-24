@@ -1,5 +1,5 @@
 import React from "react";
-import Contact from "."; 
+import Contact from ".";
 
 export default {
   title: "Composants/Formulaires/Contact",
@@ -28,7 +28,6 @@ Le composant **Contact** permet aux utilisateurs de prendre contact avec votre Ã
 };
 
 const Template = (args) => <Contact {...args} />;
-
 
 export const FormulaireDeContact = Template.bind({});
 FormulaireDeContact.storyName = "Formulaire de contact";

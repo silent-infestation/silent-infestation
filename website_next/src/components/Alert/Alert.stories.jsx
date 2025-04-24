@@ -7,7 +7,7 @@ export default {
   component: Alert,
   tags: ["autodocs"],
   argTypes: {
-    onClose: { action: "closed" }, 
+    onClose: { action: "closed" },
     isShowingAlert: { control: "boolean" },
     isAlertErrorMessage: { control: "boolean" },
     alertTitle: { control: "text" },
@@ -16,7 +16,6 @@ export default {
     layout: "fullscreen",
   },
 };
-
 
 function StatefulAlert(props) {
   const [open, setOpen] = useState(props.isShowingAlert);

@@ -1,5 +1,5 @@
 import React from "react";
-import Team from "."; 
+import Team from ".";
 
 export default {
   title: "Composants/Présentation/Équipe",
@@ -29,7 +29,6 @@ Le composant **Team** présente les membres de l'équipe avec une mise en page d
 };
 
 const Template = (args) => <Team {...args} />;
-
 
 export const PrésentationÉquipe = Template.bind({});
 PrésentationÉquipe.storyName = "Présentation de l’équipe";

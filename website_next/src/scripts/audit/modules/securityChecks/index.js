@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { detectSQLInjectionResponses, detectTestingStringResponses } from "./sqlInjections";
+import { detectReflectedXSSResponses, detectStoredXSSResponses } from "./xssInjections";
 import { checkCookiesForSecurityFlags } from "../authChecks";
 
 const INJECTION_MARKER = "57ddbd5f-a702-4b94-8c1f-0741741a34fb_TESTING";
@@ -11,6 +12,11 @@ const SQLI_PAYLOADS = [
 const PARAM_TAMPERING_PAYLOADS = ["9999", "1 OR 1=1", "<script>alert('x')</script>"];
 const USER_LIST = ["root", "admin"];
 const PASSWORD_LIST = ["123456", "password", "12345678"];
+const XSS_PAYLOADS = [
+  "<svg><title>XSS-TEST</title></svg>",
+  "<img src='x' alt='XSS-Payload'>",
+  "<svg><desc>XSS-Test</desc></svg>",
+];
 
 /**
  * Detects SQL injection or reflected marker patterns in response body.
@@ -18,20 +24,28 @@ const PASSWORD_LIST = ["123456", "password", "12345678"];
  * @param {cheerio.Root} $ - cheerio-parsed HTML document
  * @returns {object|null} structured detection result or null
  */
-export function detectPatterns($) {
-  const detections = [detectSQLInjectionResponses, detectTestingStringResponses]
-    .map((fn) => fn($))
-    .filter(Boolean);
+export function detectPatterns($, detectionType = "generic") {
+  let detections = [];
 
-  if (detections.length > 1) {
-    return { combined: true, detections, confidence: "high", severity: "high" };
-  } else if (detections.length === 1) {
-    return {
-      combined: false,
-      detections,
-      confidence: "medium",
-      severity: "medium",
-    };
+  if (detectionType === "sqli") {
+    detections = [detectSQLInjectionResponses, detectTestingStringResponses];
+  } else if (detectionType === "xss") {
+    detections = [detectReflectedXSSResponses, detectStoredXSSResponses];
+  } else {
+    detections = [
+      detectSQLInjectionResponses,
+      detectTestingStringResponses,
+      detectReflectedXSSResponses,
+      detectStoredXSSResponses,
+    ];
+  }
+
+  const results = detections.map((fn) => fn($)).filter(Boolean);
+
+  if (results.length > 1) {
+    return { combined: true, detections: results, confidence: "high", severity: "high" };
+  } else if (results.length === 1) {
+    return { combined: false, detections: results, confidence: "medium", severity: "medium" };
   }
   return null;
 }
@@ -101,17 +115,48 @@ export function getDefaultValueByType(type) {
  * @param {object} form - Parsed form metadata
  * @param {Function} noteFinding - Finding logger
  */
+
 export async function submitFormWithPayloads(form, noteFinding) {
   const { actionUrl, method, formData, formInputs } = form;
-  const allPayloads = [...SQLI_PAYLOADS, ...PARAM_TAMPERING_PAYLOADS];
+  const allPayloads = [...SQLI_PAYLOADS, ...PARAM_TAMPERING_PAYLOADS, ...XSS_PAYLOADS];
 
   for (const field of Object.keys(formData)) {
     for (const payload of allPayloads) {
       const modifiedData = buildMockFormData(formData, formInputs, field, payload);
+      let detectionType = "generic";
+
+      if (SQLI_PAYLOADS.includes(payload)) {
+        detectionType = "sqli";
+      } else if (XSS_PAYLOADS.includes(payload)) {
+        detectionType = "xss";
+      }
+
       try {
         const resp = await sendRequest(actionUrl, method, modifiedData);
         const $ = cheerio.load(resp.data);
-        const result = detectPatterns($);
+        const result = detectPatterns($, detectionType);
+
+        if (detectionType === "xss") {
+          const requestUrl =
+            method === "POST"
+              ? `${actionUrl} (POST)`
+              : `${actionUrl}?${new URLSearchParams(modifiedData).toString()}`;
+
+          console.log(`🐸🔍 XSS Debug | Field: '${field}'`);
+          console.log(`🔗 URL: ${requestUrl}`);
+          console.log(`💣 Payload: "${payload}"`);
+
+          const rawBody = resp.data;
+          const snippetStart = rawBody.indexOf(payload);
+
+          if (snippetStart !== -1) {
+            const snippet = rawBody.substring(snippetStart, snippetStart + 120);
+            console.log(`🧼 Reflected snippet: ${snippet.replace(/\n/g, "")}`);
+            console.log("Result:", result);
+          } else {
+            console.log("🚫 Payload not reflected directly.");
+          }
+        }
 
         if (result) {
           const typeList = result.detections?.map((d) => d.type) || [];
