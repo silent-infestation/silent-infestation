@@ -25,61 +25,16 @@ docker-compose -f docker-compose.dev.yml up -d --build
 docker exec -it website_silen2festation npx prisma migrate dev
 ```
 
-## Website
+To start storybook :
 
-Go to https://silentinfestation.grigou.fr/, enter URL of targeted website and wait while the our websites deploys bots to scan known, up-to-date vulnerabilities.
+```
+cd website_next
+npm run storybook
+```
 
-## Internal program setup
+To start swagger :
 
-This is going to try and find vulnerabilities from your machine into your local network & checks your machine for misconfigurations that allow root priviledge escalation using current CVEs
-
-## References
-
-- [Link to list of used CVEs](https://gitlab.com/exploit-database)
-
-## Credits
-
-<table>
-  <tr>
-    <td align="center">
-      <a
-        href="https://github.com/Vulcanosaurus"
-        ><img src="https://github.com/EpitechMscProPromo2025/T-YEP-600-PAR-6-1-finalproject-lucas.laruelle/tree/main/website_next/public/assets/nicolas-andrei.corlan@epitech.eu.jpg" width="100px;" alt="" /><br /><sub
-          ><b>nicolas-andrei.corlan@epitech.eu</b></sub
-        ></a
-      ><br />
-    </td>
-    <td align="center">
-      <a
-        href="https://github.com/edmond-loembe"
-        ><img src="https://github.com/EpitechMscProPromo2025/T-YEP-600-PAR-6-1-finalproject-lucas.laruelle/tree/main/website_next/public/assets/edmond.loembe-sauthat@epitech.eu.jpg" width="100px;" alt="" /><br /><sub
-          ><b>edmond.loembe-sauthat@epitech.eu</b></sub
-        ></a
-      ><br />
-    </td>
-    <td align="center">
-      <a
-        href="https://github.com/Ukher"
-        ><img src="https://github.com/EpitechMscProPromo2025/T-YEP-600-PAR-6-1-finalproject-lucas.laruelle/tree/main/website_next/public/assets/hugo.kerivel-larriviere@epitech.eu.jpg" width="100px;" alt="" /><br /><sub
-          ><b>hugo.kerivel-larriviere@epitech.eu</b></sub
-        ></a
-      ><br />
-    </td>
-    <td align="center">
-      <a
-        href="https://this-person-does-not-exist.com"
-        ><img src="https://github.com/EpitechMscProPromo2025/T-YEP-600-PAR-6-1-finalproject-lucas.laruelle/tree/main/website_next/public/assets/lucas.laruelle@epitech.eu.jpg" width="100px;" alt="" /><br /><sub
-          ><b>lucas.laruelle@epitech.eu</b></sub
-        ></a
-      ><br />
-    </td>
-    <td align="center">
-      <a
-        href="https://github.com/ThibautWa"
-        ><img src="https://github.com/EpitechMscProPromo2025/T-YEP-600-PAR-6-1-finalproject-lucas.laruelle/tree/main/website_next/public/assets/thibaut.jager@epitech.eu.jpg" width="100px;" alt="" /><br /><sub
-          ><b>thibaut.jager@epitech.eu</b></sub
-        ></a
-      ><br />
-    </td>
-  </tr>
-</table>
+```
+cd website_next
+npm run swagger
+```
