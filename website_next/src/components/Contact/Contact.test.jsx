@@ -1,17 +1,18 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Contact from ".";
-import api from "@/lib/api";
 
-jest.mock("@/lib/api");
+// Mock global fetch
+beforeEach(() => {
+  global.fetch = jest.fn();
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+});
 
 describe("Contact Component", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it("affiche tous les champs du formulaire", () => {
     render(<Contact />);
-
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Sujet/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Message/i)).toBeInTheDocument();
@@ -19,7 +20,10 @@ describe("Contact Component", () => {
   });
 
   it("envoie le formulaire avec succès et affiche un message de confirmation", async () => {
-    api.post.mockResolvedValue({ status: 200 });
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    });
 
     render(<Contact />);
 
@@ -41,7 +45,7 @@ describe("Contact Component", () => {
   });
 
   it("gère une erreur d'envoi et affiche un message d'erreur", async () => {
-    api.post.mockRejectedValue(new Error("Erreur réseau"));
+    fetch.mockRejectedValueOnce(new Error("Erreur réseau"));
 
     render(<Contact />);
 
@@ -63,7 +67,10 @@ describe("Contact Component", () => {
   });
 
   it("réinitialise le formulaire après envoi", async () => {
-    api.post.mockResolvedValue({ status: 200 });
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    });
 
     render(<Contact />);
 

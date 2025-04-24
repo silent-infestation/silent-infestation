@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import { CheckCircle, AlertTriangle, XCircle, Search, Download } from "lucide-react";
-import api from "@/lib/api";
 
 export default function Historique() {
   const [search, setSearch] = useState("");
@@ -147,9 +146,12 @@ export default function Historique() {
                 className="mt-4 flex items-center gap-2 rounded-lg bg-[#05829E] px-4 py-2 text-white shadow transition hover:bg-[#04657B]"
                 onClick={async () => {
                   try {
-                    const blob = await api.get(`/downloadReport/${scan.id}`, {
-                      responseType: "blob",
-                    });
+                    const blob = await fetch(`/api/downloadReport/${scan.id}`, {
+                      method: "GET",
+                      headers: {
+                        "Content-Type": "application/pdf",
+                      },
+                    }).then((res) => res.blob());
                     const url = URL.createObjectURL(blob);
 
                     const link = document.createElement("a");
